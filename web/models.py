@@ -1,30 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import User
 
-# Create your models here.
-
-class Empresa(models.Model):
-    empresa = models.OneToOneField(User,on_delete=models.RESTRICT)
-    id_empresa = models.CharField(max_length=8,blank=False)   # es el ID en la BD del Servidor
-    directorio = models.CharField(max_length=8,blank=False)   # es la ubicacion dentro del servidor
-    fecha_inicio = models.DateField()
-    almacen_actual = models.IntegerField(null=False,default=1)
-    almacen_facturacion = models.IntegerField(null=False,default=1)
-    decimales_unidades = models.SmallIntegerField(null=False,default='2')
-    decimales_importe = models.SmallIntegerField(null=False,default='2')
-    cuenta_iva = models.CharField(max_length=24,null=True)  #cuenta iva contabilidad
-    clave_compras = models.CharField(max_length=2,blank=False,default='CO')
-    clave_traspasos = models.CharField(max_length=2,blank=False,default='TR')
-    clave_remision = models.CharField(max_length=2,blank=False,default='RE')
-    iva = models.DecimalField(max_digits=9,decimal_places=2)   # iva en facturas
-    retencion_iva = models.DecimalField(max_digits=9,decimal_places=5)  # % de retencion de iva en facturas
-    retencion_isr = models.DecimalField(max_digits=9,decimal_places=5)  # % de retencion de isr en facturas
-    ieps = models.DecimalField(max_digits=9,decimal_places=5)  # % de retencion de ieps en facturas
-    ip = models.CharField(max_length=24,null=True)  #direccion ip de la app en el servidor
-
-    def __str__(self):
-        return self.nombre 
- 
 class Categoria(models.Model):
     nombre = models.CharField(max_length=100)
     categoria = models.IntegerField(null=False, default=1)
@@ -57,6 +33,9 @@ class Moneda(models.Model):
 class UnidadMedida(models.Model):
     unidad_medida = models.CharField(max_length=20,blank=False)
     descripcion = models.CharField(max_length=30,blank=False)
+
+    def __str__(self):
+        return self.unidad_medida
 
 # 'E' entrada, 'S' salida, 'C' compras
 class ClaveMovimiento(models.Model):   
@@ -149,7 +128,7 @@ class Movimiento(models.Model):
     
 class DetalleMovimiento(models.Model):
     referencia = models.ForeignKey(Movimiento,on_delete=models.RESTRICT)
-    producto = models.ForeignKey(Cliente,on_delete=models.RESTRICT)
+    producto = models.ForeignKey(Producto,on_delete=models.RESTRICT)
     cantidad = models.DecimalField(null=True, decimal_places=2, max_digits=10)
     precio = models.DecimalField(null=True, decimal_places=2, max_digits=10)
     descuento = models.DecimalField(null=True, decimal_places=2, max_digits=10)
@@ -193,7 +172,7 @@ class Remision(models.Model):
     estado = models.CharField(max_length=1,default='R',choices=ESTADO_CHOICES)   # CON Esto, solo permite 0 o 1
 
     def __str__(self):
-        return self.numero_pedido
+        return self.numero_remision
 
 class DetalleRemision(models.Model):
     numero_remision = models.ForeignKey(Remision,on_delete=models.RESTRICT)
@@ -203,12 +182,14 @@ class DetalleRemision(models.Model):
     descuento = models.DecimalField(null=True, decimal_places=2, max_digits=10)
     subtotal = models.DecimalField(max_digits=10,decimal_places=2,null=True)
 
-    def __str__(delf):
+    def __str__(self):
         return self.producto.nombre
 
 class SaldoInicial(models.Model):
     almacen = models.ForeignKey(Almacen,on_delete=models.RESTRICT)
     producto = models.ForeignKey(Producto,on_delete=models.RESTRICT)
-    Existencia = models.DecimalField(decimal_places=2, max_digits=10, default=0,null=False)
+    existencia = models.DecimalField(decimal_places=2, max_digits=10, default=0,null=False)
     fecha = models.DateField(blank=False)
     
+    def __str__(self):
+        return self.producto.nombre

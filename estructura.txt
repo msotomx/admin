@@ -1,0 +1,100 @@
+ESTRUCTURA DEL PROYECTO admin
+CON LAS SIGUIENTES APPs: inv, cxc, fac
+
+admin/
+│
+├── admin/
+│   ├── __init__.py
+│   ├── settings.py
+│   ├── urls.py
+│   ├── wsgi.py
+│   └── asgi.py
+│
+├── core/                  # es comun, datos de la empresa
+│   ├── __init__.py
+│   ├── admin.py
+│   ├── apps.py
+│   ├── migrations/
+│   ├── models.py
+│   ├── tests.py
+│   ├── urls.py
+│   ├── views.py
+│   └── templates/
+│       └── inv/
+│           ├── base.html
+│           ├── some_template.html
+│           └── other_template.html
+│
+├── inv/
+│   ├── __init__.py
+│   ├── admin.py
+│   ├── apps.py
+│   ├── migrations/
+│   ├── models.py
+│   ├── tests.py
+│   ├── urls.py
+│   ├── views.py
+│   └── templates/
+│       └── inv/
+│           ├── base.html
+│           ├── some_template.html
+│           └── other_template.html
+│
+├── cxc/
+│   ├── __init__.py
+│   ├── admin.py
+│   ├── apps.py
+│   ├── migrations/
+│   ├── models.py
+│   ├── tests.py
+│   ├── urls.py
+│   ├── views.py
+│   └── templates/
+│       └── cxc/
+│           ├── base.html
+│           ├── some_template.html
+│           └── other_template.html
+│
+├── fac/
+│   ├── __init__.py
+│   ├── admin.py
+│   ├── apps.py
+│   ├── migrations/
+│   ├── models.py
+│   ├── tests.py
+│   ├── urls.py
+│   ├── views.py
+│   └── templates/
+│       └── fac/
+│           ├── base.html
+│           ├── some_template.html
+│           └── other_template.html
+│
+├── templates/        -- son los templates globales
+│   ├── base.html
+│   ├── navbar.html
+│   └── other_shared_templates.html
+│
+├── static/
+│   ├── inv/
+│   │   ├── css/
+│   │   ├── js/
+│   │   └── img/
+│   ├── cxc/
+│   │   ├── css/
+│   │   ├── js/
+│   │   └── img/
+│   ├── fac/
+│   │   ├── css/
+│   │   ├── js/
+│   │   └── img/
+│   └── css/                --- globales
+│       ├── styles.css
+│   └── js/                 --- globales
+│       ├── scripts.js
+│   └── img/                --- globales
+│       ├── logo.png
+│   └── fonts/              --- globales
+│       ├── custom-font.ttf
+│
+├── manage.py

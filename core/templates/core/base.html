@@ -1,0 +1,21 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>{% block title %}Mi App{% endblock %}</title>
+    <link rel="stylesheet" href="{% static 'core/css/styles.css' %}">
+</head>
+<body>
+    <nav>
+        <!-- Tu navbar aquí -->
+        <a href="{% url 'inv:index' %}">Inventario</a>
+        <a href="{% url 'cxc:index' %}">Clientes</a>
+        <a href="{% url 'fac:index' %}">Facturación</a>
+    </nav>
+
+    <main>
+        {% block content %}{% endblock %}
+    </main>
+</body>
+</html>
