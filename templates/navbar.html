@@ -1,7 +1,98 @@
-<nav>
-    <ul>
-        <li><a href="{% url 'inv:index' %}">Inventario</a></li>
-        <li><a href="{% url 'cxc:index' %}">Cuentas x Cobrar</a></li>
-        <li><a href="{% url 'fac:index' %}">Facturación</a></li>
-    </ul>
+{% load static %}
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+  <div class="container-fluid">
+    <!-- Nombre de la Empresa -->
+    <a class="navbar-brand" href="#">
+      {% if user.is_authenticated %}
+        {% with empresa=user.empresa %}
+          {{ empresa.nombre }}
+        {% endwith %}
+      {% else %}
+        Bit•Sistemas
+      {% endif %}
+    </a>
+
+    <!-- Botón toggle en móvil -->
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavDropdown">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <!-- Menú desplegable -->
+    <div class="collapse navbar-collapse" id="navbarNavDropdown">
+      <ul class="navbar-nav me-auto">
+        <!-- Catálogos -->
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="#" id="catalogosDropdown" role="button" data-bs-toggle="dropdown">Catálogos</a>
+          <ul class="dropdown-menu">
+            <li><a class="dropdown-item" href="#">Monedas</a></li>
+            <li><a class="dropdown-item" href="#">Categorías</a></li>
+            <li><a class="dropdown-item" href="#">Unidad de Medida</a></li>
+            <li><a class="dropdown-item" href="#">Almacenes</a></li>
+            <li><a class="dropdown-item" href="#">Tipos de Movimiento Inventario</a></li>
+            <li><a class="dropdown-item" href="#">Tipos de Cliente</a></li>
+            <li><a class="dropdown-item" href="#">Clientes</a></li>
+            <li><a class="dropdown-item" href="#">Proveedores</a></li>
+            <li><a class="dropdown-item" href="#">Productos</a></li>
+          </ul>
+        </li>
+
+        <!-- Movimientos -->
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="#" id="movimientosDropdown" role="button" data-bs-toggle="dropdown">Movimientos</a>
+          <ul class="dropdown-menu">
+            <li><a class="dropdown-item" href="#">Movimientos Almacén</a></li>
+            <li><a class="dropdown-item" href="#">Remisiones</a></li>
+            <li><a class="dropdown-item" href="#">Traspasos</a></li>
+          </ul>
+        </li>
+
+        <!-- Consultas -->
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="#" id="consultasDropdown" role="button" data-bs-toggle="dropdown">Consultas</a>
+          <ul class="dropdown-menu">
+            <li><a class="dropdown-item" href="#">Movimientos de Almacén</a></li>
+            <li><a class="dropdown-item" href="#">Productos más Vendidos</a></li>
+            <li><a class="dropdown-item" href="#">Compras por Producto</a></li>
+            <li><a class="dropdown-item" href="#">Compras por Proveedor</a></li>
+            <li><a class="dropdown-item" href="#">Movimientos por Cliente</a></li>
+          </ul>
+        </li>
+
+        <!-- Reportes -->
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="#" id="reportesDropdown" role="button" data-bs-toggle="dropdown">Reportes</a>
+          <ul class="dropdown-menu">
+            <li><a class="dropdown-item" href="#">Ventas</a></li>
+            <li><a class="dropdown-item" href="#">Compras</a></li>
+            <li><a class="dropdown-item" href="#">Inventario</a></li>
+            <li><a class="dropdown-item" href="#">Cuentas por Cobrar</a></li>
+            <li><a class="dropdown-item" href="#">Analítico de Almacén</a></li>
+            <li><a class="dropdown-item" href="#">Antigüedad de Saldos</a></li>
+            <li><a class="dropdown-item" href="#">Analítico de Clientes</a></li>
+          </ul>
+        </li>
+
+        <!-- Información general -->
+        <li class="nav-item">
+          <a class="nav-link" href="#">Información General</a>
+        </li>
+      </ul>
+
+      <!-- Usuario y login/logout -->
+      <ul class="navbar-nav">
+        {% if user.is_authenticated %}
+          <li class="nav-item">
+            <span class="navbar-text me-2">👤 {{ user.username }}</span>
+          </li>
+          <li class="nav-item">
+            <a class="btn btn-outline-light btn-sm" href="{% url 'core:logout' %}">Cerrar sesión</a>
+          </li>
+        {% else %}
+          <li class="nav-item">
+            <a class="btn btn-outline-light btn-sm" href="{% url 'core:login' %}">Iniciar sesión</a>
+          </li>
+        {% endif %}
+      </ul>
+    </div>
+  </div>
 </nav>

@@ -34,6 +34,9 @@ ALLOWED_HOSTS = []
 INSTALLED_APPS = [
     'core',
     'inv',
+    'cxc',
+    'fac',
+    'widget_tweaks',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -80,7 +83,7 @@ WSGI_APPLICATION = 'admin.wsgi.application'
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.mysql",
-        "NAME": "db_admin",
+        "NAME": "db_admin_a",
         "USER": "root",
         "PASSWORD": "",
         "HOST": "127.0.0.1",
@@ -136,7 +139,24 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 MEDIA_ROOT = os.path.join(BASE_DIR,'media')
 MEDIA_URL = '/media/'
 
-LOGIN_URL = '/login/'  # O la URL a la que se debe redirigir si no está autenticado
-LOGIN_REDIRECT_URL = '/'
-#LOGIN_REDIRECT_URL = '/core/empresa/'  # o donde quieras mandar al usuario después de login
-LOGOUT_REDIRECT_URL = '/login/'
+#LOGIN_URL = '/login/'  # O la URL a la que se debe redirigir si no está autenticado
+#LOGIN_REDIRECT_URL = '/'
+#LOGOUT_REDIRECT_URL = '/login/'
+
+from django.urls import reverse_lazy
+
+PASSWORD_RESET_TIMEOUT = 60 * 60  # 1 hora
+LOGIN_URL = reverse_lazy('core:login')
+LOGOUT_REDIRECT_URL = reverse_lazy('core:login')
+LOGIN_REDIRECT_URL = reverse_lazy('core:inicio')
+
+# Para desarrollo, usando la consola de Django para pruebas
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+
+# Para producción, configura un servidor SMTP real
+# EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+# EMAIL_HOST = 'smtp.gmail.com'  # Ejemplo, puedes usar otro proveedor
+# EMAIL_PORT = 587
+# EMAIL_USE_TLS = True
+# EMAIL_HOST_USER = 'your_email@example.com'
+# EMAIL_HOST_PASSWORD = 'your_email_password'

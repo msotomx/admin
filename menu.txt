@@ -1,0 +1,40 @@
+MENU
+ |--  Catálogos
+ |	|-- Monedas
+ |	|-- Categorias 
+ |	|-- Unidad de Medida
+ |	|-- Almacenes
+ |	|-- Tipos de Movimiento Inventario
+ |	|-- Tipos de Cliente
+ |	|-- Clientes
+ |	|-- Proveedores
+ |	|-- Productos
+ |
+ |--  Movimientos
+ |	|-- Movimientos Almacen
+ |	|-- Remisiones
+ |	|-- Traspasos 
+ |	
+ |--  Consultas
+ |	|-- Movimientos de Almacen
+ |	|-- Productos mas Vendidos
+ |	|-- Compras por Producto
+ |	|-- Compras por Proveedor
+ |	|-- Movimientos por Cliente
+ |
+ |--   Facturacion
+ |	
+ |--   Cuentas por Cobrar
+ |	|-- Registrar Cargos
+ |	|-- Registrar Abonos
+ |	|-- 
+ |--   Reportes
+ |	|-- Ventas
+ |	|-- Compras
+ |	|-- Inventario
+ |	|-- Cuentas por Cobrar
+ |	|-- Analitico de Almacen
+ |	|-- Antiguedad de Saldos
+ |	|-- Analitico de Clientes
+ |
+ |--   Informacion General
