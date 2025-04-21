@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2>Proveedores</h2>
+        <a href="{% url 'inv:proveedor_create' %}" class="btn btn-primary mb-2">Nuevo Proveedor</a>
+    </div>
+    <table class="table table-bordered table-striped">
+        <thead class="table-dark">
+            <tr>
+                <th>Nombre</th>
+                <th>Contacto</th>
+                <th>Teléfono</th>
+                <th>Email</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for proveedor in proveedores %}
+            <tr>
+                <td>{{ proveedor.nombre }}</td>
+                <td>{{ proveedor.contacto }}</td>
+                <td>{{ proveedor.telefono1 }}</td>
+                <td>{{ proveedor.email }}</td>
+                <td>
+                    <a href="{% url 'inv:proveedor_update' proveedor.id %}" class="btn btn-sm btn-warning">Editar</a>
+                    <a href="{% url 'inv:proveedor_delete' proveedor.id %}" class="btn btn-sm btn-danger">Eliminar</a>
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

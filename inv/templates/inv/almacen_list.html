@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2>Almacenes</h2>
+        <a href="{% url 'inv:almacen_create' %}" class="btn btn-primary">Nuevo Almacen</a>
+    </div>
+
+    {% if almacenes %}
+        <table class="table table-bordered table-striped">
+            <thead class="table-dark">
+                <tr>
+                    <th>Almacén</th>
+                    <th>Nombre</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for almacen in almacenes %}
+                <tr>
+                    <td>{{ almacen.almacen }}</td>
+                    <td>{{ almacen.nombre }}</td>
+                    <td>
+                        <a href="{% url 'inv:almacen_update' almacen.pk %}" class="btn btn-sm btn-warning">Editar</a>
+                        <a href="{% url 'inv:almacen_delete' almacen.pk %}" class="btn btn-sm btn-danger">Eliminar</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <div class="alert alert-info">No hay almacenes registrados.</div>
+    {% endif %}
+</div>
+{% endblock %}

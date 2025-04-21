@@ -24,14 +24,14 @@
         <li class="nav-item dropdown">
           <a class="nav-link dropdown-toggle" href="#" id="catalogosDropdown" role="button" data-bs-toggle="dropdown">Catálogos</a>
           <ul class="dropdown-menu">
-            <li><a class="dropdown-item" href="#">Monedas</a></li>
-            <li><a class="dropdown-item" href="#">Categorías</a></li>
-            <li><a class="dropdown-item" href="#">Unidad de Medida</a></li>
-            <li><a class="dropdown-item" href="#">Almacenes</a></li>
-            <li><a class="dropdown-item" href="#">Tipos de Movimiento Inventario</a></li>
+            <li><a class="dropdown-item" href="{% url 'inv:moneda_list' %}">Monedas</a></li>
+            <li><a class="dropdown-item" href="{% url 'inv:categoria_list' %}">Categorías</a></li>
+            <li><a class="dropdown-item" href="{% url 'inv:unidadmedida_list' %}">Unidad de Medida</a></li>
+            <li><a class="dropdown-item" href="{% url 'inv:almacen_list' %}">Almacenes</a></li>
+            <li><a class="dropdown-item" href="{% url 'inv:clavemovimiento_list' %}">Claves de Movimiento Inventario</a></li>
             <li><a class="dropdown-item" href="#">Tipos de Cliente</a></li>
             <li><a class="dropdown-item" href="#">Clientes</a></li>
-            <li><a class="dropdown-item" href="#">Proveedores</a></li>
+            <li><a class="dropdown-item" href="{% url 'inv:proveedor_list' %}">Proveedores</a></li>
             <li><a class="dropdown-item" href="#">Productos</a></li>
           </ul>
         </li>

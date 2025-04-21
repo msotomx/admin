@@ -17,7 +17,7 @@ class UnidadMedida(models.Model):
         return self.unidad_medida
 
 class Almacen(models.Model):
-    almacen = models.IntegerField(null=False,default=1)
+    almacen = models.IntegerField(null=False,unique=True)
     nombre = models.CharField(max_length=30,blank=False,default='')
     
     def __str__(self):
@@ -34,7 +34,7 @@ class Moneda(models.Model):
 
 # 'E' entrada, 'S' salida, 'C' compras
 class ClaveMovimiento(models.Model):   
-    clave_movimiento = models.CharField(max_length=2,default='01', blank=False)
+    clave_movimiento = models.CharField(max_length=2,default='01', blank=False, unique=True)
     nombre = models.CharField(max_length=30,null=True)
     tipo = models.CharField(max_length=1,default='E',blank=False)  # E o S 
     
