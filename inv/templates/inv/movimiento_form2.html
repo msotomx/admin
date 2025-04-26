@@ -1,0 +1,106 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load form_tags %}
+{% load form_extras %}
+{% block content %}
+<div class="container mt-4">
+    <h2 class="mb-4">Nuevo Movimiento</h2>
+    <form method="POST">
+        {% csrf_token %}
+        <div class="row g-2">
+            <div class="col-md-3 mb-2">
+                <label class="form-label small">Referencia</label>
+                {{ form.referencia|add_bootstrap_class }}
+            </div>
+            <div class="col-md-3 mb-2">
+                <label class="form-label small">Fecha</label>
+                {{ form.fecha_movimiento|add_bootstrap_class }}
+            </div>
+            <div class="col-md-3 mb-2">
+                <label class="form-label small">Tipo Movimiento</label>
+                {{ form.clave_movimiento|add_bootstrap_class }}
+            </div>
+            <div class="col-md-3 mb-2">
+                <label class="form-label small">Almacén</label>
+                {{ form.almacen|add_bootstrap_class }}
+            </div>
+        </div>
+
+        <hr>
+        <h5 class="mt-4">Detalle del Movimiento</h5>
+     
+        <!-- Tabla para captura los productos del movimiento, el detalle -->
+        <table class="table table-bordered table-sm" id="detalle-tabla">
+            <thead class="table-light small">
+                <tr>
+                    <th>Producto</th>
+                    <th>Cantidad</th>
+                    <th>Precio</th>
+                    <th>Descuento</th>
+                    <th>Subtotal</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Fila vacía como plantilla -->
+                <tr class="detalle-fila small">
+                    <td>
+                        <select name="producto[]" class="form-select form-select-sm">
+                            {% for producto in productos %}
+                                <option value="{{ producto.id }}">{{ producto.nombre }}</option>
+                            {% endfor %}
+                        </select>
+                    </td>
+                    <td><input type="number" step="0.01" name="cantidad[]" class="form-control form-control-sm cantidad"></td>
+                    <td><input type="number" step="0.01" name="precio[]" class="form-control form-control-sm precio"></td>
+                    <td><input type="number" step="0.01" name="descuento[]" class="form-control form-control-sm descuento"></td>
+                    <td><input type="number" step="0.01" name="subtotal[]" class="form-control form-control-sm subtotal" readonly></td>
+                    <td><button type="button" class="btn btn-sm btn-danger eliminar-fila">🗑</button></td>
+                </tr>
+            </tbody>
+        </table>
+        <button type="button" class="btn btn-sm btn-outline-primary" id="agregar-fila">+ Agregar Renglón</button>
+
+        <!-- Fin detalle de movimientos -->
+
+        <div class="mt-4">
+            <button type="submit" class="btn btn-success">Guardar Movimiento</button>
+            <a href="{% url 'inv:movimiento_list' %}" class="btn btn-secondary">Cancelar</a>
+        </div>
+    </form>
+</div>
+
+<!-- Script para el calculo del Subtotal -->
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        function calcularSubtotal(fila) {
+            let cantidad = parseFloat(fila.querySelector(".cantidad").value) || 0;
+            let precio = parseFloat(fila.querySelector(".precio").value) || 0;
+            let descuento = parseFloat(fila.querySelector(".descuento").value) || 0;
+            let subtotal = (cantidad * precio) - descuento;
+            fila.querySelector(".subtotal").value = subtotal.toFixed(2);
+        }
+    
+        function agregarEventos(fila) {
+            ['cantidad', 'precio', 'descuento'].forEach(clase => {
+                fila.querySelector(`.${clase}`).addEventListener('input', () => calcularSubtotal(fila));
+            });
+    
+            fila.querySelector(".eliminar-fila").addEventListener("click", () => {
+                fila.remove();
+            });
+        }
+    
+        document.getElementById("agregar-fila").addEventListener("click", () => {
+            let tabla = document.getElementById("detalle-tabla").querySelector("tbody");
+            let nuevaFila = tabla.querySelector(".detalle-fila").cloneNode(true);
+            nuevaFila.querySelectorAll("input").forEach(input => input.value = "");
+            tabla.appendChild(nuevaFila);
+            agregarEventos(nuevaFila);
+        });
+    
+        // Inicializar eventos para la fila original
+        agregarEventos(document.querySelector(".detalle-fila"));
+    });
+</script>
+{% endblock  %}    

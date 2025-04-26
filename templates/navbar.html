@@ -1,5 +1,5 @@
 {% load static %}
-<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark"> <!-- dark-->
   <div class="container-fluid">
     <!-- Nombre de la Empresa -->
     <a class="navbar-brand" href="#">
@@ -29,10 +29,10 @@
             <li><a class="dropdown-item" href="{% url 'inv:unidadmedida_list' %}">Unidad de Medida</a></li>
             <li><a class="dropdown-item" href="{% url 'inv:almacen_list' %}">Almacenes</a></li>
             <li><a class="dropdown-item" href="{% url 'inv:clavemovimiento_list' %}">Claves de Movimiento Inventario</a></li>
-            <li><a class="dropdown-item" href="#">Tipos de Cliente</a></li>
-            <li><a class="dropdown-item" href="#">Clientes</a></li>
+            <li><a class="dropdown-item" href="{% url 'cxc:tipocliente_list' %}">Tipos de Cliente</a></li>
+            <li><a class="dropdown-item" href="{% url 'cxc:cliente_list' %}">Clientes</a></li>
             <li><a class="dropdown-item" href="{% url 'inv:proveedor_list' %}">Proveedores</a></li>
-            <li><a class="dropdown-item" href="#">Productos</a></li>
+            <li><a class="dropdown-item" href="{% url 'inv:producto_list' %}">Productos</a></li>
           </ul>
         </li>
 
@@ -40,7 +40,7 @@
         <li class="nav-item dropdown">
           <a class="nav-link dropdown-toggle" href="#" id="movimientosDropdown" role="button" data-bs-toggle="dropdown">Movimientos</a>
           <ul class="dropdown-menu">
-            <li><a class="dropdown-item" href="#">Movimientos Almacén</a></li>
+            <li><a class="dropdown-item" href="{% url 'inv:movimiento_list' %}">Movimientos Almacén</a></li>
             <li><a class="dropdown-item" href="#">Remisiones</a></li>
             <li><a class="dropdown-item" href="#">Traspasos</a></li>
           </ul>

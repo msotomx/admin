@@ -1,0 +1,25 @@
+<table class="table table-sm table-bordered">
+    <thead class="table-light">
+        <tr>
+            <th>Producto</th>
+            <th>Cantidad</th>
+            <th>Precio</th>
+            <th>Descuento</th>
+            <th>Subtotal</th>
+            <th>Eliminar</th>
+        </tr>
+    </thead>
+    <tbody>
+        {{ formset.management_form }}
+        {% for form in formset %}
+            <tr>
+                <td>{{ form.producto }}</td>
+                <td>{{ form.cantidad|add_class:"form-control cantidad" }}</td>
+                <td>{{ form.precio|add_class:"form-control precio" }}</td>
+                <td>{{ form.descuento|add_class:"form-control descuento" }}</td>
+                <td>{{ form.subtotal|add_class:"form-control subtotal" }}</td>
+                <td>{{ form.DELETE }}</td>
+            </tr>
+        {% endfor %}
+    </tbody>
+</table>

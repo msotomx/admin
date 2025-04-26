@@ -1,16 +1,17 @@
 from django.urls import path
-from . import views
+#from . import views
 from .views import MonedaListView, MonedaCreateView, MonedaUpdateView, MonedaDeleteView
 from .views import CategoriaListView, CategoriaCreateView, CategoriaUpdateView, CategoriaDeleteView
 from .views import UnidadMedidaListView, UnidadMedidaCreateView, UnidadMedidaUpdateView, UnidadMedidaDeleteView
 from .views import AlmacenListView, AlmacenCreateView, AlmacenUpdateView, AlmacenDeleteView
 from .views import ClavesMovListView, ClavesMovCreateView, ClavesMovUpdateView, ClavesMovDeleteView
 from .views import ProveedorListView, ProveedorCreateView, ProveedorUpdateView, ProveedorDeleteView
+from .views import ProductoListView, ProductoCreateView, ProductoUpdateView, ProductoDeleteView
+from .views import MovimientoListView, MovimientoCreateView, MovimientoUpdateView, MovimientoDeleteView, MovimientoDetailView
 
 app_name = 'inv'
 
 urlpatterns = [
-    # path('', views.index, name='index'),
     path('monedas/', MonedaListView.as_view(), name='moneda_list'),
     path('monedas/nueva/', MonedaCreateView.as_view(), name='moneda_create'),
     path('monedas/<int:pk>/editar/', MonedaUpdateView.as_view(), name='moneda_update'),
@@ -25,14 +26,23 @@ urlpatterns = [
     path('unidadmedida/<int:pk>/eliminar/', UnidadMedidaDeleteView.as_view(), name='unidadmedida_delete'),
     path('almacen/', AlmacenListView.as_view(), name='almacen_list'),
     path('almacen/nueva/', AlmacenCreateView.as_view(), name='almacen_create'),
-    path('almacen/<int:pk>/editar/', AlmacenUpdateView.as_view(), name='almacen_update'),
-    path('almacen/<int:pk>/eliminar/', AlmacenDeleteView.as_view(), name='almacen_delete'),
+    path('almacen/editar/<int:pk>/', AlmacenUpdateView.as_view(), name='almacen_update'),
+    path('almacen/eliminar/<int:pk>/', AlmacenDeleteView.as_view(), name='almacen_delete'),
     path('clavemovimiento/', ClavesMovListView.as_view(), name='clavemovimiento_list'),
     path('clavemovimiento/nueva/', ClavesMovCreateView.as_view(), name='clavemovimiento_create'),
-    path('clavemovimiento/<int:pk>/editar/', ClavesMovUpdateView.as_view(), name='clavemovimiento_update'),
-    path('clavemovimiento/<int:pk>/eliminar/', ClavesMovDeleteView.as_view(), name='clavemovimiento_delete'),
+    path('clavemovimiento/editar/<int:pk>/', ClavesMovUpdateView.as_view(), name='clavemovimiento_update'),
+    path('clavemovimiento/eliminar/<int:pk>/', ClavesMovDeleteView.as_view(), name='clavemovimiento_delete'),
     path('proveedores/', ProveedorListView.as_view(), name='proveedor_list'),
     path('proveedores/nuevo/', ProveedorCreateView.as_view(), name='proveedor_create'),
     path('proveedores/editar/<int:pk>/', ProveedorUpdateView.as_view(), name='proveedor_update'),
     path('proveedores/eliminar/<int:pk>/', ProveedorDeleteView.as_view(), name='proveedor_delete'),
+    path('producto/', ProductoListView.as_view(), name='producto_list'),
+    path('producto/nuevo/', ProductoCreateView.as_view(), name='producto_create'),
+    path('producto/editar/<int:pk>/', ProductoUpdateView.as_view(), name='producto_update'),
+    path('producto/eliminar/<int:pk>/', ProductoDeleteView.as_view(), name='producto_delete'),
+    path('movimiento/', MovimientoListView.as_view(), name='movimiento_list'),
+    path('movimiento/nuevo/', MovimientoCreateView.as_view(), name='movimiento_create'),
+    path('movimiento/editar/<int:pk>/', MovimientoUpdateView.as_view(), name='movimiento_update'),
+    path('movimiento/eliminar/<int:pk>/', MovimientoDeleteView.as_view(), name='movimiento_delete'),
+    path('movimiento/<int:pk>/', MovimientoDetailView.as_view(), name='movimiento_detail'),
 ]

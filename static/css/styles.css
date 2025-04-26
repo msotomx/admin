@@ -55,4 +55,14 @@
   .menu > li:hover .submenu {
     display: block;
   }
-  
+  .container_inicio {
+    background-color: yellow; /*  hsl(90, 100%, 80%); */
+    width: 75%;
+    height: 15rem;
+    /* background: hsl(60, 85%, 78%);  */
+    display: flex;
+    justify-content: center; /* Centra la imagen horizontalmente */
+    align-items: center;     /* Centra la imagen verticalmente */
+    text-align: center;
+
+  }

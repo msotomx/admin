@@ -1,0 +1,28 @@
+<div class="container mt-4">
+    <h2 class="mb-4">Nuevo Movimiento</h2>
+    <form method="POST">
+        {% csrf_token %}
+        <div class="row g-2">
+            <div class="col-md-3 mb-2">
+                <label class="form-label small">Referencia</label>
+                {{ form.referencia|add_bootstrap_class }}
+            </div>
+            <div class="col-md-3 mb-2">
+                <label class="form-label small">Clave de Movimiento</label>
+                {{ form.clave_movimiento|add_bootstrap_class }}
+            </div>
+            <div class="col-md-3 mb-2">
+                <label class="form-label small">Fecha</label>
+                {{ form.fecha_movimiento|add_bootstrap_class }}
+            </div>
+            <div class="col-md-3 mb-2">
+                <label class="form-label small">Almacén</label>
+                {{ form.almacen|add_bootstrap_class }}
+            </div>
+        </div>
+        <div class="mt-4">
+            <button type="submit" class="btn btn-success">Guardar Movimiento</button>
+            <a href="{% url 'inv:movimiento_list' %}" class="btn btn-secondary">Cancelar</a>
+        </div>
+    </form>
+</div>

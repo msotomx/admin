@@ -3,7 +3,7 @@ from django.contrib.auth.models import User
 
 # TipoCliente del 01 al 06 para asignarle el precio que le corresponde 
 class TipoCliente(models.Model):
-    tipo = models.SmallIntegerField(default=1)
+    tipo_cliente = models.SmallIntegerField(default=1)
     nombre = models.CharField(max_length=30,blank=True)
     
     def __str__(self):
@@ -20,18 +20,17 @@ class ClaveMovimientoCxC(models.Model):
 
 class Cliente(models.Model):
     cliente = models.IntegerField(null=False,default=1)
-    tipoCliente = models.ForeignKey(TipoCliente,on_delete=models.RESTRICT)
+    tipo_cliente = models.ForeignKey(TipoCliente,on_delete=models.RESTRICT)
     nombre = models.CharField(max_length=100,blank=False)
     rfc = models.CharField(max_length=13,blank=True)
-    telefono = models.CharField(max_length=12,blank=True)
     direccion = models.TextField(blank=True,default="")  # direccion fiscal
     codigo_postal = models.CharField(max_length=5,default="",blank=True)  #cp fiscal
     ciudad = models.CharField(max_length=100,blank=True,default="")       #ciudad fiscal
     direccion_entrega = models.TextField(blank=True,default="")
     codigo_postal_entrega = models.CharField(max_length=5,default="",blank=True)
     ciudad_entrega = models.CharField(max_length=100, blank=True,default="")
-    telefono1 = models.CharField(max_length=13, blank=True,default="")
-    telefono2 = models.CharField(max_length=13, blank=True,default="")
+    telefono1 = models.CharField(max_length=20, blank=True,default="")
+    telefono2 = models.CharField(max_length=20, blank=True,default="")
     email = models.EmailField(blank=True,default="")
     plazo_credito = models.SmallIntegerField(default=0, null=True)
     limite_credito = models.BigIntegerField(default=0,null=True)
@@ -40,7 +39,7 @@ class Cliente(models.Model):
     retencion_isr = models.BooleanField(default='False',blank=True)   # False - No se aplica, True - Se aplica al facturar
     ieps = models.BooleanField(default='False')            # False - No se aplica, True - Se aplica al facturar
     campo_libre_str = models.CharField(max_length=50,blank=True,default="")
-    campo_libre_real = models.FloatField(null=True,default=0) 
+    campo_libre_num = models.FloatField(null=True,default=0, blank=True) 
     comentarios = models.TextField(blank=True,default="")
 
     def __str__(self):

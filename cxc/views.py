@@ -1,6 +1,53 @@
 from django.shortcuts import render
 
 # Create your views here.
+from django.urls import reverse_lazy
+from django.views.generic import ListView, CreateView, UpdateView, DeleteView
+from .models import TipoCliente, Cliente, ClaveMovimientoCxC, Cargo, Abono, SaldoInicialCxC
+from .forms import TipoClienteForm, ClienteForm
 
-def index(request):
-    return render(request, 'inv/index.html')
+# CRUD TIPO DE CLIENTE
+class TipoClienteListView(ListView):
+    model = TipoCliente
+    template_name = 'cxc/tipocliente_list.html'
+    context_object_name = 'tiposcliente'
+
+class TipoClienteCreateView(CreateView):
+    model = TipoCliente
+    form_class = TipoClienteForm
+    template_name = 'cxc/tipocliente_form.html'
+    success_url = reverse_lazy('cxc:tipocliente_list')
+
+class TipoClienteUpdateView(UpdateView):
+    model = TipoCliente
+    form_class = TipoClienteForm
+    template_name = 'cxc/tipocliente_form.html'
+    success_url = reverse_lazy('cxc:tipocliente_list')
+
+class TipoClienteDeleteView(DeleteView):
+    model = TipoCliente
+    template_name = 'cxc/tipocliente_confirm_delete.html'
+    success_url = reverse_lazy('cxc:tipocliente_list')
+
+# CRUD CLIENTE
+class ClienteListView(ListView):
+    model = Cliente
+    template_name = 'cxc/cliente_list.html'
+    context_object_name = 'clientes'
+
+class ClienteCreateView(CreateView):
+    model = Cliente
+    form_class = ClienteForm
+    template_name = 'cxc/cliente_form.html'
+    success_url = reverse_lazy('cxc:cliente_list')
+
+class ClienteUpdateView(UpdateView):
+    model = Cliente
+    form_class = ClienteForm
+    template_name = 'cxc/cliente_form.html'
+    success_url = reverse_lazy('cxc:cliente_list')
+
+class ClienteDeleteView(DeleteView):
+    model = Cliente
+    template_name = 'cxc/cliente_confirm_delete.html'
+    success_url = reverse_lazy('cxc:cliente_list')

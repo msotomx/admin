@@ -2,10 +2,9 @@ from django.db import models
 from django.contrib.auth.models import User
 
 class Categoria(models.Model):
-    nombre = models.CharField(max_length=100)
     categoria = models.IntegerField(null=False, default=1)
-    subcategoria = models.IntegerField(null=False, default=0)
-
+    nombre = models.CharField(max_length=100)
+    
     def __str__(self):
         return self.nombre 
 
@@ -45,8 +44,8 @@ class Proveedor(models.Model):
     nombre = models.CharField(max_length=100,blank=False,default=" ")
     direccion = models.TextField(null=True,default="")
     contacto = models.CharField(max_length=100,default="")
-    telefono1 = models.CharField(max_length=13,default="")
-    telefono2 = models.CharField(max_length=13,default="")
+    telefono1 = models.CharField(max_length=20,default="")
+    telefono2 = models.CharField(max_length=20,default="")
     email = models.EmailField(blank=True,default="")
     plazo_credito = models.SmallIntegerField(default=0)
     comentarios = models.TextField(blank=True,default="")
@@ -57,34 +56,33 @@ class Proveedor(models.Model):
 class Producto(models.Model):
     sku = models.CharField(max_length=12, default='',blank=False)
     categoria = models.ForeignKey(Categoria,on_delete=models.RESTRICT)
-    subcategoria = models.IntegerField(null=False, default=0)
     nombre = models.CharField(max_length=200,blank=False)
     descripcion = models.TextField(null=True,blank=True)
+    imagen = models.ImageField(upload_to='productos',blank=True)
     precio1 = models.DecimalField(max_digits=9,decimal_places=2)
-    precio2 = models.DecimalField(max_digits=9,decimal_places=2)
-    precio3 = models.DecimalField(max_digits=9,decimal_places=2)
-    precio4 = models.DecimalField(max_digits=9,decimal_places=2)
-    precio5 = models.DecimalField(max_digits=9,decimal_places=2)
-    precio6 = models.DecimalField(max_digits=9,decimal_places=2)
+    precio2 = models.DecimalField(max_digits=9,decimal_places=2, default=0)
+    precio3 = models.DecimalField(max_digits=9,decimal_places=2, default=0)
+    precio4 = models.DecimalField(max_digits=9,decimal_places=2, default=0)
+    precio5 = models.DecimalField(max_digits=9,decimal_places=2, default=0)
+    precio6 = models.DecimalField(max_digits=9,decimal_places=2, default=0)
     maximo  = models.IntegerField(default=0) 
     minimo  = models.IntegerField(default=0) 
     reorden = models.IntegerField(default=0) 
     fecha_registro = models.DateField()
-    imagen = models.ImageField(upload_to='productos',blank=True)
     proveedor = models.ForeignKey(Proveedor,on_delete=models.RESTRICT)
     unidad_de_medida = models.ForeignKey(UnidadMedida,on_delete=models.RESTRICT)
     descuento_venta = models.DecimalField(default=0, decimal_places=2, max_digits=10)
     costo_reposicion = models.DecimalField(default=0, decimal_places=2, max_digits=10)
     iva = models.DecimalField(max_digits=10,decimal_places=4)  # Tasa de IVA
     campo_libre_str = models.CharField(max_length=50,blank=True,default='')
-    campo_libre_real = models.DecimalField(max_digits=10,decimal_places=4, default=0, null=True)
+    campo_libre_num = models.DecimalField(max_digits=10,decimal_places=4, default=0, null=True, blank=True)
 
     def __str__(self):
         return self.nombre
 
 class Movimiento(models.Model):
     usuario = models.ForeignKey(User,on_delete=models.RESTRICT)
-    referencia = models.CharField(max_length=8, blank=False)
+    referencia = models.CharField(max_length=8, blank=False,unique=True)
     move_s = models.CharField(max_length=1,blank=False)  # 'E' entrada 'S' salida
     clave_movimiento = models.ForeignKey(ClaveMovimiento,on_delete=models.RESTRICT)
     fecha_movimiento = models.DateField(blank=False)
@@ -94,8 +92,8 @@ class Movimiento(models.Model):
         return self.referencia
     
 class DetalleMovimiento(models.Model):
-    referencia = models.ForeignKey(Movimiento,on_delete=models.RESTRICT)
-    producto = models.ForeignKey(Producto,on_delete=models.RESTRICT)
+    referencia = models.ForeignKey(Movimiento,on_delete=models.CASCADE, related_name='detalles')
+    producto = models.ForeignKey(Producto,on_delete=models.PROTECT)
     cantidad = models.DecimalField(null=True, decimal_places=2, max_digits=10)
     precio = models.DecimalField(null=True, decimal_places=2, max_digits=10)
     descuento = models.DecimalField(null=True, decimal_places=2, max_digits=10)

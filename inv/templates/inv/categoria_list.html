@@ -8,16 +8,16 @@
     <table class="table table-bordered table-striped">
         <thead class="table-dark"> 
             <tr>
+                <th>Categoria</th>
                 <th>Nombre</th>
-                <th>Descripción</th>
                 <th>Acciones</th>
             </tr>
         </thead>
         <tbody>
             {% for categoria in categorias %}
             <tr>
+                <td>{{ categoria.categoria }}</td>
                 <td>{{ categoria.nombre }}</td>
-                <td>{{ categoria.descripcion }}</td>
                 <td>
                     <a href="{% url 'inv:categoria_update' categoria.id %}" class="btn btn-sm btn-warning">Editar</a>
                     <a href="{% url 'inv:categoria_delete' categoria.id %}" class="btn btn-sm btn-danger">Eliminar</a>

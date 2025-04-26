@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <h4>¿Estás seguro que deseas eliminar este movimiento?</h4>
+
+    <div class="card mt-3 mb-4">
+        <div class="card-body">
+            <p><strong>Referencia:</strong> {{ object.referencia }}</p>
+            <p><strong>Tipo:</strong> {{ object.move_s }}</p>
+            <p><strong>Movimiento:</strong> {{ object.clave_movimiento }}</p>
+            <p><strong>Fecha:</strong> {{ object.fecha_movimiento|date:"d/m/Y" }}</p>
+            <p><strong>Almacén:</strong> {{ object.almacen }}</p>
+            <p><strong>Usuario:</strong> {{ object.usuario }}</p>
+        </div>
+    </div>
+
+    {% if detalles %}
+    <h5>Detalle del Movimiento</h5>
+    <div class="table-responsive">
+        <table class="table table-sm table-bordered table-striped small">
+            <thead class="table-light">
+                <tr>
+                    <th>Producto</th>
+                    <th>Cantidad</th>
+                    <th>Precio</th>
+                    <th>Descuento</th>
+                    <th>Subtotal</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for detalle in detalles %}
+                <tr>
+                    <td>{{ detalle.producto }}</td>
+                    <td class="text-end">{{ detalle.cantidad }}</td>
+                    <td class="text-end">{{ detalle.precio }}</td>
+                    <td class="text-end">{{ detalle.descuento }}</td>
+                    <td class="text-end">{{ detalle.subtotal }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% endif %}
+
+    <form method="post" class="mt-4">
+        {% csrf_token %}
+        <a href="{% url 'inv:movimiento_list' %}" class="btn btn-secondary">Cancelar</a>
+        <button type="submit" class="btn btn-danger">Eliminar</button>
+    </form>
+</div>
+{% endblock %}

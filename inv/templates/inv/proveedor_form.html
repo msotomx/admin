@@ -1,22 +1,50 @@
-{% extends "base.html" %}
-{% load widget_tweaks %}
+{% extends 'base.html' %}
+{% load static %}
+{% load form_tags %}
 
 {% block content %}
 <div class="container mt-4">
     <h2>{{ view.object.pk|yesno:"Editar Proveedor,Nuevo Proveedor" }}</h2>
-    <form method="post">
+    <form method="POST">
         {% csrf_token %}
-        {% for field in form %}
-            <div class="mb-3">
-                <label class="form-label">{{ field.label }}</label>
-                {{ field|add_class:"form-control" }}
-                {% if field.errors %}
-                    <div class="text-danger">{{ field.errors }}</div>
-                {% endif %}
+        <div class="row g-2">
+            <div class="col-md-6 mb-2">
+                <label class="form-label small">Nombre</label>
+                {{ form.nombre|add_bootstrap_class }}
             </div>
-        {% endfor %}
-        <button type="submit" class="btn btn-success">Guardar</button>
-        <a href="{% url 'inv:proveedor_list' %}" class="btn btn-secondary">Cancelar</a>
+            <div class="col-md-6 mb-2">
+                <label class="form-label small">Contacto</label>
+                {{ form.contacto|add_bootstrap_class }}
+            </div>
+            <div class="col-md-12 mb-2">
+                <label class="form-label small">Dirección</label>
+                {{ form.direccion|add_bootstrap_class }}
+            </div>
+            <div class="col-md-6 mb-2">
+                <label class="form-label small">Teléfono 1</label>
+                {{ form.telefono1|add_bootstrap_class }}
+            </div>
+            <div class="col-md-6 mb-2">
+                <label class="form-label small">Teléfono 2</label>
+                {{ form.telefono2|add_bootstrap_class }}
+            </div>
+            <div class="col-md-6 mb-2">
+                <label class="form-label small">Email</label>
+                {{ form.email|add_bootstrap_class }}
+            </div>
+            <div class="col-md-3 mb-2">
+                <label class="form-label small">Plazo Crédito (días)</label>
+                {{ form.plazo_credito|add_bootstrap_class }}
+            </div>
+            <div class="col-md-12 mb-2">
+                <label class="form-label small">Comentarios</label>
+                {{ form.comentarios|add_bootstrap_class }}
+            </div>
+        </div>
+        <div class="mt-4">
+            <button type="submit" class="btn btn-success">Guardar Proveedor</button>
+            <a href="{% url 'inv:proveedor_list' %}" class="btn btn-secondary">Cancelar</a>
+        </div>
     </form>
 </div>
 {% endblock %}

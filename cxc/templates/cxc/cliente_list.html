@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2>Clientes</h2>
+        <a href="{% url 'cxc:cliente_create' %}" class="btn btn-primary">Nuevo Cliente</a>
+    </div>
+
+    {% if clientes %}
+        <table class="table table-bordered table-striped">
+            <thead class="table-dark">
+                <tr>
+                    <th>Nombre</th>
+                    <th>Tipo de Cliente</th>
+                    <th>Teléfono 1</th>
+                    <th>Teléfono 2</th>
+                    <th>Email</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for cliente in clientes %}
+                <tr>
+                    <td>{{ cliente.nombre }}</td>
+                    <td>{{ cliente.tipo_cliente }}</td>
+                    <td>{{ cliente.telefono1 }}</td>
+                    <td>{{ cliente.telefono2 }}</td>
+                    <td>{{ cliente.email }}</td>
+                    <td>
+                        <a href="{% url 'cxc:cliente_update' cliente.pk %}" class="btn btn-sm btn-warning">Editar</a>
+                        <a href="{% url 'cxc:cliente_delete' cliente.pk %}" class="btn btn-sm btn-danger">Eliminar</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <div class="alert alert-info">No hay Clientes registrados.</div>
+    {% endif %}
+</div>
+{% endblock %}

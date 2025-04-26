@@ -1,0 +1,107 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load form_tags %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2 class="mb-4">Nuevo Cliente</h2>
+    <form method="POST">
+        {% csrf_token %}
+        <div class="row g-2">
+            <div class="col-md-2 mb-2">
+                <label class="form-label small">Código del Cliente</label>
+                {{ form.cliente|add_bootstrap_class }}
+            </div>
+            <div class="col-md-2 mb-2">
+                <label class="form-label small">Tipo de Cliente</label>
+                {{ form.tipo_cliente|add_bootstrap_class }}
+            </div>
+            <div class="col-md-2 mb-2">
+                <label class="form-label small">RFC</label>
+                {{ form.rfc|add_bootstrap_class }}
+            </div>
+            <div class="col-md-6 mb-2">
+                <label class="form-label small">Nombre</label>
+                {{ form.nombre|add_bootstrap_class }}
+            </div>
+            <div class="col-md-6 mb-2">
+                <label class="form-label small">Dirección Fiscal</label>
+                {{ form.direccion|add_bootstrap_class }}
+            </div>
+            <div class="col-md-2 mb-2">
+                <label class="form-label small">Código Postal</label>
+                {{ form.codigo_postal|add_bootstrap_class }}
+            </div>
+            <div class="col-md-3 mb-2">
+                <label class="form-label small">Ciudad</label>
+                {{ form.ciudad|add_bootstrap_class }}
+            </div>
+            <div class="col-md-6 mb-2">
+                <label class="form-label small">Dirección de Entrega</label>
+                {{ form.direccion_entrega|add_bootstrap_class }}
+            </div>
+            <div class="col-md-2 mb-2">
+                <label class="form-label small">C.P. Entrega</label>
+                {{ form.codigo_postal_entrega|add_bootstrap_class }}
+            </div>
+            <div class="col-md-3 mb-2">
+                <label class="form-label small">Ciudad Entrega</label>
+                {{ form.ciudad_entrega|add_bootstrap_class }}
+            </div>
+            <div class="col-md-3 mb-2">
+                <label class="form-label small">Teléfono 1</label>
+                {{ form.telefono1|add_bootstrap_class }}
+            </div>
+            <div class="col-md-3 mb-2">
+                <label class="form-label small">Teléfono 2</label>
+                {{ form.telefono2|add_bootstrap_class }}
+            </div>
+            <div class="col-md-4 mb-2">
+                <label class="form-label small">Email</label>
+                {{ form.email|add_bootstrap_class }}
+            </div>
+            <div class="col-md-2 mb-2">
+                <label class="form-label small">Plazo Crédito</label>
+                {{ form.plazo_credito|add_bootstrap_class }}
+            </div>
+            <div class="col-md-3 mb-2">
+                <label class="form-label small">Límite Crédito</label>
+                {{ form.limite_credito|add_bootstrap_class }}
+            </div>
+            <div class="col-md-3 mb-2">
+                <label class="form-label small">Cuenta Contable</label>
+                {{ form.cuenta_cnt|add_bootstrap_class }}
+            </div>
+            <div class="col-md-2 mb-2 form-check">
+                {{ form.retencion_iva }}
+                <label class="form-check-label small">Retención IVA</label>
+            </div>
+            <div class="col-md-2 mb-2 form-check">
+                {{ form.retencion_isr }}
+                <label class="form-check-label small">Retención ISR</label>
+            </div>
+            <div class="col-md-2 mb-2 form-check">
+                {{ form.ieps }}
+                <label class="form-check-label small">Aplica IEPS</label>
+            </div>
+            <div class="col-md-4 mb-2">
+                <label class="form-label small">Campo Libre (Texto)</label>
+                {{ form.campo_libre_str|add_bootstrap_class }}
+            </div>
+            <div class="col-md-2 mb-2">
+                <label class="form-label small">Campo Libre (Num)</label>
+                {{ form.campo_libre_num|add_bootstrap_class }}
+            </div>
+            <div class="col-md-12 mb-2">
+                <label class="form-label small">Comentarios</label>
+                {{ form.comentarios|add_bootstrap_class }}
+            </div>
+        </div>
+
+        <div class="mt-4">
+            <button type="submit" class="btn btn-success">Guardar Cliente</button>
+            <a href="{% url 'cxc:cliente_list' %}" class="btn btn-secondary">Cancelar</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

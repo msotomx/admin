@@ -1,0 +1,103 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load form_tags %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>{{ view.object.pk|yesno:"Editar Producto,Nuevo Producto" }}</h2>
+    <form method="POST" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div class="row g-2">
+            <div class="col-md-3 mb-2">
+                <label class="form-label small">Código Producto</label>
+                {{ form.sku|add_bootstrap_class }}
+            </div>
+            <div class="col-md-3 mb-2">
+                <label class="form-label small">Categoría</label>
+                {{ form.categoria|add_bootstrap_class }}
+            </div>
+            <div class="col-md-6 mb-2">
+                <label class="form-label small">Nombre</label>
+                {{ form.nombre|add_bootstrap_class }}
+            </div>
+            <div class="col-md-6 mb-2">
+                <label class="form-label small">Descripción</label>
+                {{ form.descripcion|add_bootstrap_class }}
+            </div>
+            <div class="col-md-5 mb-2">
+                <label class="form-label small">Imagen</label>
+                {{ form.imagen|add_bootstrap_class }}
+            </div>
+            <div class="col-md-2 mb-2">
+                <label class="form-label small">Precio 1</label>
+                {{ form.precio1|add_bootstrap_class }}
+            </div>
+            <div class="col-md-2 mb-2">
+                <label class="form-label small">Precio 2</label>
+                {{ form.precio2|add_bootstrap_class }}
+            </div>
+            <div class="col-md-2 mb-2">
+                <label class="form-label small">Precio 3</label>
+                {{ form.precio3|add_bootstrap_class }}
+            </div>
+            <div class="col-md-2 mb-2">
+                <label class="form-label small">Precio 4</label>
+                {{ form.precio4|add_bootstrap_class }}
+            </div>
+            <div class="col-md-2 mb-2">
+                <label class="form-label small">Precio 5</label>
+                {{ form.precio5|add_bootstrap_class }}
+            </div>
+            <div class="col-md-2 mb-2">
+                <label class="form-label small">Precio 6</label>
+                {{ form.precio6|add_bootstrap_class }}
+            </div>
+            <div class="col-md-2 mb-2">
+                <label class="form-label small">Máximo</label>
+                {{ form.maximo|add_bootstrap_class }}
+            </div>
+            <div class="col-md-2 mb-2">
+                <label class="form-label small">Mínimo</label>
+                {{ form.minimo|add_bootstrap_class }}
+            </div>
+            <div class="col-md-2 mb-2">
+                <label class="form-label small">Reorden</label>
+                {{ form.reorden|add_bootstrap_class }}
+            </div>
+            <div class="col-md-2 mb-2">
+                <label class="form-label small">Fecha de Registro</label>
+                {{ form.fecha_registro|add_bootstrap_class }}
+            </div>
+            <div class="col-md-4 mb-2">
+                <label class="form-label small">Proveedor</label>
+                {{ form.proveedor|add_bootstrap_class }}
+            </div>
+            <div class="col-md-4 mb-2">
+                <label class="form-label small">Unidad de Medida</label>
+                {{ form.unidad_de_medida|add_bootstrap_class }}
+            </div>
+            <div class="col-md-2 mb-2">
+                <label class="form-label small">Descuento de Venta</label>
+                {{ form.descuento_venta|add_bootstrap_class }}
+            </div>
+            <div class="col-md-2 mb-2">
+                <label class="form-label small">Costo de Reposición</label>
+                {{ form.costo_reposicion|add_bootstrap_class }}
+            </div>
+            <div class="col-md-2 mb-2">
+                <label class="form-label small">Tasa de IVA</label>
+                {{ form.iva|add_bootstrap_class }}
+            </div>
+            <div class="d-none">
+                {{ form.campo_libre_str }}
+                {{ form.campo_libre_real }}
+            </div>
+            
+        </div>
+        <div class="mt-4">
+            <button type="submit" class="btn btn-success">Guardar Producto</button>
+            <a href="{% url 'inv:producto_list' %}" class="btn btn-secondary">Cancelar</a>
+        </div>
+    </form>
+</div>
+{% endblock %}
