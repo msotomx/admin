@@ -4,10 +4,13 @@ from django.shortcuts import redirect, render
 from django.urls import reverse_lazy
 from django.views.generic import ListView, CreateView, UpdateView, DeleteView, DetailView
 from django.views.generic.edit import CreateView, UpdateView
+
 from .models import Moneda, Categoria, UnidadMedida, Almacen, ClaveMovimiento, Proveedor
 from .models import Producto, Movimiento, DetalleMovimiento
+from core.models import Empresa
 from .forms import MonedaForm, CategoriaForm, UnidadMedidaForm, AlmacenForm, ClaveMovimientoForm
 from .forms import ProveedorForm, ProductoForm, MovimientoForm,  DetalleMovimientoFormSet
+from datetime import date
 
 # CRUD MONEDAS
 class MonedaListView(ListView):
@@ -187,9 +190,43 @@ class MovimientoCreateView(CreateView):
     form_class = MovimientoForm
     template_name = 'inv/movimiento_form.html'
 
+    def get_initial(self):
+        initial = super().get_initial()
+        empresa = getattr(self.request.user, 'empresa', None)
+        
+        if empresa:
+            #print(f"Empresa: ", empresa)
+            #print(f"almacen_actual: ", empresa.almacen_actual)
+
+            # Verificar que el almacen_actual está asignado
+            if empresa.almacen_actual:
+                try:
+                    # Buscar el Almacen usando el ID almacen_actual
+                    almacen = Almacen.objects.get(id=empresa.almacen_actual)
+                    # Asignar solo el id del almacen
+                    initial['almacen'] = almacen.id
+                except Almacen.DoesNotExist:
+                    print("No se encontró el almacén", empresa.almacen_actual)
+                    
+            else:
+                print("No se asignó almacen_actual")
+            
+        # Asignar la fecha de hoy
+        initial['fecha_movimiento'] = date.today()
+
+        print('Initial en get_initial:', initial)
+               
+        return initial
+    
     def get(self, request, *args, **kwargs):
+        print("Entrando a MovimientoCreateView GET")  # Esto debería aparecer en la consola cuando entras al formulario
         form = self.form_class()
         formset = DetalleMovimientoFormSet(queryset=DetalleMovimiento.objects.none())  # Inicializa el formset vacío
+
+        # Asignar el valor inicial de 'almacen'
+        initial = self.get_initial()  # Llamamos a get_initial() para obtener los valores iniciales del formulario
+        form.initial = initial  # Asignamos esos valores iniciales al formulario
+        print('Formulario en GET:', form['almacen'].value())
         return render(request, self.template_name, {'form': form, 'formset': formset})
 
     def post(self, request, *args, **kwargs):
@@ -197,25 +234,45 @@ class MovimientoCreateView(CreateView):
         formset = DetalleMovimientoFormSet(request.POST)
 
         if form.is_valid() and formset.is_valid():
-            # Guardar el movimiento
-            movimiento = form.save(commit=False)
-            movimiento.usuario = request.user
-            movimiento.move_s = movimiento.clave_movimiento.tipo
-            movimiento.save()
+            return self.form_valid(form, formset)
+        else:
+            return self.form_invalid(form, formset)
 
-            # Asociar los detalles con el movimiento y guardarlos
-            formset.instance = movimiento
-            formset.save()
+    def form_valid(self, form, formset):
+        referencia = form.cleaned_data.get('referencia')
+        if referencia:
+            referencia_formateada = str(referencia).zfill(8)
+            form.instance.referencia = referencia_formateada
 
-            return redirect('inv:movimiento_list')  # Redirige a la lista de movimientos
-        
-        return render(request, self.template_name, {'form': form, 'formset': formset})
+        form.instance.usuario = self.request.user
+        # Asignar move_s leyendo de la clave_movimiento
+        clave_movimiento = form.cleaned_data.get('clave_movimiento')
+        if clave_movimiento:
+            form.instance.move_s = clave_movimiento.tipo 
+
+        self.object = form.save()
+
+        # Guardar el formset
+        formset.instance = self.object
+        formset.save()
+
+        return redirect('inv:movimiento_list')
+
+    def form_invalid(self, form, formset):
+        return render(self.request, self.template_name, {'form': form, 'formset': formset})
+    
+    
 
 class MovimientoUpdateView(UpdateView):
     model = Movimiento
     form_class = MovimientoForm
     template_name = 'inv/movimiento_form.html'
     success_url = reverse_lazy('inv:movimiento_list')
+
+    def get_form(self, form_class=None):
+        form = super().get_form(form_class)
+        form.fields['referencia'].widget.attrs['readonly'] = True
+        return form
 
     def get_context_data(self, **kwargs):
         data = super().get_context_data(**kwargs)

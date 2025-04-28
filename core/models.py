@@ -7,7 +7,7 @@ from datetime import date
 class Empresa(models.Model):
     empresa = models.OneToOneField(User,on_delete=models.RESTRICT)
     nombre = models.CharField(max_length=50, blank=True)
-    id_empresa = models.CharField(max_length=8,blank=False, unique=True)   # es el ID en la BD del Servidor
+    num_empresa = models.CharField(max_length=8,blank=False, unique=True)   # es el ID en la BD del Servidor
     activa = models.BooleanField(default=False)
     directorio = models.CharField(max_length=30,blank=True)   # es la ubicacion dentro del servidor
     fecha_inicio = models.DateField()
@@ -29,4 +29,4 @@ class Empresa(models.Model):
     factor = models.DecimalField(max_digits=10,decimal_places=5) # campo extra
 
     def __str__(self):
-        return self.id_empresa 
+        return self.nombre 

@@ -1,106 +1,132 @@
+<!--  VERSION FUNCIONANDO ANTES DDE AGREGAR TOTALES -->
 {% extends 'base.html' %}
-{% load static %}
 {% load form_tags %}
-{% load form_extras %}
+
 {% block content %}
 <div class="container mt-4">
-    <h2 class="mb-4">Nuevo Movimiento</h2>
-    <form method="POST">
+    <h4>{% if form.instance.pk %}Editar{% else %}Nuevo{% endif %} Movimiento</h4>
+    <form method="post">
         {% csrf_token %}
-        <div class="row g-2">
-            <div class="col-md-3 mb-2">
-                <label class="form-label small">Referencia</label>
-                {{ form.referencia|add_bootstrap_class }}
-            </div>
-            <div class="col-md-3 mb-2">
-                <label class="form-label small">Fecha</label>
-                {{ form.fecha_movimiento|add_bootstrap_class }}
-            </div>
-            <div class="col-md-3 mb-2">
-                <label class="form-label small">Tipo Movimiento</label>
-                {{ form.clave_movimiento|add_bootstrap_class }}
-            </div>
-            <div class="col-md-3 mb-2">
-                <label class="form-label small">Almacén</label>
-                {{ form.almacen|add_bootstrap_class }}
+        {{ formset.management_form }}  
+
+        <div class="card mb-3">
+            <div class="card-header">Encabezado</div>
+            <div class="row g-2">
+                <div class="col-md-3 mb-2">
+                    <label class="form-label small">Referencia</label>
+                    {{ form.referencia|add_bootstrap_class }}
+                </div>
+                <div class="col-md-3 mb-2">
+                    <label class="form-label small">Fecha</label>
+                    {{ form.fecha_movimiento|add_bootstrap_class }}
+                </div>
+                <div class="col-md-3 mb-2">
+                    <label class="form-label small">Tipo Movimiento</label>
+                    {{ form.clave_movimiento|add_bootstrap_class }}
+                </div>
+                <div class="col-md-3 mb-2">
+                    <label class="form-label small">Almacén</label>
+                    {{ form.almacen|add_bootstrap_class }}
+                </div>
             </div>
         </div>
 
-        <hr>
-        <h5 class="mt-4">Detalle del Movimiento</h5>
-     
-        <!-- Tabla para captura los productos del movimiento, el detalle -->
-        <table class="table table-bordered table-sm" id="detalle-tabla">
-            <thead class="table-light small">
-                <tr>
-                    <th>Producto</th>
-                    <th>Cantidad</th>
-                    <th>Precio</th>
-                    <th>Descuento</th>
-                    <th>Subtotal</th>
-                    <th>Acciones</th>
-                </tr>
-            </thead>
-            <tbody>
-                <!-- Fila vacía como plantilla -->
-                <tr class="detalle-fila small">
-                    <td>
-                        <select name="producto[]" class="form-select form-select-sm">
-                            {% for producto in productos %}
-                                <option value="{{ producto.id }}">{{ producto.nombre }}</option>
-                            {% endfor %}
-                        </select>
-                    </td>
-                    <td><input type="number" step="0.01" name="cantidad[]" class="form-control form-control-sm cantidad"></td>
-                    <td><input type="number" step="0.01" name="precio[]" class="form-control form-control-sm precio"></td>
-                    <td><input type="number" step="0.01" name="descuento[]" class="form-control form-control-sm descuento"></td>
-                    <td><input type="number" step="0.01" name="subtotal[]" class="form-control form-control-sm subtotal" readonly></td>
-                    <td><button type="button" class="btn btn-sm btn-danger eliminar-fila">🗑</button></td>
-                </tr>
-            </tbody>
-        </table>
-        <button type="button" class="btn btn-sm btn-outline-primary" id="agregar-fila">+ Agregar Renglón</button>
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span>Detalle</span>
+                <button type="button" class="btn btn-sm btn-primary" id="add-linea">+ Agregar línea</button>
+            </div>
+            <div class="card-body table-responsive">
+                <table class="table table-bordered table-sm">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Producto</th>
+                            <th>Cantidad</th>
+                            <th>Precio</th>
+                            <th>Descuento</th>
+                            <th>Subtotal</th>
+                            <th>Eliminar</th>
+                        </tr>
+                    </thead>
+                    
+                    <tbody id="formset-body">
+                        {% for form in formset %}
+                            <tr class="formset-form">
+                                {{ form.id }}
+                                <td>{{ form.producto }}</td>
+                                <td>{{ form.cantidad }}</td>
+                                <td>{{ form.precio }}</td>
+                                <td>{{ form.descuento }}</td>
+                                <td>{{ form.subtotal }}</td>
+                                <td>{{ form.DELETE }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                
+            </div>
+        </div>
 
-        <!-- Fin detalle de movimientos -->
-
-        <div class="mt-4">
+        <div class="mt-3 text-end">
             <button type="submit" class="btn btn-success">Guardar Movimiento</button>
             <a href="{% url 'inv:movimiento_list' %}" class="btn btn-secondary">Cancelar</a>
         </div>
     </form>
 </div>
-
-<!-- Script para el calculo del Subtotal -->
 <script>
-    document.addEventListener("DOMContentLoaded", function () {
-        function calcularSubtotal(fila) {
-            let cantidad = parseFloat(fila.querySelector(".cantidad").value) || 0;
-            let precio = parseFloat(fila.querySelector(".precio").value) || 0;
-            let descuento = parseFloat(fila.querySelector(".descuento").value) || 0;
-            let subtotal = (cantidad * precio) - descuento;
-            fila.querySelector(".subtotal").value = subtotal.toFixed(2);
-        }
+document.addEventListener('DOMContentLoaded', function () {
+    const addBtn = document.getElementById('add-linea');
+    const formsetBody = document.getElementById('formset-body');
+    const totalFormsInput = document.getElementById('id_detalles-TOTAL_FORMS');
     
-        function agregarEventos(fila) {
-            ['cantidad', 'precio', 'descuento'].forEach(clase => {
-                fila.querySelector(`.${clase}`).addEventListener('input', () => calcularSubtotal(fila));
-            });
-    
-            fila.querySelector(".eliminar-fila").addEventListener("click", () => {
-                fila.remove();
-            });
-        }
-    
-        document.getElementById("agregar-fila").addEventListener("click", () => {
-            let tabla = document.getElementById("detalle-tabla").querySelector("tbody");
-            let nuevaFila = tabla.querySelector(".detalle-fila").cloneNode(true);
-            nuevaFila.querySelectorAll("input").forEach(input => input.value = "");
-            tabla.appendChild(nuevaFila);
-            agregarEventos(nuevaFila);
+    console.log(totalFormsInput);  // Verifica si el elemento está presente
+    console.log('Total Forms Inicial:', totalFormsInput.value); 
+
+    addBtn.addEventListener('click', function () {
+        const totalForms = parseInt(totalFormsInput.value);
+        const template = formsetBody.querySelector('.formset-form');
+
+        if (!template) return;
+
+        // Clonamos la fila
+        const newRow = template.cloneNode(true);
+
+        // Actualizamos los atributos name, id, for
+        newRow.querySelectorAll('input, select, textarea, label').forEach(function (el) {
+            if (el.name) {
+                el.name = el.name.replace(/detalles-(\d+)-/, `detalles-${totalForms}-`);
+            }
+            if (el.id) {
+                el.id = el.id.replace(/detalles-(\d+)-/, `detalles-${totalForms}-`);
+            }
+            if (el.htmlFor) {
+                el.htmlFor = el.htmlFor.replace(/detalles-(\d+)-/, `detalles-${totalForms}-`);
+            }
+            if (el.type !== 'hidden') {
+                el.value = '';
+            }
         });
-    
-        // Inicializar eventos para la fila original
-        agregarEventos(document.querySelector(".detalle-fila"));
+
+        formsetBody.appendChild(newRow);
+        totalFormsInput.value = totalForms + 1;
     });
+
+    
+    // Recalcular subtotal automáticamente
+    document.addEventListener('input', function (e) {
+        if (e.target.name.includes('cantidad') || e.target.name.includes('precio') || e.target.name.includes('descuento')) {
+            const row = e.target.closest('tr');
+            const cantidad = parseFloat(row.querySelector('input[name$="cantidad"]')?.value || 0);
+            const precio = parseFloat(row.querySelector('input[name$="precio"]')?.value || 0);
+            const descuento = parseFloat(row.querySelector('input[name$="descuento"]')?.value || 0);
+            const subtotal = (cantidad * precio) - descuento;
+            const subtotalField = row.querySelector('input[name$="subtotal"]');
+            if (subtotalField) subtotalField.value = subtotal.toFixed(2);
+        }
+    });
+});
 </script>
-{% endblock  %}    
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js?ver=1.0"></script>
+
+{% endblock %}

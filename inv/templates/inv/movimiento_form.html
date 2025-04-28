@@ -3,6 +3,13 @@
 
 {% block content %}
 <div class="container mt-4">
+    <style>
+        input[readonly] {
+            background-color: #f0f0f0;  /* Gris muy claro */
+            pointer-events: none;       /* Evita que intente editarlo */
+            border-color: #ccc;         /* Borde más tenue */
+        }
+    </style>
     <h4>{% if form.instance.pk %}Editar{% else %}Nuevo{% endif %} Movimiento</h4>
     <form method="post">
         {% csrf_token %}
@@ -12,20 +19,20 @@
             <div class="card-header">Encabezado</div>
             <div class="row g-2">
                 <div class="col-md-3 mb-2">
-                    <label class="form-label small">Referencia</label>
-                    {{ form.referencia|add_bootstrap_class }}
-                </div>
-                <div class="col-md-3 mb-2">
-                    <label class="form-label small">Fecha</label>
-                    {{ form.fecha_movimiento|add_bootstrap_class }}
+                    <label class="form-label small">Almacén</label>
+                    {{ form.almacen|add_bootstrap_class }}
                 </div>
                 <div class="col-md-3 mb-2">
                     <label class="form-label small">Tipo Movimiento</label>
                     {{ form.clave_movimiento|add_bootstrap_class }}
                 </div>
                 <div class="col-md-3 mb-2">
-                    <label class="form-label small">Almacén</label>
-                    {{ form.almacen|add_bootstrap_class }}
+                    <label class="form-label small">Referencia</label>
+                    {{ form.referencia|add_bootstrap_class }}
+                </div>
+                <div class="col-md-3 mb-2">
+                    <label class="form-label small">Fecha</label>
+                    {{ form.fecha_movimiento|add_bootstrap_class }}
                 </div>
             </div>
         </div>
@@ -62,6 +69,15 @@
                         {% endfor %}
                     </tbody>
                 </table>
+                <tfoot>
+                    <tr>
+                        <td colspan="4" class="text-end fw-bold">Total:</td>
+                        <td>
+                            <input type="text" id="total-general" class="form-control form-control-sm text-end" readonly>
+                        </td>
+                        <td></td>
+                    </tr>
+                </tfoot>
             </div>
         </div>
 
@@ -76,10 +92,12 @@ document.addEventListener('DOMContentLoaded', function () {
     const addBtn = document.getElementById('add-linea');
     const formsetBody = document.getElementById('formset-body');
     const totalFormsInput = document.getElementById('id_detalles-TOTAL_FORMS');
+    const totalGeneral = document.getElementById('total-general'); 
+    const claveMovimientoInput = document.getElementById('id_clave_movimiento');
+    if (claveMovimientoInput) {
+        claveMovimientoInput.focus();
+    }
     
-    console.log(totalFormsInput);  // Verifica si el elemento está presente
-    console.log('Total Forms Inicial:', totalFormsInput.value); 
-
     addBtn.addEventListener('click', function () {
         const totalForms = parseInt(totalFormsInput.value);
         const template = formsetBody.querySelector('.formset-form');
@@ -103,10 +121,13 @@ document.addEventListener('DOMContentLoaded', function () {
             if (el.type !== 'hidden') {
                 el.value = '';
             }
+            
         });
 
         formsetBody.appendChild(newRow);
         totalFormsInput.value = totalForms + 1;
+        actualizarTotal(); // ← actualiza total cuando agregas
+
     });
 
     
@@ -120,8 +141,33 @@ document.addEventListener('DOMContentLoaded', function () {
             const subtotal = (cantidad * precio) - descuento;
             const subtotalField = row.querySelector('input[name$="subtotal"]');
             if (subtotalField) subtotalField.value = subtotal.toFixed(2);
+            actualizarTotal(); // ← actualiza el total en cada cambio
+        }
+
+        if (e.target.name.includes('DELETE')) {
+            actualizarTotal(); // 👈 si marcan eliminar también recalcular
         }
     });
+
+    function actualizarTotal() {
+        let total = 0;
+        formsetBody.querySelectorAll('tr').forEach(function (row) {
+            const subtotalField = row.querySelector('input[name$="subtotal"]');
+            const deleteCheckbox = row.querySelector('input[type="checkbox"][name$="DELETE"]');
+            
+            // Solo sumar si no está marcado para eliminar
+            if (subtotalField && (!deleteCheckbox || !deleteCheckbox.checked)) {
+                const subtotal = parseFloat(subtotalField.value) || 0;
+                total += subtotal;
+            }
+        });
+        if (totalGeneral) {
+            totalGeneral.value = total.toFixed(2);  // <-- aquí usa `.value` porque es un input en el html
+        }
+
+    }
+
+    actualizarTotal(); // ojo
 });
 </script>
 

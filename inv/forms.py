@@ -83,7 +83,7 @@ class ProductoForm(forms.ModelForm):
             'descripcion': forms.Textarea(attrs={'rows': 3}),
             'imagen': forms.ClearableFileInput(attrs={'class': 'form-control-file'}),
         }
-
+from datetime import date
 class MovimientoForm(forms.ModelForm):
     class Meta:
         model = Movimiento
