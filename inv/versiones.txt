@@ -1,0 +1,7 @@
+Para GitHub:
+
+la version movimiento_1
+    incluye en movimiento_form, 
+        - agrega ceros a la izquierda
+        - no permite modificar la referencia al editar
+    no valida si la referencia existe, cargar los movimientos

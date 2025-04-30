@@ -18,8 +18,7 @@
             <tr>
                 <th>Producto</th>
                 <th>Cantidad</th>
-                <th>Precio</th>
-                <th>Descuento</th>
+                <th>Costo Unit</th>
                 <th>Subtotal</th>
             </tr>
         </thead>
@@ -28,8 +27,7 @@
                 <tr>
                     <td>{{ detalle.producto }}</td>
                     <td>{{ detalle.cantidad }}</td>
-                    <td>${{ detalle.precio }}</td>
-                    <td>${{ detalle.descuento }}</td>
+                    <td>${{ detalle.costo_unit }}</td>
                     <td>${{ detalle.subtotal }}</td>
                 </tr>
             {% empty %}

@@ -95,19 +95,18 @@ class MovimientoForm(forms.ModelForm):
 class DetalleMovimientoForm(forms.ModelForm):
     class Meta:
         model = DetalleMovimiento
-        fields = ['producto', 'cantidad', 'precio', 'descuento', 'subtotal']
+        fields = ['producto', 'cantidad', 'costo_unit', 'subtotal']
         widgets = {
             'producto': forms.Select(attrs={'class': 'form-select form-select-sm'}),
             'cantidad': forms.NumberInput(attrs={'class': 'form-control form-control-sm'}),
-            'precio': forms.NumberInput(attrs={'class': 'form-control form-control-sm'}),
-            'descuento': forms.NumberInput(attrs={'class': 'form-control form-control-sm'}),
+            'costo_unit': forms.NumberInput(attrs={'class': 'form-control form-control-sm'}),
             'subtotal': forms.NumberInput(attrs={'class': 'form-control form-control-sm', 'readonly': 'readonly'}),
         }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['producto'].queryset = Producto.objects.all()
-        self.fields['descuento'].initial = 0  # Valor inicial por defecto
+        # self.fields['costo_unit'].initial = Producto.costo_reposicion  # Valor inicial por defecto
 
 # valida productos repetidos
 # valida cantidad = 0
@@ -141,7 +140,7 @@ DetalleMovimientoFormSet = inlineformset_factory(
     form=DetalleMovimientoForm,
     formset=DetalleMovimientoFormSet,
     fk_name='referencia',
-    fields=['producto', 'cantidad', 'precio', 'descuento', 'subtotal'],
+    fields=['producto', 'cantidad', 'costo_unit', 'subtotal'],
     extra=1,
     can_delete=True
 )

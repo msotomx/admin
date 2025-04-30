@@ -11,6 +11,7 @@ from core.models import Empresa
 from .forms import MonedaForm, CategoriaForm, UnidadMedidaForm, AlmacenForm, ClaveMovimientoForm
 from .forms import ProveedorForm, ProductoForm, MovimientoForm,  DetalleMovimientoFormSet
 from datetime import date
+from django.http import JsonResponse
 
 # CRUD MONEDAS
 class MonedaListView(ListView):
@@ -184,6 +185,8 @@ class MovimientoListView(ListView):
     model = Movimiento
     template_name = 'inv/movimiento_list.html'
     context_object_name = 'movimientos'
+    ordering = ['-fecha_movimiento']  # Orden descendente por fecha
+    paginate_by = 10  # Número de movimientos por página
 
 class MovimientoCreateView(CreateView):
     model = Movimiento
@@ -195,9 +198,6 @@ class MovimientoCreateView(CreateView):
         empresa = getattr(self.request.user, 'empresa', None)
         
         if empresa:
-            #print(f"Empresa: ", empresa)
-            #print(f"almacen_actual: ", empresa.almacen_actual)
-
             # Verificar que el almacen_actual está asignado
             if empresa.almacen_actual:
                 try:
@@ -214,19 +214,15 @@ class MovimientoCreateView(CreateView):
         # Asignar la fecha de hoy
         initial['fecha_movimiento'] = date.today()
 
-        print('Initial en get_initial:', initial)
-               
         return initial
     
     def get(self, request, *args, **kwargs):
-        print("Entrando a MovimientoCreateView GET")  # Esto debería aparecer en la consola cuando entras al formulario
         form = self.form_class()
         formset = DetalleMovimientoFormSet(queryset=DetalleMovimiento.objects.none())  # Inicializa el formset vacío
 
         # Asignar el valor inicial de 'almacen'
         initial = self.get_initial()  # Llamamos a get_initial() para obtener los valores iniciales del formulario
         form.initial = initial  # Asignamos esos valores iniciales al formulario
-        print('Formulario en GET:', form['almacen'].value())
         return render(request, self.template_name, {'form': form, 'formset': formset})
 
     def post(self, request, *args, **kwargs):
@@ -292,7 +288,6 @@ class MovimientoUpdateView(UpdateView):
             return super().form_valid(form)
         else:
             # Añadir depuración de errores en formset
-            print("Formset no es válido:", formset.errors)
             return self.form_invalid(form)
 
 # DETALLE DE MOVIMIENTO
@@ -315,3 +310,35 @@ class MovimientoDeleteView(DeleteView):
         context = super().get_context_data(**kwargs)
         context['detalles'] = self.object.detalles.all()
         return context
+
+def check_movimiento_existe(request):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        clave_movimiento = data.get('clave_movimiento')
+        referencia = data.get('referencia')
+
+        # Rellenar la referencia con ceros a la izquierda
+        referencia = referencia.zfill(8)  # Si no tiene 8 caracteres, rellena con ceros a la izquierda
+
+        # Verificar si ya existe el movimiento con la misma referencia y clave_movimiento
+        existe = Movimiento.objects.filter(clave_movimiento=clave_movimiento, referencia=referencia).exists()
+
+        return JsonResponse({'existe': existe})
+    
+def verificar_movimiento(request):
+    clave_movimiento_id = request.GET.get('clave_movimiento')
+    referencia = request.GET.get('referencia')
+
+    try:
+        movimiento = Movimiento.objects.get(clave_movimiento_id=clave_movimiento_id, referencia=referencia)
+        return JsonResponse({'existe': True, 'id': movimiento.id})
+    except Movimiento.DoesNotExist:
+        return JsonResponse({'existe': False})
+
+def obtener_costo_producto(request):
+    producto_id = request.GET.get('producto_id')
+    try:
+        producto = Producto.objects.get(pk=producto_id)
+        return JsonResponse({'costo_reposicion': str(producto.costo_reposicion)})
+    except Producto.DoesNotExist:
+        return JsonResponse({'error': 'Producto no encontrado'}, status=404)

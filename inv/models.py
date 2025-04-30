@@ -82,7 +82,7 @@ class Producto(models.Model):
 
 class Movimiento(models.Model):
     usuario = models.ForeignKey(User,on_delete=models.RESTRICT)
-    referencia = models.CharField(max_length=8, blank=False,unique=True)
+    referencia = models.CharField(max_length=8, blank=False)
     move_s = models.CharField(max_length=1,blank=False)  # 'E' entrada 'S' salida
     clave_movimiento = models.ForeignKey(ClaveMovimiento,on_delete=models.RESTRICT)
     fecha_movimiento = models.DateField(blank=False)
@@ -95,8 +95,7 @@ class DetalleMovimiento(models.Model):
     referencia = models.ForeignKey(Movimiento,on_delete=models.CASCADE, related_name='detalles')
     producto = models.ForeignKey(Producto,on_delete=models.PROTECT)
     cantidad = models.DecimalField(null=True, decimal_places=2, max_digits=10)
-    precio = models.DecimalField(null=True, decimal_places=2, max_digits=10)
-    descuento = models.DecimalField(null=True, decimal_places=2, max_digits=10)
+    costo_unit = models.DecimalField(null=True, decimal_places=2, max_digits=10)
     subtotal = models.DecimalField(null=True, decimal_places=2, max_digits=10)
 
     def __str__(self):

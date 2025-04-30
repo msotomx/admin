@@ -46,5 +46,17 @@
         </table>
         
     </div>
+    <div class="d-flex justify-content-between mt-4">
+        {% if page_obj.has_previous %}
+            <a href="?page={{ page_obj.previous_page_number }}" class="btn btn-secondary btn-sm">Página Anterior</a>
+        {% else %}
+            <span></span>
+        {% endif %}
+    
+        {% if page_obj.has_next %}
+            <a href="?page={{ page_obj.next_page_number }}" class="btn btn-primary btn-sm">Siguiente Página</a>
+        {% endif %}
+    </div>
+    
 </div>
 {% endblock %}
