@@ -43,7 +43,7 @@ class Cliente(models.Model):
     comentarios = models.TextField(blank=True,default="")
 
     def __str__(self):
-        return self.rfc
+        return self.nombre
 
 class Cargo(models.Model):
     usuario = models.ForeignKey(User,on_delete=models.RESTRICT)

@@ -5,6 +5,8 @@ from .models import Moneda, Categoria, UnidadMedida, Almacen
 from .models import ClaveMovimiento, Proveedor, Producto
 from .models import Movimiento, DetalleMovimiento
 from .models import Traspaso, DetalleTraspaso, Remision, DetalleRemision, SaldoInicial
+from decimal import Decimal
+from collections import defaultdict
 
 class MonedaForm(forms.ModelForm):
     class Meta:
@@ -83,6 +85,8 @@ class ProductoForm(forms.ModelForm):
             'descripcion': forms.Textarea(attrs={'rows': 3}),
             'imagen': forms.ClearableFileInput(attrs={'class': 'form-control-file'}),
         }
+
+# MOVIMIENTOS
 from datetime import date
 class MovimientoForm(forms.ModelForm):
     class Meta:
@@ -141,6 +145,102 @@ DetalleMovimientoFormSet = inlineformset_factory(
     formset=DetalleMovimientoFormSet,
     fk_name='referencia',
     fields=['producto', 'cantidad', 'costo_unit', 'subtotal'],
+    extra=1,
+    can_delete=True
+)
+
+# REMISIONES
+class RemisionForm(forms.ModelForm):
+    class Meta:
+        model = Remision
+        exclude = ['usuario', 'numero_factura', 'status', 'monto_total']
+        widgets = {
+            'fecha_remision': forms.DateInput(attrs={'type': 'date'}),
+        }
+
+
+class DetalleRemisionForm(forms.ModelForm):
+    class Meta:
+        model = DetalleRemision
+        fields = ['producto', 'cantidad', 'precio', 'descuento', 'subtotal']
+        widgets = {
+            'producto': forms.Select(attrs={'class': 'form-select form-select-sm'}),
+            'cantidad': forms.NumberInput(attrs={'class': 'form-control form-control-sm'}),
+            'precio': forms.NumberInput(attrs={'class': 'form-control form-control-sm'}),
+            'descuento': forms.NumberInput(attrs={'class': 'form-control form-control-sm'}),
+            'subtotal': forms.NumberInput(attrs={'class': 'form-control form-control-sm', 'readonly': 'readonly'}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['producto'].queryset = Producto.objects.all()
+        # self.fields['descuento'].initial = 0   # Valor inicial por defecto
+        
+# valida productos repetidos
+# valida cantidad = 0
+
+class DetalleRemisionFormSet(BaseInlineFormSet):
+    def clean(self):
+        super().clean()
+        productos_vistos = defaultdict(Decimal)  # clave: producto_id, valor: cantidad acumulada
+        descuentos_vistos = defaultdict(Decimal)  # clave: producto_id, valor: cantidad acumulada
+        formularios_a_eliminar = []
+
+        for form in self.forms:
+            if form.cleaned_data.get('DELETE', False):
+                formularios_a_eliminar.append(form)
+                continue
+
+            producto = form.cleaned_data.get('producto')
+            cantidad = form.cleaned_data.get('cantidad') or Decimal(0)
+            descuento = form.cleaned_data.get('descuento') or Decimal(0)
+
+            if not producto:
+                continue  # O puedes lanzar ValidationError si es obligatorio
+
+            productos_vistos[producto] += cantidad
+            descuentos_vistos[producto] += descuento
+
+        # Ahora recorremos otra vez para actualizar cantidades y marcar duplicados para eliminación
+        productos_actualizados = set()
+        for form in self.forms:
+            if form in formularios_a_eliminar or not form.cleaned_data.get('producto'):
+                continue
+
+            producto = form.cleaned_data['producto']
+
+            if producto in productos_actualizados:
+                # Ya consolidamos esta línea, marcar para eliminación
+                form.cleaned_data['DELETE'] = True
+            else:
+                cantidad_total = productos_vistos[producto]
+                precio = form.cleaned_data.get('precio') or Decimal(0)
+                descuento_total = descuentos_vistos[producto]
+                #descuento = form.cleaned_data.get('descuento') or Decimal(0)
+                #subtotal = (cantidad_total * precio) - descuento
+                subtotal = (cantidad_total * precio) - descuento_total
+
+                # Actualizamos los campos en cleaned_data
+                form.cleaned_data['cantidad'] = cantidad_total
+                form.cleaned_data['descuento'] = descuento_total
+                form.cleaned_data['subtotal'] = subtotal
+
+                # Y también en la instancia del modelo
+                if hasattr(form, 'instance'):
+                    form.instance.cantidad = cantidad_total
+                    form.instance.descuento = descuento_total
+                    form.instance.subtotal = subtotal
+
+                productos_actualizados.add(producto)
+
+# Inline formset
+DetalleRemisionFormSet = inlineformset_factory(
+    parent_model=Remision,
+    model=DetalleRemision,
+    form=DetalleRemisionForm,
+    formset=DetalleRemisionFormSet,
+    fk_name='numero_remision',
+    fields=['producto', 'cantidad', 'precio', 'descuento', 'subtotal'],
     extra=1,
     can_delete=True
 )

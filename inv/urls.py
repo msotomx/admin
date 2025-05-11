@@ -8,7 +8,9 @@ from .views import ClavesMovListView, ClavesMovCreateView, ClavesMovUpdateView, 
 from .views import ProveedorListView, ProveedorCreateView, ProveedorUpdateView, ProveedorDeleteView
 from .views import ProductoListView, ProductoCreateView, ProductoUpdateView, ProductoDeleteView
 from .views import MovimientoListView, MovimientoCreateView, MovimientoUpdateView, MovimientoDeleteView, MovimientoDetailView
-from .views import check_movimiento_existe, verificar_movimiento, obtener_costo_producto
+from .views import RemisionListView, RemisionCreateView, RemisionUpdateView, RemisionDeleteView, RemisionDetailView
+from .views import verificar_movimiento, obtener_costo_producto
+from .views import verificar_remision, obtener_precio_producto
 
 app_name = 'inv'
 
@@ -46,8 +48,13 @@ urlpatterns = [
     path('movimiento/editar/<int:pk>/', MovimientoUpdateView.as_view(), name='movimiento_update'),
     path('movimiento/eliminar/<int:pk>/', MovimientoDeleteView.as_view(), name='movimiento_delete'),
     path('movimiento/<int:pk>/', MovimientoDetailView.as_view(), name='movimiento_detail'),
-    path('check-movimiento-existe/', check_movimiento_existe, name='check_movimiento_existe'),
     path('verificar-movimiento/', verificar_movimiento, name='verificar_movimiento'),
     path('obtener_costo_producto/', obtener_costo_producto, name='obtener_costo_producto'),
-
+    path('remision/', RemisionListView.as_view(), name='remision_list'),
+    path('remision/nuevo/', RemisionCreateView.as_view(), name='remision_create'),
+    path('remision/editar/<int:pk>/', RemisionUpdateView.as_view(), name='remision_update'),
+    path('remision/eliminar/<int:pk>/', RemisionDeleteView.as_view(), name='remision_delete'),
+    path('remision/<int:pk>/', RemisionDetailView.as_view(), name='remision_detail'),
+    path('verificar-remision/', verificar_remision, name='verificar_remision'),
+    path('obtener_precio_producto/', obtener_precio_producto, name='obtener_precio_producto'),
 ]

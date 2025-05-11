@@ -2,7 +2,7 @@ from django.db import models
 from django.contrib.auth.models import User
 
 class Categoria(models.Model):
-    categoria = models.IntegerField(null=False, default=1)
+    categoria = models.IntegerField(null=False, unique=True)
     nombre = models.CharField(max_length=100)
     
     def __str__(self):
@@ -35,7 +35,7 @@ class Moneda(models.Model):
 class ClaveMovimiento(models.Model):   
     clave_movimiento = models.CharField(max_length=2,default='', blank=False, unique=True)
     nombre = models.CharField(max_length=30,null=True)
-    tipo = models.CharField(max_length=1,default='E',blank=False)  # E o S 
+    tipo = models.CharField(max_length=1,default='',blank=False)  # E o S 
     
     def __str__(self):
         return self.nombre 
@@ -124,26 +124,28 @@ class Remision(models.Model):
         ('C','Cotizacion'),  # no genera movimiento de Salida
         ('P','Pedido'),      # no genera movimiento de Salida
         ('R','Remisionado'), # si genera movimiento de Salida
-        ('F','Facturado')    # la remision se ha facturado
+        ('F','Facturado'),    # la remision se ha facturado
+        ('E','Eliminada')    # la remision se ha borrado
     )
-
+    almacen = models.ForeignKey(Almacen,on_delete=models.RESTRICT)
+    usuario = models.ForeignKey(User,on_delete=models.RESTRICT)
+    clave_movimiento = models.ForeignKey(ClaveMovimiento,on_delete=models.RESTRICT)
     numero_remision = models.CharField(max_length=6,blank=False,default="")
-    numero_factura = models.CharField(max_length=20,blank=False,default="")
-    clave_remision = models.ForeignKey(ClaveMovimiento,on_delete=models.RESTRICT)
-    cliente = models.ForeignKey('cxc.Cliente',on_delete=models.RESTRICT)
     fecha_remision = models.DateField(blank=False)
+    numero_factura = models.CharField(max_length=20,blank=False,default="")
+    cliente = models.ForeignKey('cxc.Cliente',on_delete=models.RESTRICT)
     monto_total = models.DecimalField(default=0,decimal_places=2, max_digits=10,null=True)
-    estado = models.CharField(max_length=1,default='R',choices=ESTADO_CHOICES)   # CON Esto, solo permite 0 o 1
+    status = models.CharField(max_length=1,default='R',choices=ESTADO_CHOICES)   # CON Esto, solo permite 0 o 1
 
     def __str__(self):
         return self.numero_remision
 
 class DetalleRemision(models.Model):
-    numero_remision = models.ForeignKey(Remision,on_delete=models.RESTRICT)
+    numero_remision = models.ForeignKey(Remision,related_name='detalles',on_delete=models.CASCADE)
     producto = models.ForeignKey(Producto,on_delete=models.RESTRICT)
     cantidad = models.DecimalField(null=True, decimal_places=2, max_digits=10)
     precio = models.DecimalField(null=True, decimal_places=2, max_digits=10)
-    descuento = models.DecimalField(null=True, decimal_places=2, max_digits=10)
+    descuento = models.DecimalField(null=True, decimal_places=2, max_digits=10, blank=True)
     subtotal = models.DecimalField(max_digits=10,decimal_places=2,null=True)
 
     def __str__(self):
