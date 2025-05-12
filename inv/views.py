@@ -186,9 +186,9 @@ class MovimientoListView(ListView):
     model = Movimiento
     template_name = 'inv/movimiento_list.html'
     context_object_name = 'movimientos'
-    ordering = ['-fecha_movimiento']  # Orden descendente por fecha
+    ordering = ['-fecha_movimiento','-clave_movimiento', '-referencia']  # Orden descendente por fecha
     paginate_by = 10  # Número de movimientos por página
-
+ 
 class MovimientoCreateView(CreateView):
     model = Movimiento
     form_class = MovimientoForm
@@ -238,7 +238,7 @@ class MovimientoCreateView(CreateView):
     def form_valid(self, form, formset):
         referencia = form.cleaned_data.get('referencia')
         if referencia:
-            referencia_formateada = str(referencia).zfill(8)
+            referencia_formateada = str(referencia).zfill(7)
             form.instance.referencia = referencia_formateada
 
         form.instance.usuario = self.request.user
@@ -329,53 +329,79 @@ def obtener_costo_producto(request):
         return JsonResponse({'error': 'Producto no encontrado'}, status=404)
 
 # CRUD REMISIONES ==================
+class RemisionBaseView:
+    def procesar_formset(self, formset, remision):
+        detalles_dict = {}
+        monto_total = 0
+
+        for detalle_form in formset:
+            if detalle_form.cleaned_data and not detalle_form.cleaned_data.get('DELETE', False):
+                producto = detalle_form.cleaned_data['producto']
+                cantidad = detalle_form.cleaned_data['cantidad']
+                precio = detalle_form.cleaned_data['precio']
+                descuento = detalle_form.cleaned_data.get('descuento', 0)
+
+                subtotal = (cantidad * precio) - descuento
+
+                if producto in detalles_dict:
+                    detalles_dict[producto]['cantidad'] += cantidad
+                    detalles_dict[producto]['descuento'] += descuento
+                    detalles_dict[producto]['subtotal'] += subtotal
+                else:
+                    detalles_dict[producto] = {
+                        'producto': producto,
+                        'cantidad': cantidad,
+                        'precio': precio,
+                        'descuento': descuento,
+                        'subtotal': subtotal,
+                    }
+
+        remision.detalles.all().delete()
+
+        for detalle in detalles_dict.values():
+            DetalleRemision.objects.create(
+                numero_remision=remision,
+                producto=detalle['producto'],
+                cantidad=detalle['cantidad'],
+                precio=detalle['precio'],
+                descuento=detalle['descuento'],
+                subtotal=detalle['subtotal'],
+            )
+            monto_total += detalle['subtotal']
+
+        remision.monto_total = monto_total
+        remision.save()
+
 class RemisionListView(ListView):
     model = Remision
     template_name = 'inv/remision_list.html'
     context_object_name = 'remisiones'
-    ordering = ['-fecha_remision', '-numero_remision']  # Orden descendente por fecha
+    ordering = ['-fecha_remision', '-clave_movimiento', '-numero_remision']  # Orden descendente por fecha
     paginate_by = 10  # Número de movimientos por página
 
 from decimal import Decimal
-class RemisionCreateView(CreateView):
-    model = Remision 
+class RemisionCreateView(RemisionBaseView, CreateView):
+    model = Remision
     form_class = RemisionForm
     template_name = 'inv/remision_form.html'
 
     def get_initial(self):
         initial = super().get_initial()
         empresa = getattr(self.request.user, 'empresa', None)
-        
-        if empresa:
-            # Verificar que el almacen_actual está asignado
-            if empresa.almacen_actual:
-                try:
-                    # Buscar el Almacen usando el ID almacen_actual
-                    almacen = Almacen.objects.get(id=empresa.almacen_actual)
-                    # Asignar solo el id del almacen
-                    initial['almacen'] = almacen.id
-                except Almacen.DoesNotExist:
-                    print("No se encontró el almacén", empresa.almacen_actual)
-                    
-            else:
-                print("No se asignó almacen_actual")
-            
-        # Asignar la fecha de hoy
+
+        if empresa and empresa.almacen_actual:
+            try:
+                almacen = Almacen.objects.get(id=empresa.almacen_actual)
+                initial['almacen'] = almacen.id
+            except Almacen.DoesNotExist:
+                print("No se encontró el almacén", empresa.almacen_actual)
+
         initial['fecha_remision'] = date.today()
-
         return initial
-    
+
     def get(self, request, *args, **kwargs):
-        # Obtener los valores iniciales
-        initial = self.get_initial()
-
-        # Crear el formulario con los valores iniciales
-        form = self.form_class(initial=initial)
-
-        # Crear el formset vacío para el detalle
+        form = self.form_class(initial=self.get_initial())
         formset = DetalleRemisionFormSet(queryset=DetalleRemision.objects.none(), prefix='detalles')
-        
-        # Renderizar la plantilla
         return render(request, self.template_name, {'form': form, 'formset': formset})
 
     def post(self, request, *args, **kwargs):
@@ -383,151 +409,57 @@ class RemisionCreateView(CreateView):
         formset = DetalleRemisionFormSet(request.POST, prefix='detalles')
 
         if form.is_valid() and formset.is_valid():
-            return self.form_valid(form, formset)
-        else:
-            return self.form_invalid(form, formset)
-        
-    def form_valid(self, form, formset):
-        numero_remision = form.cleaned_data.get('numero_remision')
-        if numero_remision:
-            numero_remision_formateada = str(numero_remision).zfill(6)
-            form.instance.numero_remision = numero_remision_formateada
+            self.object = form.save(commit=False)
+            self.object.usuario = self.request.user
+            self.object.numero_factura = '0'
+            self.object.status = 'R'
+            numero_remision = form.cleaned_data.get('numero_remision')
 
-        clave_movimiento = form.cleaned_data.get('clave_movimiento')
-        form.instance.usuario = self.request.user
-        form.instance.numero_factura = '0'
-        form.instance.status = 'R'
-        form.instance.monto_total = 0  # Se actualizará luego
+            if numero_remision:
+                self.object.numero_remision = str(numero_remision).zfill(7)
 
-        self.object = form.save()
+            self.object.save()
 
-        for i, form in enumerate(formset.forms):
-            print(f"Form #{i}:")
-            for field_name, field_value in form.cleaned_data.items():
-                print(f"  {field_name}: {field_value}")
+            # Aquí se usa la lógica compartida
+            self.procesar_formset(formset, self.object)
 
+            return redirect('inv:remision_list')
 
-        # Consolidar productos duplicados
-        # from collections import defaultdict
-        detalles_consolidados = {}
-
-        for form_detalle in formset:
-            data = form_detalle.cleaned_data
-            if not data or data.get('DELETE', False) or not data.get('producto'):
-                continue
-
-            producto = data['producto']
-            producto_id = producto.id
-
-            cantidad = Decimal(data.get('cantidad') or 0)
-            precio = Decimal(data.get('precio') or 0)
-            descuento = Decimal(data.get('descuento') or 0)
-            subtotal = (cantidad * precio) - descuento
-
-            if producto_id not in detalles_consolidados:
-                detalles_consolidados[producto_id] = {
-                    'producto': producto,
-                    'cantidad': Decimal('0.00'),
-                    'precio': precio,
-                    'descuento': Decimal('0.00'),
-                    'subtotal': Decimal('0.00'),
-                }
-
-            detalles_consolidados[producto_id]['cantidad'] += cantidad
-            detalles_consolidados[producto_id]['descuento'] += descuento
-            detalles_consolidados[producto_id]['subtotal'] += subtotal
-
-
-        # Guardar los detalles consolidados
-        for datos in detalles_consolidados.values():
-            DetalleRemision.objects.create(
-                numero_remision=self.object,
-                producto=datos['producto'],
-                cantidad=datos['cantidad'],
-                precio=datos['precio'],
-                descuento=datos['descuento'],
-                subtotal=datos['subtotal'],
-            )
-
-        # Actualizar monto_total de la remisión
-        self.object.monto_total = sum(d['subtotal'] for d in detalles_consolidados.values())
-        self.object.save()
-
-        return redirect('inv:remision_list')
+        return self.form_invalid(form, formset)
 
     def form_invalid(self, form, formset):
         return render(self.request, self.template_name, {'form': form, 'formset': formset})
-
-class RemisionUpdateView(UpdateView):
+    
+class RemisionUpdateView(RemisionBaseView, UpdateView):
     model = Remision
     form_class = RemisionForm
     template_name = 'inv/remision_form.html'
     success_url = reverse_lazy('inv:remision_list')
+
+    def get(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        form = self.form_class(instance=self.object)
+        formset = DetalleRemisionFormSet(instance=self.object,prefix='detalles')
+
+        return render(request, self.template_name, {'form': form, 'formset': formset})
+
+    def post(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        form = self.form_class(request.POST, instance=self.object)
+        formset = DetalleRemisionFormSet(request.POST, prefix='detalles')
+
+        if form.is_valid() and formset.is_valid():
+            self.object = form.save()
+            self.procesar_formset(formset, self.object)
+            return redirect(self.success_url)
+
+        return render(request, self.template_name, {'form': form, 'formset': formset})
 
     def get_form(self, form_class=None):
         form = super().get_form(form_class)
         form.fields['numero_remision'].widget.attrs['readonly'] = True
         return form
 
-    def get_context_data(self, **kwargs):
-        data = super().get_context_data(**kwargs)
-        if self.request.POST:
-            data['formset'] = DetalleRemisionFormSet(self.request.POST, instance=self.object, prefix='detalles')
-        else:
-            data['formset'] = DetalleRemisionFormSet(instance=self.object, prefix='detalles')
-        return data
-    
-def form_valid(self, form):
-        context = self.get_context_data()
-        formset = context['formset']
-
-        if formset.is_valid():
-            self.object = form.save(commit=False)
-
-            # Consolidar productos duplicados
-            detalles_dict = {}
-            for detalle_form in formset:
-                if detalle_form.cleaned_data and not detalle_form.cleaned_data.get('DELETE', False):
-                    producto = detalle_form.cleaned_data['producto']
-                    cantidad = detalle_form.cleaned_data['cantidad']
-                    precio = detalle_form.cleaned_data['precio']
-                    descuento = detalle_form.cleaned_data.get('descuento', 0)
-
-                    if producto in detalles_dict:
-                        detalles_dict[producto]['cantidad'] += cantidad
-                        detalles_dict[producto]['subtotal'] += (cantidad * precio) - descuento
-                    else:
-                        detalles_dict[producto] = {
-                            'producto': producto,
-                            'cantidad': cantidad,
-                            'precio': precio,
-                            'descuento': descuento,
-                            'subtotal': (cantidad * precio) - descuento,
-                        }
-
-            # Guardar encabezado
-            self.object.usuario = self.request.user
-            self.object.save()
-
-            # Borrar anteriores y guardar nuevos detalles
-            self.object.detalles.all().delete()
-            for detalle in detalles_dict.values():
-                DetalleRemision.objects.create(
-                    numero_remision=self.object,
-                    producto=detalle['producto'],
-                    cantidad=detalle['cantidad'],
-                    precio=detalle['precio'],
-                    descuento=detalle['descuento'],
-                    subtotal=detalle['subtotal'],
-                )
-                    # Actualizar monto_total de la remisión
-            self.object.monto_total = sum(d['subtotal'] for d in detalles_dict.values())
-            self.object.save()
-            
-            return redirect(self.get_success_url())
-        else:
-            return self.form_invalid(form)
-        
 # DETALLE DE MOVIMIENTO DE REMISIONES
 class RemisionDetailView(DetailView):
     model = Remision
@@ -566,3 +498,25 @@ def obtener_precio_producto(request):
         return JsonResponse({'precio1': str(producto.precio1)})
     except Producto.DoesNotExist:
         return JsonResponse({'error': 'Producto no encontrado'}, status=404)
+
+def obtener_ultimo_numero_remision(request):
+    clave = request.GET.get('clave')
+    if clave:
+        ultima = Remision.objects.filter(clave_movimiento=clave).order_by('-numero_remision').first()
+        if ultima and ultima.numero_remision.isdigit():
+            siguiente = str(int(ultima.numero_remision) + 1).zfill(7)
+        else:
+            siguiente = "0000001"
+        return JsonResponse({'numero_remision': siguiente})
+    return JsonResponse({'numero_remision': '0000001'})
+
+def obtener_ultimo_movimiento(request):
+    clave = request.GET.get('clave')
+    if clave:
+        ultima = Movimiento.objects.filter(clave_movimiento=clave).order_by('-referencia').first()
+        if ultima and ultima.referencia.isdigit():
+            siguiente = str(int(ultima.referencia) + 1).zfill(7)
+        else:
+            siguiente = "0000001"
+        return JsonResponse({'referencia': siguiente})
+    return JsonResponse({'referencia': '0000001'})

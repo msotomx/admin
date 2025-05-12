@@ -13,11 +13,11 @@
         <table class="table table-sm table-striped table-bordered align-middle">
             <thead class="table-light small">
                 <tr>
-                    <th>Referencia</th>
-                    <th>E/S</th>
-                    <th>Movimiento</th>
-                    <th>Fecha</th>
                     <th>Almacén</th>
+                    <th>Movimiento</th>
+                    <th>E/S</th>
+                    <th>Referencia</th>
+                    <th>Fecha</th>
                     <th>Usuario</th>
                     <th class="text-center">Acciones</th>
                 </tr>
@@ -25,11 +25,11 @@
             <tbody class="small">
                 {% for movimiento in movimientos %}
                     <tr>
-                        <td>{{ movimiento.referencia }}</td>
-                        <td>{{ movimiento.move_s }}</td>
-                        <td>{{ movimiento.clave_movimiento }}</td>
-                        <td>{{ movimiento.fecha_movimiento|date:"d/m/Y" }}</td>
                         <td>{{ movimiento.almacen }}</td>
+                        <td>{{ movimiento.clave_movimiento }}</td>
+                        <td>{{ movimiento.move_s }}</td>
+                        <td>{{ movimiento.referencia }}</td>
+                        <td>{{ movimiento.fecha_movimiento|date:"d/m/Y" }}</td>
                         <td>{{ movimiento.usuario }}</td>
                         <td class="text-center">
                             <a href="{% url 'inv:movimiento_detail' movimiento.pk %}" class="btn btn-sm btn-outline-info">Ver</a>

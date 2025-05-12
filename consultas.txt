@@ -1,0 +1,48 @@
+CONSULTAS
+
+1. Remisiones por Dia, solicitar:
+	Almacen
+	Fecha inicial
+	Fecha Final
+
+	La consulta debe mostrar:
+
+2. Remisiones por Cliente
+	Cliente
+	Fecha Inicial
+	Fecha Final
+3. Productos Remisionados
+	Almacen
+	Fecha Inicial
+	Fecha Final
+4. Remisiones por Producto
+	Categoria
+	Producto
+	Fecha Inicial
+	Fecha Final
+
+2. Movimientos por Producto
+	Almacen	
+	Categoria
+	Fecha Inicial
+	Fecha Final
+3. Venta por Producto
+	Almacen	
+	Categoria
+	Producto
+	Fecha Inicial
+	Fecha Final
+4. Compras por Producto		
+	Almacen	
+	Categoria
+	Producto
+	Fecha Inicial
+	Fecha Final
+5. Compras por Proveedor
+	Proveedor
+	Almacen
+	Categoria
+	Producto	
+	Fecha Inicial
+	Fecha Final
+		

@@ -92,14 +92,30 @@ document.addEventListener('DOMContentLoaded', function () {
     const totalFormsInput = document.getElementById('id_detalles-TOTAL_FORMS');
     const totalGeneral = document.getElementById('total-general'); 
     const claveMovimientoInput = document.getElementById('id_clave_movimiento');
+    const referenciaInput = document.getElementById('id_referencia');
+
     if (claveMovimientoInput) {
         claveMovimientoInput.focus();
+    }
+
+        // busca el ultimo numero para esa clave_movimiento
+        if (claveMovimientoInput && referenciaInput) {
+        claveMovimientoInput.addEventListener('change', function () {
+            const clave = this.value;
+            if (clave) {
+                fetch(`/inv/ajax/numero-movimiento/?clave=${clave}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        referenciaInput.value = data.referencia;
+                    });
+            }
+        });
     }
 
     // valida si clave_movimiento + Referencia existe
     // Si existe, se muestra en modo edicion
     // Si no existe, continua con el proceso normal de Registro Nuevo
-    const referenciaInput = document.getElementById('id_referencia');
+    
     const claveMovInput = document.getElementById('id_clave_movimiento');
 
     async function verificarMovimiento(claveMovId, referencia) {
@@ -116,7 +132,7 @@ document.addEventListener('DOMContentLoaded', function () {
         referenciaInput.addEventListener('blur', function () {
             let ref = referenciaInput.value.trim();
             if (ref) {
-                ref = ref.padStart(8, '0');  // llena la referencia con ceros a la izquierda
+                ref = ref.padStart(7, '0');  // llena la referencia con ceros a la izquierda
                 referenciaInput.value = ref;
                 
                 const claveMovId = claveMovInput.value;
@@ -131,7 +147,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
                 let ref = referenciaInput.value.trim();
                 if (ref) {
-                    ref = ref.padStart(8, '0');
+                    ref = ref.padStart(7, '0');
                     referenciaInput.value = ref;
 
                     const claveMovId = claveMovInput.value;

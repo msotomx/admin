@@ -82,7 +82,7 @@ class Producto(models.Model):
 
 class Movimiento(models.Model):
     usuario = models.ForeignKey(User,on_delete=models.RESTRICT)
-    referencia = models.CharField(max_length=8, blank=False)
+    referencia = models.CharField(max_length=7, blank=False)
     move_s = models.CharField(max_length=1,blank=False)  # 'E' entrada 'S' salida
     clave_movimiento = models.ForeignKey(ClaveMovimiento,on_delete=models.RESTRICT)
     fecha_movimiento = models.DateField(blank=False)
@@ -103,7 +103,7 @@ class DetalleMovimiento(models.Model):
 
 class Traspaso(models.Model):
     usuario = models.ForeignKey(User,on_delete=models.RESTRICT)
-    referencia = models.CharField(max_length=8, blank=False)
+    referencia = models.CharField(max_length=7, blank=False)
     fecha_traspaso = models.DateField(blank=False)
     alm1 = models.ForeignKey(Almacen,on_delete=models.RESTRICT, related_name='traspasos_salida')
     alm2 = models.ForeignKey(Almacen,on_delete=models.RESTRICT, related_name='traspasos_entrada')
@@ -130,7 +130,7 @@ class Remision(models.Model):
     almacen = models.ForeignKey(Almacen,on_delete=models.RESTRICT)
     usuario = models.ForeignKey(User,on_delete=models.RESTRICT)
     clave_movimiento = models.ForeignKey(ClaveMovimiento,on_delete=models.RESTRICT)
-    numero_remision = models.CharField(max_length=6,blank=False,default="")
+    numero_remision = models.CharField(max_length=7,blank=False,default="")
     fecha_remision = models.DateField(blank=False)
     numero_factura = models.CharField(max_length=20,blank=False,default="")
     cliente = models.ForeignKey('cxc.Cliente',on_delete=models.RESTRICT)

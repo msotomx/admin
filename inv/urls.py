@@ -11,6 +11,7 @@ from .views import MovimientoListView, MovimientoCreateView, MovimientoUpdateVie
 from .views import RemisionListView, RemisionCreateView, RemisionUpdateView, RemisionDeleteView, RemisionDetailView
 from .views import verificar_movimiento, obtener_costo_producto
 from .views import verificar_remision, obtener_precio_producto
+from .views import obtener_ultimo_numero_remision, obtener_ultimo_movimiento
 
 app_name = 'inv'
 
@@ -57,4 +58,6 @@ urlpatterns = [
     path('remision/<int:pk>/', RemisionDetailView.as_view(), name='remision_detail'),
     path('verificar-remision/', verificar_remision, name='verificar_remision'),
     path('obtener_precio_producto/', obtener_precio_producto, name='obtener_precio_producto'),
+    path('ajax/numero-remision/', obtener_ultimo_numero_remision, name='ajax_numero_remision'),
+    path('ajax/numero-movimiento/', obtener_ultimo_movimiento, name='ajax_numero_movimiento'),
 ]
