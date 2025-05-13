@@ -1,0 +1,141 @@
+<!-- templates/reportes/remisiones_por_dia.html -->
+{% extends 'base.html' %}
+{% load humanize %}
+{% block content %}
+
+    <br>
+
+    <form method="get" target="_blank">
+        <div class="card mb-3">
+            <div class="card-header">
+                <h2>REMISIONES POR DÍA</h2>
+                <div class="row g-2 align-items-end">
+                    <div class="col-md-4">
+                        <label>Almacén:</label>
+                        <select name="almacen" class="form-select">
+                            {% for a in almacenes %}
+                                <option value="{{ a.id }}" {% if almacen_seleccionado and a.id == almacen_seleccionado.id %}selected{% endif %}>
+                                    {{ a.nombre }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+    
+                    <div class="col-md-3">
+                        <label class="form-label">Fecha Inicial</label>
+                        <input type="date" name="fecha_ini" value="{{ fecha_ini }}" class="form-control">
+                    </div>
+    
+                    <div class="col-md-3">
+                        <label class="form-label">Fecha Final</label>
+                        <input type="date" name="fecha_fin" value="{{ fecha_fin }}" class="form-control">
+                    </div>
+    
+                    <div class="col-auto">
+                        <button class="btn btn-primary" type="submit">Buscar</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+    
+    <div id="print-area">
+        
+        {% if resultados %}
+            <div class="print-header">
+                <h4>BIT•SISTEMAS</h4>
+                <h4>REMISIONES POR DÍA <span style="float:right">{{ fecha_actual }}</span></h4>
+            </div>
+
+            <p><strong>ALMACÉN:</strong> {{ almacen_seleccionado.nombre }}</p>
+            <table border="1" cellpadding="5" cellspacing="0">
+                <thead>
+    
+                    <tr>
+                        <th>FECHA</th> 
+                        <th>REMISIÓN</th>
+                        <th>CODIGO</th>
+                        <th>DESCRIPCION</th>
+                        <th style="text-align: right;">CANTIDAD</th> 
+                        <th style="text-align: right;">PRECIO</th>
+                        <th style="text-align: right;">DESCUENTO</th>
+                        <th style="text-align: right;">TOTAL</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for d in resultados %}
+                        <tr>
+                            <td style="font-size: 0.8em; letter-spacing: -0.5px;">
+                                {{ d.numero_remision.fecha_remision|date:"d/M/Y"|upper }}
+                            </td>
+                            <td style="font-size: 0.8em; letter-spacing: -0.5px;">{{ d.numero_remision.numero_remision }}</td>
+                            <td style="font-size: 0.8em; letter-spacing: -0.5px;">{{ d.producto.sku|truncatechars:30 }}</td>
+                            <td style="font-size: 0.8em; letter-spacing: -0.5px;">{{ d.producto.descripcion|truncatechars:40 }}</td>
+                            <td style="text-align:right; font-size: 0.8em; letter-spacing: -0.5px;">{{ d.cantidad|default_if_none:0|floatformat:2|intcomma }}</td>
+                            <td style="text-align:right; font-size: 0.8em; letter-spacing: -0.5px;">{{ d.precio|default_if_none:0|floatformat:2|intcomma }}</td>
+                            <td style="text-align:right; font-size: 0.8em; letter-spacing: -0.5px;">{{ d.descuento|default_if_none:0|floatformat:2|intcomma }}</td>
+                            <td style="text-align:right; font-size: 0.8em; letter-spacing: -0.5px;">{{ d.total|default_if_none:0|floatformat:2|intcomma }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+                <div class="total-general">
+                    <tr>
+                        <td colspan="7" style="text-align:right;"><strong>TOTAL GENERAL</strong></td>
+                        
+                        <td style="text-align:right; font-size: 0.8em; letter-spacing: -0.5px;"><strong>{{ total_general|default_if_none:0|floatformat:2|intcomma }}</strong></td>
+                    </tr>
+                </div>
+            </table>
+        {% endif %}
+        
+    </div> <!-- id = print-area -->
+    <button onclick="printSection('print-area')" class="btn btn-primary no-print">
+        Imprimir
+    </button>
+
+    <script>
+        function printSection(id) {
+          const content = document.getElementById(id).innerHTML;
+          const printWindow = window.open('', '', 'height=600,width=800');
+          //printWindow.document.write('<html><head><title>Impresión</title>');
+          printWindow.document.write(`
+            <style>
+              body { font-family: sans-serif; font-size: 11px; }
+              table {
+                border-collapse: collapse;
+                width: 100%;
+                page-break-after: avoid; /* evita que la tabla se rompa innecesariamente */
+              }
+              thead tr {
+                border-top: 2px solid black;
+                border-bottom: 2px solid black;
+              }
+              thead th {
+                padding: 4px;
+                text-align: left;
+                font-size: 11px;
+              }
+              td {
+                padding: 2px;
+              }
+              table, td {
+                border: none !important;
+              }
+              .total-general {
+                page-break-before: auto;  /* <- NO fuerza salto */
+                page-break-inside: avoid; /* evita que se corte el bloque */
+                margin-top: 20px;
+                font-size: 14px;
+                font-weight: bold;
+              }
+            </style>
+          `);
+          printWindow.document.write('</head><body>');
+          printWindow.document.write(content);
+          printWindow.document.write('</body></html>');
+          printWindow.document.close();
+          printWindow.print();
+        }
+    </script>
+                      
+{% endblock %}

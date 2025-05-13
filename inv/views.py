@@ -14,6 +14,8 @@ from .forms import RemisionForm,  DetalleRemisionFormSet
 from datetime import date
 from django.http import JsonResponse
 
+
+
 # CRUD MONEDAS
 class MonedaListView(ListView):
     model = Moneda
@@ -520,3 +522,84 @@ def obtener_ultimo_movimiento(request):
             siguiente = "0000001"
         return JsonResponse({'referencia': siguiente})
     return JsonResponse({'referencia': '0000001'})
+
+# CONSULTAS
+# REMISIONES POR FECHA
+from django.shortcuts import render
+from django.db.models import Sum, F, ExpressionWrapper, DecimalField
+
+def remisiones_por_dia(request):
+    almacenes = Almacen.objects.all()
+    resultados = []
+    total_general = 0
+    almacen = None
+    fecha_ini = fecha_fin = None
+
+    if request.GET.get('almacen') and request.GET.get('fecha_ini') and request.GET.get('fecha_fin'):
+        almacen_id = request.GET['almacen']
+        fecha_ini = request.GET['fecha_ini']
+        fecha_fin = request.GET['fecha_fin']
+
+        almacen = Almacen.objects.get(id=almacen_id)
+
+        resultados = DetalleRemision.objects.filter(
+            numero_remision__almacen=almacen,
+            numero_remision__fecha_remision__range=[fecha_ini, fecha_fin]
+        ).select_related('producto', 'numero_remision').annotate(
+            total=ExpressionWrapper(
+                F('cantidad') * F('precio') - F('descuento'),
+                output_field=DecimalField()
+            )
+        ).order_by('numero_remision__fecha_remision')
+
+        total_general = resultados.aggregate(gran_total=Sum('total'))['gran_total'] or 0
+
+    return render(request, 'inv/reportes/remisiones_por_dia.html', {
+        'almacenes': almacenes,
+        'resultados': resultados,
+        'almacen_seleccionado': almacen,
+        'fecha_ini': fecha_ini,
+        'fecha_fin': fecha_fin,
+        'fecha_actual': date.today(),
+        'total_general': total_general,
+    })
+
+from django.shortcuts import render
+from django.utils.timezone import now
+from cxc.models import Cliente
+
+def remisiones_por_cliente(request):
+    #clientes = Cliente.objects.all()
+    total_general = 0
+    cliente = None
+    fecha_ini = fecha_fin = None
+
+    cliente_id = request.GET.get('cliente_id')
+    fecha_ini = request.GET.get('fecha_ini')
+    fecha_fin = request.GET.get('fecha_fin')
+
+    cliente = Cliente.objects.get(pk=cliente_id)
+    
+    remisiones = Remision.objects.filter(
+    cliente_id=cliente_id,
+    fecha_remision__range=[fecha_ini, fecha_fin]
+    ).order_by('fecha_remision','numero_remision') 
+
+    detalles = DetalleRemision.objects.filter(numero_remision__in=remisiones).select_related('producto','numero_remision')
+
+    # Calcula el total general
+    total_general = detalles.aggregate(total=Sum('subtotal'))['total'] or 0
+
+    contexto = {
+        'cliente': cliente,
+        'remisiones': remisiones,
+        'detalles': detalles,
+        'total_general': total_general,
+        'fecha_actual': now().date(),
+    }
+
+    return render(request, 'inv/reportes/remisiones_por_cliente.html', contexto)
+
+def buscar_remisiones_por_cliente(request):
+    clientes = Cliente.objects.all()
+    return render(request, 'inv/reportes/remisiones_buscar.html', {'clientes': clientes})

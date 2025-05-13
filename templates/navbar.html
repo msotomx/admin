@@ -50,8 +50,8 @@
         <li class="nav-item dropdown">
           <a class="nav-link dropdown-toggle" href="#" id="consultasDropdown" role="button" data-bs-toggle="dropdown">Consultas</a>
           <ul class="dropdown-menu">
-            <li><a class="dropdown-item" href="#">Movimientos de Almacén</a></li>
-            <li><a class="dropdown-item" href="#">Productos más Vendidos</a></li>
+            <li><a class="dropdown-item" href="{% url 'inv:remisiones_por_dia' %}">Remisiones por Dia</a></li>
+            <li><a class="dropdown-item" href="{% url 'inv:buscar_remisiones_cliente' %}">Remisiones por Cliente</a></li>
             <li><a class="dropdown-item" href="#">Compras por Producto</a></li>
             <li><a class="dropdown-item" href="#">Compras por Proveedor</a></li>
             <li><a class="dropdown-item" href="#">Movimientos por Cliente</a></li>

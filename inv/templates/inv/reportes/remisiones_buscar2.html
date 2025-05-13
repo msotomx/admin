@@ -1,0 +1,19 @@
+<h2>Reporte: Remisiones por Cliente</h2>
+
+<form id="form-remisiones">
+  <label for="cliente">Cliente:</label>
+  <select id="cliente" name="cliente_id">
+    <!-- Este select debe llenarse con los clientes desde el backend -->
+    {% for c in clientes %}
+      <option value="{{ c.id }}">{{ c.nombre }}</option>
+    {% endfor %}
+  </select>
+
+  <label for="fecha_ini">Fecha Inicial:</label>
+  <input type="date" id="fecha_ini" name="fecha_ini">
+
+  <label for="fecha_fin">Fecha Final:</label>
+  <input type="date" id="fecha_fin" name="fecha_fin">
+
+  <button type="submit">Buscar</button>
+</form>
