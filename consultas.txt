@@ -21,24 +21,24 @@ CONSULTAS
 	Fecha Inicial
 	Fecha Final
 
-2. Movimientos por Producto
+5. Movimientos por Producto
 	Almacen	
 	Categoria
 	Fecha Inicial
 	Fecha Final
-3. Venta por Producto
-	Almacen	
-	Categoria
-	Producto
-	Fecha Inicial
-	Fecha Final
-4. Compras por Producto		
+6. Venta por Producto
 	Almacen	
 	Categoria
 	Producto
 	Fecha Inicial
 	Fecha Final
-5. Compras por Proveedor
+7. Compras por Producto		
+	Almacen	
+	Categoria
+	Producto
+	Fecha Inicial
+	Fecha Final
+8. Compras por Proveedor
 	Proveedor
 	Almacen
 	Categoria
@@ -46,3 +46,75 @@ CONSULTAS
 	Fecha Inicial
 	Fecha Final
 		
+vamos a generar una funcion que reciba (producto) y que regrese (existencia) a la fecha (fecha_leida)
+La existencia se calcula asi:
+existencia = saldo_inicial + entradas - salidas
+
+1) saldo_inicial, se calcula asi: 
+   Saldo_Inicial.existencia, esa existencia indica la existencia a la fecha Saldo_Inicial.fecha
+     si hay varios registros de ese producto, se toma el valor de SaldoInicial.existencia mas cercano a la fecha_leida
+2) entradas = DetalleMovimiento
+   Se toman todos los movimientos de la tabla DetalleMovimiento, con:
+	Movimiento.move_s ='E'     
+	(Movimiento.fecha_movimiento >= SaldoInicial.fecha) and (Movimiento.fecha_movimiento<= fecha_leida)
+     
+3) salidas = DetalleMovimiento + DetalleRemisiones
+   Se toman todos los movimientos de la tabla DetalleMovimiento, con:
+  	Movimiento.move_s ='S'     
+	(Movimiento.fecha_movimiento >= SaldoInicial.fecha) and (Movimiento.fecha_movimiento<= fecha_leida)
+      mas
+	Las remisiones de la tabla DetalleRemision, con:
+	(Remision.fecha_movimiento >= SaldoInicial.fecha) and (Movimiento.fecha_movimiento<= fecha_leida)
+
+class SaldoInicial(models.Model):
+    almacen = models.ForeignKey(Almacen,on_delete=models.RESTRICT)
+    producto = models.ForeignKey(Producto,on_delete=models.RESTRICT)
+    existencia = models.DecimalField(decimal_places=2, max_digits=10, default=0,null=False)
+    fecha = models.DateField(blank=False)
+
+class Movimiento(models.Model):
+    usuario = models.ForeignKey(User,on_delete=models.RESTRICT)
+    referencia = models.CharField(max_length=7, blank=False)
+    move_s = models.CharField(max_length=1,blank=False)  # 'E' entrada 'S' salida
+    clave_movimiento = models.ForeignKey(ClaveMovimiento,on_delete=models.RESTRICT)
+    fecha_movimiento = models.DateField(blank=False)
+    almacen = models.ForeignKey(Almacen,on_delete=models.RESTRICT)
+
+    def __str__(self):
+        return self.referencia
+    
+class DetalleMovimiento(models.Model):
+    referencia = models.ForeignKey(Movimiento,on_delete=models.CASCADE, related_name='detalles')
+    producto = models.ForeignKey(Producto,on_delete=models.PROTECT)
+    cantidad = models.DecimalField(null=True, decimal_places=2, max_digits=10)
+    costo_unit = models.DecimalField(null=True, decimal_places=2, max_digits=10)
+    subtotal = models.DecimalField(null=True, decimal_places=2, max_digits=10)
+
+class Remision(models.Model):
+    ESTADO_CHOICES = (
+        ('C','Cotizacion'),  # no genera movimiento de Salida
+        ('P','Pedido'),      # no genera movimiento de Salida
+        ('R','Remisionado'), # si genera movimiento de Salida
+        ('F','Facturado'),    # la remision se ha facturado
+        ('E','Eliminada')    # la remision se ha borrado
+    )
+    almacen = models.ForeignKey(Almacen,on_delete=models.RESTRICT)
+    usuario = models.ForeignKey(User,on_delete=models.RESTRICT)
+    clave_movimiento = models.ForeignKey(ClaveMovimiento,on_delete=models.RESTRICT)
+    numero_remision = models.CharField(max_length=7,blank=False,default="")
+    fecha_remision = models.DateField(blank=False)
+    numero_factura = models.CharField(max_length=20,blank=False,default="")
+    cliente = models.ForeignKey('cxc.Cliente',on_delete=models.RESTRICT)
+    monto_total = models.DecimalField(default=0,decimal_places=2, max_digits=10,null=True)
+    status = models.CharField(max_length=1,default='R',choices=ESTADO_CHOICES)   # CON Esto, solo permite 0 o 1
+
+    def __str__(self):
+        return self.numero_remision
+
+class DetalleRemision(models.Model):
+    numero_remision = models.ForeignKey(Remision,related_name='detalles',on_delete=models.CASCADE)
+    producto = models.ForeignKey(Producto,on_delete=models.RESTRICT)
+    cantidad = models.DecimalField(null=True, decimal_places=2, max_digits=10)
+    precio = models.DecimalField(null=True, decimal_places=2, max_digits=10)
+    descuento = models.DecimalField(null=True, decimal_places=2, max_digits=10, blank=True)
+    subtotal = models.DecimalField(max_digits=10,decimal_places=2,null=True)

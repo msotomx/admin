@@ -1,0 +1,111 @@
+{% extends "base.html" %}
+{% block content %}
+
+<form id="form-movimientos" method="get" class="card p-3 shadow-sm">
+    
+    <h4 class="card-title mb-3">Existencia de un Producto a una Fecha</h4>
+    
+    <div class="row g-2 align-items-end">
+        <div class="col-md-4">
+            <label>Almacen:</label>
+            <select id="almacen" name="almacen" class="form-select">
+                {% for a in almacenes %}
+                    <option value="{{ a.id }}" {% if almacen_seleccionado and a.id == almacen_seleccionado.id %}selected{% endif %}>
+                        {{ a.nombre }}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-4">
+            <label>Producto:</label>
+            <select id="producto" name="producto" class="form-select">
+                {% for a in productos %}
+                    <option value="{{ a.id }}" {% if producto_seleccionado and a.id == producto_seleccionado.id %}selected{% endif %}>
+                        {{ a.nombre }}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="col-md-3">
+            <label class="form-label">A la Fecha:</label>
+            <input id="fecha" type="date" name="fecha" value="{{ fecha }}" class="form-control">
+        </div>
+        <div class="col-md-3">
+            <label class="form-label">Existencia:</label>
+            <input type="text" style="text-align: right;"  class="existencia" readonly disabled>
+        </div>
+        
+        <div class="col-md-2">
+            <button class="btn btn-primary w-100" type="submit" name="accion" value="buscar">Buscar</button>
+        </div>
+        <div class="col-md-2">
+            <button class="btn btn-primary w-100" type="submit" name="accion" value="ver_movimientos">Ver Movimientos</button>
+        </div>
+    </div>
+</form>
+<script>
+    window.addEventListener('DOMContentLoaded', function() {
+        const today = new Date().toLocaleDateString('en-CA');
+        const dateFields = document.querySelectorAll('input[type="date"]');
+
+        dateFields.forEach(field => {
+            if (!field.value) {
+                field.value = today;
+            }
+        });
+    });
+</script>
+
+<script>
+    document.getElementById('form-movimientos').addEventListener('submit', async function(event) {
+        event.preventDefault();
+        const botonPresionado = document.activeElement;
+        const productoId = document.getElementById('producto').value;
+        const almacenId = document.getElementById('almacen').value;
+        const fecha = document.getElementById('fecha').value;
+
+        if (botonPresionado.name === 'accion') {
+            if (botonPresionado.value === 'buscar') {
+                // boton para mostrar la existencia en la misma paantalla //
+            
+                // 🚨 Verifica que productoId no esté vacío
+                if (!productoId) {
+                    alert("Debes seleccionar un Producto");
+                    return;
+                }
+
+                // Obtener existencia del producto
+                async function obtenerExistencia(productoId, almacenId, fecha) {
+                    const existenciaResp = await fetch(`/inv/api/existencia_producto/?producto=${productoId}&almacen=${almacenId}&fecha=${fecha}`);
+                    console.log("existencia:",existenciaResp)
+                    if (!existenciaResp.ok) throw new Error('Error al obtener existencia');
+                    const existenciaData = await existenciaResp.json();
+                    return existenciaData.existencia;
+                }
+
+                const existencia = await obtenerExistencia(productoId, almacenId, fecha);
+                const existenciaInput = document.querySelector('input.existencia');
+                if (existenciaInput) {
+                    existenciaInput.value = existencia;
+                }
+                // aqui termina el boton para mostrar la existencia en la misma pantalla
+                
+                
+            } else if (botonPresionado.value === 'ver_movimientos') {
+                // Boton ver_movimientos
+            
+                // 🚨 Verifica que productoId no esté vacío
+                if (!productoId) {
+                    alert("Debes seleccionar un Producto");
+                    return;
+                }
+            
+                const url = `/inv/reportes/imprimir_existencia_producto/?producto=${productoId}&almacen=${almacenId}&fecha_fin=${fecha}`;
+                window.open(url, '_blank');
+            }
+        }
+    });
+</script>
+
+{% endblock %}

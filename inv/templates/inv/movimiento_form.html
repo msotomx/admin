@@ -47,6 +47,7 @@
                     <thead class="table-light">
                         <tr>
                             <th>Producto</th>
+                            <th>Existencia</th>
                             <th>Cantidad</th>
                             <th>Costo Unit</th>
                             <th>Subtotal</th>
@@ -59,6 +60,9 @@
                             <tr class="formset-form">
                                 {{ form.id }}
                                 <td>{{ form.producto }}</td>
+                                <td>
+                                    <input type="text" class="form-control form-control-sm existencia" readonly disabled>
+                                </td>
                                 <td>{{ form.cantidad }}</td>
                                 <td>{{ form.costo_unit }}</td>
                                 <td>{{ form.subtotal }}</td>
@@ -196,34 +200,57 @@ document.addEventListener('DOMContentLoaded', function () {
 
     });
     
-    // al generarse el evento blur del campo producto, se asigna el valor
-    // del costo_reposicion al campo costo_unit
+    // al generarse el evento BLUR del campo producto,
+    //  se busca la existencia y el costo_reposicion, el cual se asigna al campo costo_unit 
+    const fechaInput = document.querySelector('#id_fecha_movimiento');
+    const almacenInput = document.querySelector('#id_almacen');
 
-    // const formsetBody = document.querySelector('#formset-body');
-    
     if (formsetBody) {
         formsetBody.addEventListener('blur', async function (e) {
             if (e.target && e.target.name.includes('-producto')) {
                 const productoInput = e.target;
-                const row = productoInput.closest('tr');  // o div, si no es tabla
+                const row = productoInput.closest('tr');  
                 const productoId = productoInput.value;
 
-                if (productoId) {
+                // Ajusta estas líneas según cómo tengas definidos fecha y almacen en tu formulario
+                const fechaInput = document.querySelector('#id_fecha_movimiento');
+                const almacenInput = document.querySelector('#id_almacen');
+
+                const fecha = fechaInput ? fechaInput.value : null;
+                const almacenId = almacenInput ? almacenInput.value : null;
+
+                if (productoId && fecha && almacenId) {
                     try {
-                        const response = await fetch(`/inv/obtener_costo_producto/?producto_id=${productoId}`);
-                        if (!response.ok) throw new Error('Error al obtener costo');
-                        const data = await response.json();
+                        // 1. Obtener costo de reposición
+                        const costoResp = await fetch(`/inv/obtener_costo_producto/?producto_id=${productoId}`);
+                        if (!costoResp.ok) throw new Error('Error al obtener costo');
+                        const costoData = await costoResp.json();
                         const costoUnitInput = row.querySelector("input[name$='-costo_unit']");
                         if (costoUnitInput) {
-                            costoUnitInput.value = data.costo_reposicion;
+                            costoUnitInput.value = costoData.costo_reposicion;
                         }
+
+                        // 2. Obtener existencia del producto
+                        const existenciaResp = await fetch(`/inv/api/existencia_producto/?producto=${productoId}&almacen=${almacenId}&fecha=${fecha}`);
+                        if (!existenciaResp.ok) throw new Error('Error al obtener existencia');
+                        const existenciaData = await existenciaResp.json();
+
+                        // Aquí se selecciona el input con clase 'existencia' en la misma fila
+                        const existenciaInput = row.querySelector('input.existencia');
+                        if (existenciaInput) {
+                            existenciaInput.value = existenciaData.existencia;
+                        } else {
+                            console.log(`Existencia actual: ${existenciaData.existencia}`);
+                        }
+
                     } catch (err) {
-                        console.error('Error al obtener costo_reposicion:', err);
+                        console.error('Error al obtener datos del producto:', err);
                     }
                 }
             }
-        }, true); // true = fase de captura, para detectar blur correctamente
-    }    
+        }, true);
+    }
+    
     // fin de blur producto
 
     // Recalcular subtotal automáticamente

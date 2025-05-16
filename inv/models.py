@@ -101,24 +101,6 @@ class DetalleMovimiento(models.Model):
     def __str__(self):
         return self.referencia
 
-class Traspaso(models.Model):
-    usuario = models.ForeignKey(User,on_delete=models.RESTRICT)
-    referencia = models.CharField(max_length=7, blank=False)
-    fecha_traspaso = models.DateField(blank=False)
-    alm1 = models.ForeignKey(Almacen,on_delete=models.RESTRICT, related_name='traspasos_salida')
-    alm2 = models.ForeignKey(Almacen,on_delete=models.RESTRICT, related_name='traspasos_entrada')
-
-    def __str__(self):
-        return self.referencia
-
-class DetalleTraspaso(models.Model):
-    referencia = models.ForeignKey(Traspaso,on_delete=models.RESTRICT)
-    producto = models.ForeignKey(Producto,on_delete=models.RESTRICT)
-    cantidad = models.DecimalField(null=True, decimal_places=2, max_digits=10)
-
-    def __str__(self):
-        return self.referencia
-
 class Remision(models.Model):
     ESTADO_CHOICES = (
         ('C','Cotizacion'),  # no genera movimiento de Salida
@@ -150,6 +132,54 @@ class DetalleRemision(models.Model):
 
     def __str__(self):
         return self.producto.nombre
+
+class Compra(models.Model):
+    almacen = models.ForeignKey(Almacen,on_delete=models.RESTRICT)
+    usuario = models.ForeignKey(User,on_delete=models.RESTRICT)
+    clave_movimiento = models.ForeignKey(ClaveMovimiento,on_delete=models.RESTRICT)
+    referencia = models.CharField(max_length=7,blank=False,default="")
+    pedido = models.CharField(max_length=7,blank=True,default="")
+    fecha_compra = models.DateField(blank=False)
+    proveedor = models.ForeignKey(Proveedor,on_delete=models.RESTRICT)
+    moneda = models.ForeignKey(Moneda,on_delete=models.RESTRICT)
+    paridad = models.DecimalField(default=1,decimal_places=2, max_digits=10,null=False)
+    flete = models.DecimalField(default=1,decimal_places=2, max_digits=10,null=False)
+    fecha_vencimiento = models.DateField(blank=False)
+    descuento = models.DecimalField(default=1,decimal_places=2, max_digits=10,null=False)
+    monto_total = models.DecimalField(default=0,decimal_places=2, max_digits=10,null=True)
+    fecha_pagada = models.DateField(blank=False)
+
+    def __str__(self):
+        return self.referencia
+
+class DetalleCompra(models.Model):
+    referencia = models.ForeignKey(Compra,related_name='detalles',on_delete=models.CASCADE)
+    producto = models.ForeignKey(Producto,on_delete=models.RESTRICT)
+    cantidad = models.DecimalField(null=True, decimal_places=2, max_digits=10)
+    costo_unit = models.DecimalField(null=True, decimal_places=2, max_digits=10)
+    descuento = models.DecimalField(null=True, decimal_places=2, max_digits=10, blank=True)
+    subtotal = models.DecimalField(max_digits=10,decimal_places=2,null=True)
+
+    def __str__(self):
+        return self.producto.nombre
+
+class Traspaso(models.Model):
+    usuario = models.ForeignKey(User,on_delete=models.RESTRICT)
+    referencia = models.CharField(max_length=7, blank=False)
+    fecha_traspaso = models.DateField(blank=False)
+    alm1 = models.ForeignKey(Almacen,on_delete=models.RESTRICT, related_name='traspasos_salida')
+    alm2 = models.ForeignKey(Almacen,on_delete=models.RESTRICT, related_name='traspasos_entrada')
+
+    def __str__(self):
+        return self.referencia
+
+class DetalleTraspaso(models.Model):
+    referencia = models.ForeignKey(Traspaso,on_delete=models.RESTRICT)
+    producto = models.ForeignKey(Producto,on_delete=models.RESTRICT)
+    cantidad = models.DecimalField(null=True, decimal_places=2, max_digits=10)
+
+    def __str__(self):
+        return self.referencia
 
 class SaldoInicial(models.Model):
     almacen = models.ForeignKey(Almacen,on_delete=models.RESTRICT)

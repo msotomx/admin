@@ -6,18 +6,17 @@
         {% if resultados %}
             <div class="print-header">
                 <p>BIT•SISTEMAS</p>
-                <p>REMISIONES POR DIA<span style="float:right">{{ fecha_actual }}</span></p>
-                <p>ALMACÉN: {{ almacen_seleccionado.nombre }}</p>
+                <p>REMISIONES POR PRODUCTO<span style="float:right">{{ fecha_actual }}</span></p>
+                <p>PRODUCTO: {{ producto.sku }} {{ producto.nombre }}</p>
                 <p>DEL: {{ fecha_ini|date:"d/M/Y"|upper }} AL {{ fecha_fin|date:"d/M/Y"|upper }}</p>
             </div>    
             <table class="table table-sm">
                 <thead>
                     <tr>
                         <th>FECHA</th> 
-                        <th>CLAVE REM</th>
-                        <th>REMISION</th>
-                        <th>PRODUCTO</th>
-                        <th>DESCRIPCION</th>
+                        <th>REMISIÓN</th>
+                        <th>CLIENTE</th>
+                        <th>NOMBRE</th>
                         <th style="text-align: right;">CANTIDAD</th> 
                         <th style="text-align: right;">PRECIO</th>
                         <th style="text-align: right;">DESCUENTO</th>
@@ -30,26 +29,24 @@
                             <td style="font-size: 0.8em; letter-spacing: -0.5px;">
                                 {{ d.numero_remision.fecha_remision|date:"d/M/Y"|upper }}
                             </td>
-                            <td style="font-size: 0.8em; letter-spacing: -0.5px;">{{ d.numero_remision.clave_movimiento.clave_movimiento }}</td>
                             <td style="font-size: 0.8em; letter-spacing: -0.5px;">{{ d.numero_remision.numero_remision }}</td>
-                            <td style="font-size: 0.8em; letter-spacing: -0.5px;">{{ d.producto.sku }}</td>
-                            <td style="font-size: 0.8em; letter-spacing: -0.5px;">{{ d.producto.descripcion|truncatechars:30 }}</td>
+                            <td style="font-size: 0.8em; letter-spacing: -0.5px;">{{ d.numero_remision.cliente.cliente }}</td> 
+                            <td style="font-size: 0.8em; letter-spacing: -0.5px;">{{ d.numero_remision.cliente.nombre|truncatechars:30 }}</td>
                             <td style="text-align:right; font-size: 0.8em; letter-spacing: -0.5px;">{{ d.cantidad|default_if_none:0|floatformat:2|intcomma }}</td>
                             <td style="text-align:right; font-size: 0.8em; letter-spacing: -0.5px;">{{ d.precio|default_if_none:0|floatformat:2|intcomma }}</td>
                             <td style="text-align:right; font-size: 0.8em; letter-spacing: -0.5px;">{{ d.descuento|default_if_none:0|floatformat:2|intcomma }}</td>
-                            <td style="text-align:right; font-size: 0.8em; letter-spacing: -0.5px;">{{ d.total|default_if_none:0|floatformat:2|intcomma }}</td>
+                            <td style="text-align:right; font-size: 0.8em; letter-spacing: -0.5px;">{{ d.subtotal|default_if_none:0|floatformat:2|intcomma }}</td>
                         </tr>
                     {% endfor %}
                 </tbody>
-                <div class="total-general">
-                    <tr>
-                        <td colspan="8" style="text-align:right;"><strong>TOTAL GENERAL</strong></td>
-                        
-                        <td style="text-align:right; letter-spacing: -0.5px;"><strong>{{ total_general|default_if_none:0|floatformat:2|intcomma }}</strong></td>
-                    </tr>
-                </div>
-            </table>
-        {% endif %}
+                <tr class="total-general-row">
+                  <td colspan="7" style="font-size:1.2em;", class="text-end">TOTAL GENERAL:</td>
+                  <td style="font-size:1.2em;", class="text-end">{{ total_general|floatformat:2|intcomma }}</td>
+                </tr>
+    
+              </table>
+
+          {% endif %}
         
     </div> <!-- id = print-area -->
     <div class="container mt-3 no-print">
@@ -86,7 +83,7 @@
                   table, td {
                     border: none !important;
                   }
-                  .total-general {
+                  .total-general-row {
                     page-break-before: auto;  /* <- NO fuerza salto */
                     page-break-inside: avoid; /* evita que se corte el bloque */
                     margin-top: 20px;

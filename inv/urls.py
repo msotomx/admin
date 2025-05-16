@@ -12,7 +12,13 @@ from .views import RemisionListView, RemisionCreateView, RemisionUpdateView, Rem
 from .views import verificar_movimiento, obtener_costo_producto
 from .views import verificar_remision, obtener_precio_producto
 from .views import obtener_ultimo_numero_remision, obtener_ultimo_movimiento
-from .views import remisiones_por_dia, remisiones_por_cliente, buscar_remisiones_por_cliente
+from .views import remisiones_por_dia, buscar_remisiones_por_dia
+from .views import remisiones_por_cliente, buscar_remisiones_por_cliente
+from .views import remisiones_por_producto, buscar_remisiones_por_producto
+from .views import movimientos_por_producto_totales, buscar_movimientos_por_producto_totales
+from .views import movimientos_por_clave, buscar_movimientos_por_clave
+from .views import api_existencia_producto
+from .views import buscar_existencia_producto, imprimir_existencia_producto
 
 app_name = 'inv'
 
@@ -62,7 +68,17 @@ urlpatterns = [
     path('ajax/numero-remision/', obtener_ultimo_numero_remision, name='ajax_numero_remision'),
     path('ajax/numero-movimiento/', obtener_ultimo_movimiento, name='ajax_numero_movimiento'),
     path('reportes/remisiones_por_dia/', remisiones_por_dia, name='remisiones_por_dia'),
+    path('reportes/buscar_remisiones_dia/', buscar_remisiones_por_dia, name='buscar_remisiones_dia'),
     path('reportes/remisiones_por_cliente/', remisiones_por_cliente, name='remisiones_por_cliente'),
     path('reportes/buscar_remisiones_cliente/', buscar_remisiones_por_cliente, name='buscar_remisiones_cliente'),
-]
+    path('reportes/remisiones_por_producto/', remisiones_por_producto, name='remisiones_por_producto'),
+    path('reportes/buscar_remisiones_producto/', buscar_remisiones_por_producto, name='buscar_remisiones_producto'),
+    path('reportes/buscar_movimientos_producto/', buscar_movimientos_por_producto_totales, name='buscar_movimientos_producto'),
+    path('reportes/movimientos_por_producto/', movimientos_por_producto_totales, name='movimientos_por_producto'),
+    path('reportes/buscar_movimientos_clave/', buscar_movimientos_por_clave, name='buscar_movimientos_clave'),
+    path('reportes/movimientos_por_clave/', movimientos_por_clave, name='movimientos_por_clave'),
+    path('api/existencia_producto/', api_existencia_producto, name='api_existencia_producto'),
 
+    path('reportes/buscar_existencia_producto/', buscar_existencia_producto, name='buscar_existencia_producto'),
+    path('reportes/imprimir_existencia_producto/', imprimir_existencia_producto, name='imprimir_existencia_producto'),
+]

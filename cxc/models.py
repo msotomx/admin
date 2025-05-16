@@ -19,7 +19,7 @@ class ClaveMovimientoCxC(models.Model):
         return self.nombre 
 
 class Cliente(models.Model):
-    cliente = models.IntegerField(null=False,default=1)
+    cliente = models.CharField(max_length=6,blank=False,unique=True)
     tipo_cliente = models.ForeignKey(TipoCliente,on_delete=models.RESTRICT)
     nombre = models.CharField(max_length=100,blank=False)
     rfc = models.CharField(max_length=13,blank=True)

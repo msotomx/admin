@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% block content %}
+
+<form id="form-movimientos" method="get" class="card p-3 shadow-sm">
+    
+    <h4 class="card-title mb-3">Movimientos por Producto</h4>
+    
+    <div class="row g-2 align-items-end">
+        <div class="col-md-4">
+            <label>Producto:</label>
+            <select id="producto" name="producto" class="form-select">
+                {% for a in productos %}
+                    <option value="{{ a.id }}" {% if producto_seleccionado and a.id == producto_seleccionado.id %}selected{% endif %}>
+                        {{ a.nombre }}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-3">
+            <label class="form-label">Fecha Inicial:</label>
+            <input id="fecha_ini" type="date" name="fecha_ini" value="{{ fecha_ini }}" class="form-control">
+        </div>
+        <div class="col-md-3">
+            <label class="form-label">Fecha Final:</label>
+            <input id="fecha_fin" type="date" name="fecha_fin" value="{{ fecha_fin }}" class="form-control">
+        </div>
+        <div class="col-md-2">
+            <button class="btn btn-primary w-100" type="submit">Buscar</button>
+        </div>
+    </div>
+</form>
+<script>
+    window.addEventListener('DOMContentLoaded', function() {
+        const today = new Date().toLocaleDateString('en-CA');
+        const dateFields = document.querySelectorAll('input[type="date"]');
+
+        dateFields.forEach(field => {
+            if (!field.value) {
+                field.value = today;
+            }
+        });
+    });
+</script>
+
+<script>
+    document.getElementById('form-movimientos').addEventListener('submit', function(event) {
+      event.preventDefault();
+  
+      const productoId = document.getElementById('producto').value;
+      const fechaIni = document.getElementById('fecha_ini').value;
+      const fechaFin = document.getElementById('fecha_fin').value;
+  
+      // 🚨 Verifica que productoId no esté vacío
+      if (!productoId) {
+        alert("Debes seleccionar un Producto");
+        return;
+      }
+  
+      const url = `/inv/reportes/movimientos_por_producto/?producto=${productoId}&fecha_ini=${fechaIni}&fecha_fin=${fechaFin}`;
+      window.open(url, '_blank');
+    });
+</script>
+
+{% endblock %}

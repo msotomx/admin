@@ -4,7 +4,8 @@
 
 {% block content %}
 <div class="container mt-4">
-    <h2 class="mb-4">Nuevo Cliente</h2>
+    
+    <h2 class="mb-4">{{ view.object.pk|yesno:"Editar Cliente,Nuevo Cliente" }}</h2>
     <form method="POST">
         {% csrf_token %}
         <div class="row g-2">
@@ -104,4 +105,16 @@
         </div>
     </form>
 </div>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const input = document.getElementById('id_cliente');
+        input.addEventListener('blur', function () {
+            let val = input.value.trim();
+            if (val) {
+                input.value = val.padStart(6, '0');
+            }
+        });
+    });
+    </script>
+    
 {% endblock %}

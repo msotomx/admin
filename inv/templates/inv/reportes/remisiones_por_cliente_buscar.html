@@ -30,6 +30,18 @@
         </div>
     </div>
 </form>
+<script>
+    window.addEventListener('DOMContentLoaded', function() {
+        const today = new Date().toLocaleDateString('en-CA');
+        const dateFields = document.querySelectorAll('input[type="date"]');
+
+        dateFields.forEach(field => {
+            if (!field.value) {
+                field.value = today;
+            }
+        });
+    });
+</script>
 
 <script>
     document.getElementById('form-remisiones').addEventListener('submit', function(event) {

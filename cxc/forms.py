@@ -19,6 +19,11 @@ class ClienteForm(forms.ModelForm):
             super().__init__(*args, **kwargs)
             self.fields['campo_libre_str'].required = False
             self.fields['campo_libre_num'].required = False
+
+        def clean_cliente(self):
+            cliente = self.cleaned_data['cliente']
+            cliente_str = cliente.zfill(6)  # convierte a string y rellena con ceros
+            return cliente_str
         
         widgets = {
             'nombre': forms.TextInput(attrs={'class': 'form-control'}),

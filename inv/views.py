@@ -1,4 +1,5 @@
-from django.shortcuts import redirect, render
+from django.shortcuts import redirect, render, get_object_or_404
+from django.db.models import Sum, Q
 
 # Create your views here.
 from django.urls import reverse_lazy
@@ -7,14 +8,17 @@ from django.views.generic.edit import CreateView, UpdateView
 
 from .models import Moneda, Categoria, UnidadMedida, Almacen, ClaveMovimiento, Proveedor
 from .models import Producto, Movimiento, DetalleMovimiento, Remision, DetalleRemision
+from .models import SaldoInicial
 from core.models import Empresa
+from cxc.models import Cliente
 from .forms import MonedaForm, CategoriaForm, UnidadMedidaForm, AlmacenForm, ClaveMovimientoForm
 from .forms import ProveedorForm, ProductoForm, MovimientoForm,  DetalleMovimientoFormSet
 from .forms import RemisionForm,  DetalleRemisionFormSet
 from datetime import date
 from django.http import JsonResponse
-
-
+from django.db.models import Case, When, Value, F, DecimalField
+from datetime import datetime
+from django.utils.timezone import now, localtime
 
 # CRUD MONEDAS
 class MonedaListView(ListView):
@@ -550,10 +554,14 @@ def remisiones_por_dia(request):
                 F('cantidad') * F('precio') - F('descuento'),
                 output_field=DecimalField()
             )
-        ).order_by('numero_remision__fecha_remision')
+        ).order_by('numero_remision__fecha_remision', 'numero_remision__numero_remision', 'id')
 
         total_general = resultados.aggregate(gran_total=Sum('total'))['gran_total'] or 0
 
+    # pasa fechas de string a fecha
+    fecha_ini = datetime.strptime(fecha_ini, '%Y-%m-%d').date() if fecha_ini else None
+    fecha_fin = datetime.strptime(fecha_fin, '%Y-%m-%d').date() if fecha_fin else None
+ 
     return render(request, 'inv/reportes/remisiones_por_dia.html', {
         'almacenes': almacenes,
         'resultados': resultados,
@@ -564,9 +572,10 @@ def remisiones_por_dia(request):
         'total_general': total_general,
     })
 
-from django.shortcuts import render
-from django.utils.timezone import now
-from cxc.models import Cliente
+def buscar_remisiones_por_dia(request):
+    almacenes = Almacen.objects.all()
+    return render(request, 'inv/reportes/remisiones_por_dia_buscar.html', {'almacenes': almacenes})
+
 
 def remisiones_por_cliente(request):
     #clientes = Cliente.objects.all()
@@ -585,21 +594,352 @@ def remisiones_por_cliente(request):
     fecha_remision__range=[fecha_ini, fecha_fin]
     ).order_by('fecha_remision','numero_remision') 
 
-    detalles = DetalleRemision.objects.filter(numero_remision__in=remisiones).select_related('producto','numero_remision')
+    detalles = DetalleRemision.objects.filter(numero_remision__in=remisiones
+                                              ).select_related('numero_remision','producto'
+                                              ).order_by('numero_remision__fecha_remision', 'numero_remision__numero_remision', 'id')
 
     # Calcula el total general
     total_general = detalles.aggregate(total=Sum('subtotal'))['total'] or 0
-
+    # pasa fechas de string a fecha
+    fecha_ini = datetime.strptime(fecha_ini, '%Y-%m-%d').date() if fecha_ini else None
+    fecha_fin = datetime.strptime(fecha_fin, '%Y-%m-%d').date() if fecha_fin else None
+    
     contexto = {
         'cliente': cliente,
         'remisiones': remisiones,
         'detalles': detalles,
         'total_general': total_general,
-        'fecha_actual': now().date(),
+        'fecha_actual': localtime(now()).date(),
+        'fecha_ini' : fecha_ini,
+        'fecha_fin' : fecha_fin,
     }
 
     return render(request, 'inv/reportes/remisiones_por_cliente.html', contexto)
 
 def buscar_remisiones_por_cliente(request):
     clientes = Cliente.objects.all()
-    return render(request, 'inv/reportes/remisiones_buscar.html', {'clientes': clientes})
+    return render(request, 'inv/reportes/remisiones_por_cliente_buscar.html', {'clientes': clientes})
+
+def remisiones_por_producto(request):
+    producto_id = request.GET.get('producto')
+    fecha_ini = request.GET.get('fecha_ini')
+    fecha_fin = request.GET.get('fecha_fin')
+
+    producto = Producto.objects.get(pk=producto_id)
+
+    # saca las remisiones a partir del detalle
+    remisiones = Remision.objects.filter(
+        detalles__producto_id=producto_id,  # este detalles es el related_names definido en la Tabla DetalleRemision
+        fecha_remision__range=[fecha_ini, fecha_fin]
+    ).distinct().order_by('fecha_remision', 'numero_remision')
+    
+    detalles = DetalleRemision.objects.filter(
+        numero_remision__in=remisiones,
+        producto_id=producto_id
+    ).select_related('numero_remision', 'producto'
+    ).order_by('numero_remision__fecha_remision', 'numero_remision__numero_remision', 'id')
+    
+    total_general = detalles.aggregate(total=Sum('subtotal'))['total'] or 0
+
+    # pasa fechas de string a fecha
+    fecha_ini = datetime.strptime(fecha_ini, '%Y-%m-%d').date() if fecha_ini else None
+    fecha_fin = datetime.strptime(fecha_fin, '%Y-%m-%d').date() if fecha_fin else None
+
+    contexto = {
+        'producto': producto,
+        'remisiones': remisiones,
+        'resultados': detalles,
+        'total_general': total_general,
+        'fecha_actual': localtime(now()).date(),
+        'fecha_ini' : fecha_ini,
+        'fecha_fin' : fecha_fin,
+    }
+
+    return render(request, 'inv/reportes/remisiones_por_producto.html', contexto)
+
+def buscar_remisiones_por_producto(request):
+    productos = Producto.objects.all()
+
+    producto_id = request.GET.get('producto')
+    fecha_ini = request.GET.get('fecha_ini')
+    fecha_fin = request.GET.get('fecha_fin')
+
+    producto_seleccionado = Producto.objects.filter(id=producto_id).first() if producto_id else None
+
+    contexto = {
+        'productos': productos,
+        'producto_seleccionado': producto_seleccionado,
+        'fecha_ini': fecha_ini,
+        'fecha_fin': fecha_fin,
+    }
+    return render(request, 'inv/reportes/remisiones_por_producto_buscar.html', contexto)
+
+# VISTAS PARA CONSULTA DE MOVIMIENTOS TOTALES POR PRODUCTO: MOVIMIENTOS Y REMISIONES
+def buscar_movimientos_por_producto_totales(request):
+    productos = Producto.objects.all()
+    return render(request, 'inv/reportes/movimientos_por_producto_buscar.html', {
+        'productos': productos
+    })
+
+from django.db.models import F, Value, CharField
+from django.db.models.functions import Coalesce
+
+def movimientos_por_producto_totales(request):
+    producto_id = request.GET.get('producto')
+    fecha_ini = request.GET.get('fecha_ini')
+    fecha_fin = request.GET.get('fecha_fin')
+
+    producto = Producto.objects.get(pk=producto_id)
+
+    # Movimientos
+    movimientos = DetalleMovimiento.objects.filter(
+        producto_id=producto_id,
+        referencia__fecha_movimiento__range=[fecha_ini, fecha_fin]
+    ).annotate(
+        fecha=F('referencia__fecha_movimiento'),
+        tipo=F('referencia__move_s'),
+        clave=F('referencia__clave_movimiento__clave_movimiento'),
+        nombre_mov=F('referencia__clave_movimiento__nombre'),
+        ref=F('referencia__referencia'),
+        cantidad_entrada=Case(
+            When(referencia__move_s='E', then=F('cantidad')),
+            default=Value(0),
+            output_field=DecimalField()
+        ),
+        cantidad_salida=Case(
+            When(referencia__move_s='S', then=F('cantidad')),
+            default=Value(0),
+            output_field=DecimalField()
+        ),
+        origen=Value('MOVIMIENTO', output_field=CharField())
+    ).values('fecha', 'tipo', 'clave', 'nombre_mov', 'ref','cantidad_entrada', 'cantidad_salida', 'origen')
+
+    # Remisiones
+    remisiones = DetalleRemision.objects.filter(
+        producto_id=producto_id,
+        numero_remision__fecha_remision__range=[fecha_ini, fecha_fin],
+        numero_remision__status__in=['R', 'F']  # Solo remisiones válidas
+    ).annotate(
+        fecha=F('numero_remision__fecha_remision'),
+        tipo=Value('S', output_field=CharField()),
+        clave=F('numero_remision__clave_movimiento__clave_movimiento'),
+        nombre_mov=F('numero_remision__clave_movimiento__nombre'),
+        ref=F('numero_remision__numero_remision'),
+        cantidad_entrada=Value(0, output_field=DecimalField()),
+        cantidad_salida=F('cantidad'),
+        origen=Value('REMISION', output_field=CharField())
+    ).values('fecha', 'tipo', 'clave', 'nombre_mov', 'ref','cantidad_entrada', 'cantidad_salida', 'origen')
+
+    # Unir y ordenar
+    resultados = list(movimientos.union(remisiones).order_by('fecha'))
+    
+    total_entrada = sum(item['cantidad_entrada'] for item in resultados)
+    total_salida = sum(item['cantidad_salida'] for item in resultados)
+    
+    # pasa fechas de string a fecha
+    fecha_ini = datetime.strptime(fecha_ini, '%Y-%m-%d').date() if fecha_ini else None
+    fecha_fin = datetime.strptime(fecha_fin, '%Y-%m-%d').date() if fecha_fin else None
+
+    contexto = {
+        'producto': producto,
+        'resultados': resultados,
+        'fecha_actual': localtime(now()).date(),
+        'total_entrada': total_entrada,
+        'total_salida': total_salida,
+        'fecha_ini' : fecha_ini,
+        'fecha_fin' : fecha_fin,
+    }
+    return render(request, 'inv/reportes/movimientos_por_producto.html', contexto)
+
+# MOVIMIENTOS POR CLAVE DE MOVIMIENTO
+def buscar_movimientos_por_clave(request):
+    claves = ClaveMovimiento.objects.all()
+
+    context = {
+        'claves': claves,
+    }
+    return render(request, 'inv/reportes/movimientos_por_clave_buscar.html', context)
+
+def movimientos_por_clave(request):
+    clave_id = request.GET.get('clave')
+    fecha_ini = request.GET.get('fecha_ini')
+    fecha_fin = request.GET.get('fecha_fin')
+
+    clave_seleccionado = None
+    if clave_id:
+        try:
+            clave_seleccionado = ClaveMovimiento.objects.get(id=clave_id)
+        except ClaveMovimiento.DoesNotExist:
+            clave_seleccionado = None
+    print("clave_seleccionado:",clave_seleccionado)
+
+    resultados = DetalleMovimiento.objects.filter(
+        referencia__clave_movimiento_id=clave_id,
+        referencia__fecha_movimiento__range=[fecha_ini, fecha_fin]
+    ).select_related('referencia', 'producto').annotate(
+        fecha=F('referencia__fecha_movimiento'),
+        clave=F('referencia__clave_movimiento__clave_movimiento'),
+        nombre_mov=F('referencia__clave_movimiento__nombre'),
+        move_s=F('referencia__move_s'),
+        ref=F('referencia__referencia'),
+        sku=F('producto__sku'),
+        nombre_producto=F('producto__nombre'),
+    ).order_by('fecha', 'ref')
+
+    # pasa fechas de string a fecha
+    fecha_ini = datetime.strptime(fecha_ini, '%Y-%m-%d').date() if fecha_ini else None
+    fecha_fin = datetime.strptime(fecha_fin, '%Y-%m-%d').date() if fecha_fin else None
+
+    contexto = {
+        'resultados': resultados,
+        'fecha_ini': fecha_ini,
+        'fecha_fin': fecha_fin,
+        'fecha_actual': localtime(now()).date(),
+        'clave_seleccionado': clave_seleccionado,
+    }
+    return render(request, 'inv/reportes/movimientos_por_clave.html', contexto)
+
+# FUNCION PARA LLAMAR A calcular_existencia_producto 
+from .utils import calcular_existencia_producto
+
+def api_existencia_producto(request):
+    producto_id = request.GET.get('producto')
+    almacen_id = request.GET.get('almacen')
+    fecha_leida = request.GET.get('fecha')
+
+    try:
+        producto = Producto.objects.get(pk=producto_id)
+        almacen = Almacen.objects.get(pk=almacen_id)
+        fecha = datetime.strptime(fecha_leida, '%Y-%m-%d').date()
+
+        existencia = calcular_existencia_producto(producto, almacen, fecha)
+        print("existencia: ",existencia)
+        return JsonResponse({'existencia': float(existencia)})
+
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=400)
+
+def buscar_existencia_producto(request):
+    productos = Producto.objects.all()
+    almacenes = Almacen.objects.all()
+    contexto = {
+        'productos':productos,
+        'almacenes':almacenes,
+    }
+    return render(request, 'inv/reportes/existencia_por_producto_buscar.html', contexto )
+
+# Imprime los movimientos desde el saldo inicial 
+from decimal import Decimal
+from datetime import datetime
+from django.db.models import F, Value, Case, When, DecimalField, CharField
+
+
+
+def imprimir_existencia_producto(request):
+    producto = None  
+    saldo_inicial = Decimal('0.00')
+
+    if request.method == 'GET':
+        producto_id = request.GET.get('producto')
+        almacen_id = request.GET.get('almacen')
+        fecha_fin = request.GET.get('fecha_fin')
+
+        if producto_id and almacen_id and fecha_fin:
+            producto = Producto.objects.get(id=producto_id)
+            almacen = Almacen.objects.get(id=almacen_id)
+            fecha_leida = datetime.strptime(fecha_fin, '%Y-%m-%d').date()
+
+            saldo = (
+                SaldoInicial.objects
+                .filter(producto=producto, almacen=almacen, fecha__lte=fecha_leida)
+                .order_by('-fecha')
+                .first()
+            )
+
+            if not saldo:
+                saldo_inicial = Decimal('0.00')
+                fecha_ini = '1900-01-01'
+                fecha_saldo = None
+            else:
+                saldo_inicial = saldo.existencia
+                fecha_ini = saldo.fecha
+                fecha_saldo = saldo.fecha
+
+            # Movimientos
+            movimientos = DetalleMovimiento.objects.filter(
+                referencia__almacen_id=almacen_id,
+                producto_id=producto_id,
+                referencia__fecha_movimiento__range=[fecha_ini, fecha_fin]
+            ).annotate(
+                fecha=F('referencia__fecha_movimiento'),
+                tipo=F('referencia__move_s'),
+                clave=F('referencia__clave_movimiento__clave_movimiento'),
+                nombre_mov=F('referencia__clave_movimiento__nombre'),
+                ref=F('referencia__referencia'),
+                cantidad_entrada=Case(
+                    When(referencia__move_s='E', then=F('cantidad')),
+                    default=Value(0),
+                    output_field=DecimalField()
+                ),
+                cantidad_salida=Case(
+                    When(referencia__move_s='S', then=F('cantidad')),
+                    default=Value(0),
+                    output_field=DecimalField()
+                ),
+                origen=Value('MOVIMIENTO', output_field=CharField())
+            ).values('fecha', 'tipo', 'clave', 'nombre_mov', 'ref', 'cantidad_entrada', 'cantidad_salida', 'origen')
+
+            # Remisiones
+            remisiones = DetalleRemision.objects.filter(
+                numero_remision__almacen_id=almacen_id,
+                producto_id=producto_id,
+                numero_remision__fecha_remision__range=[fecha_ini, fecha_fin],
+                numero_remision__status__in=['R', 'F']
+            ).annotate(
+                fecha=F('numero_remision__fecha_remision'),
+                tipo=Value('S', output_field=CharField()),
+                clave=F('numero_remision__clave_movimiento__clave_movimiento'),
+                nombre_mov=F('numero_remision__clave_movimiento__nombre'),
+                ref=F('numero_remision__numero_remision'),
+                cantidad_entrada=Value(0, output_field=DecimalField()),
+                cantidad_salida=F('cantidad'),
+                origen=Value('REMISION', output_field=CharField())
+            ).values('fecha', 'tipo', 'clave', 'nombre_mov', 'ref', 'cantidad_entrada', 'cantidad_salida', 'origen')
+
+            resultados = list(movimientos.union(remisiones).order_by('fecha'))
+
+            total_entrada = sum(item['cantidad_entrada'] for item in resultados)
+            total_salida = sum(item['cantidad_salida'] for item in resultados)
+            existencia = saldo_inicial + total_entrada - total_salida
+
+            # Convertir fechas
+            fecha_ini_dt = datetime.strptime(str(fecha_ini), '%Y-%m-%d').date()
+            fecha_fin_dt = datetime.strptime(fecha_fin, '%Y-%m-%d').date()
+
+            contexto = {
+                'producto': producto,
+                'resultados': resultados,
+                'fecha_actual': localtime(now()).date(),
+                'total_entrada': total_entrada,
+                'total_salida': total_salida,
+                'fecha_ini': fecha_ini_dt,
+                'fecha_fin': fecha_fin_dt,
+                'saldo_inicial': saldo_inicial,
+                'existencia' : existencia,
+                'fecha_saldo' : fecha_saldo,
+            }
+        else:
+            contexto = {
+                'producto': producto,
+                'resultados': {},
+                'fecha_actual': localtime(now()).date(),
+                'total_entrada': 0,
+                'total_salida': 0,
+                'fecha_ini': None,
+                'fecha_fin': None,
+                'saldo_inicial': saldo_inicial,
+                'existencia' : existencia,
+                'fecha_saldo' : fecha_saldo,
+            }
+
+    return render(request, 'inv/reportes/existencia_por_producto.html', contexto)

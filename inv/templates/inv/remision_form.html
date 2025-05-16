@@ -77,6 +77,7 @@
                     <thead class="table-light">
                         <tr>
                             <th>Producto</th>
+                            <th>Existencia</th>
                             <th>Cantidad</th>
                             <th>Precio</th>
                             <th>Descuento</th>
@@ -90,6 +91,9 @@
                             <tr class="formset-form">
                                 {{ form.id }}
                                 <td>{{ form.producto }}</td>
+                                <td>
+                                    <input type="text" class="form-control form-control-sm existencia" readonly disabled>
+                                </td>
                                 <td>{{ form.cantidad }}</td>
                                 <td>{{ form.precio }}</td>
                                 <td>{{ form.descuento }}</td>
@@ -103,6 +107,9 @@
                     <tr class="formset-form">
                         {{ formset.empty_form.id }}
                         <td>{{ formset.empty_form.producto }}</td>
+                        <td>
+                            <input type="text" class="form-control form-control-sm existencia" readonly disabled>
+                        </td>
                         <td>{{ formset.empty_form.cantidad }}</td>
                         <td>{{ formset.empty_form.precio }}</td>
                         <td>{{ formset.empty_form.descuento }}</td>
@@ -229,42 +236,59 @@ document.addEventListener('DOMContentLoaded', function () {
         actualizarTotal();
     });
     
-    // al generarse el evento blur del campo producto, se asigna el valor
-    // del precio1 al campo precio
-    
+    // al generarse el evento BLUR del campo producto, se asigna el valor
+    // del precio1 al campo precio y se calcula la existencia del producto
+    const fechaInput = document.querySelector('#id_fecha_remision');
+    const almacenInput = document.querySelector('#id_almacen');
+
     if (formsetBody) {
         ['focusout', 'change'].forEach(eventName => {
-            formsetBody.addEventListener(eventName, async function (e) {
+            formsetBody.addEventListener('blur', async function (e) {
                 if (e.target && e.target.name.includes('-producto')) {
                     const productoInput = e.target;
-                    const row = productoInput.closest('tr');
+                    const row = productoInput.closest('tr');  
                     const productoId = productoInput.value;
-                    
-                    if (productoId) {
-                        try {
-                            const response = await fetch(`/inv/obtener_precio_producto/?producto_id=${productoId}`);
-                            
-                            if (!response.ok) throw new Error('Error al obtener el precio');
-                            const data = await response.json();
-                            const precioInput = row.querySelector(`[name$='-precio']`);
 
+                    // Toma fecha y almacen del formulario 
+                    const fechaInput = document.querySelector('#id_fecha_remision');
+                    const almacenInput = document.querySelector('#id_almacen');
+
+                    const fecha = fechaInput ? fechaInput.value : null;
+                    const almacenId = almacenInput ? almacenInput.value : null;
+
+                    if (productoId && fecha && almacenId) {
+                        try {
+                            // 1. Obtener precio 
+                            const precioResp = await fetch(`/inv/obtener_precio_producto/?producto_id=${productoId}`);
+                            if (!precioResp.ok) throw new Error('Error al obtener precio');
+                            const precioData = await precioResp.json();
+                            const precioInput = row.querySelector("input[name$='-precio']");
                             if (precioInput) {
-                                precioInput.value = data.precio1;
-                            } else {
-                                console.warn('No se encontró el campo de precio en esta fila.');
+                                precioInput.value = precioData.precio1;
                             }
+
+                            // 2. Obtener existencia del producto
+                            const existenciaResp = await fetch(`/inv/api/existencia_producto/?producto=${productoId}&almacen=${almacenId}&fecha=${fecha}`);
+                            if (!existenciaResp.ok) throw new Error('Error al obtener existencia');
+                            const existenciaData = await existenciaResp.json();
+
+                            // Aquí se selecciona el input con clase 'existencia' en la misma fila para desplegar la existencia en el formulario
+                            const existenciaInput = row.querySelector('input.existencia');
+                            if (existenciaInput) {
+                                existenciaInput.value = existenciaData.existencia;
+                            } else {
+                                console.log(`Existencia actual: ${existenciaData.existencia}`);
+                            }
+
                         } catch (err) {
-                            console.error('Error al obtener el precio:', err);
+                            console.error('Error al obtener datos del producto:', err);
                         }
                     }
                 }
             }, true);
         });
     }
-    else {
-        console.log('No Existe el form-set:');
-    }
-
+    
     // fin de blur producto
 
     // Recalcular subtotal automáticamente

@@ -40,37 +40,35 @@
         <li class="nav-item dropdown">
           <a class="nav-link dropdown-toggle" href="#" id="movimientosDropdown" role="button" data-bs-toggle="dropdown">Movimientos</a>
           <ul class="dropdown-menu">
-            <li><a class="dropdown-item" href="{% url 'inv:movimiento_list' %}">Movimientos Almacén</a></li>
+            <li><a class="dropdown-item" href="{% url 'inv:movimiento_list' %}">Movimientos Inventario</a></li>
             <li><a class="dropdown-item" href="{% url 'inv:remision_list' %}">Remisiones</a></li>
             <li><a class="dropdown-item" href="#">Traspasos</a></li>
           </ul>
         </li>
 
+        <!-- Compras -->
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="#" id="comprasDropdown" role="button" data-bs-toggle="dropdown">Compras</a>
+          <ul class="dropdown-menu">
+            <li><a class="dropdown-item" href="#">Registrar Compras</a></li>
+            <li><a class="dropdown-item" href="#">Consulta de Compras por Producto</a></li>
+            <li><a class="dropdown-item" href="#">Consulta de Compras por Proveedor</a></li>
+          </ul>
+        </li>
+        
         <!-- Consultas -->
         <li class="nav-item dropdown">
           <a class="nav-link dropdown-toggle" href="#" id="consultasDropdown" role="button" data-bs-toggle="dropdown">Consultas</a>
           <ul class="dropdown-menu">
-            <li><a class="dropdown-item" href="{% url 'inv:remisiones_por_dia' %}">Remisiones por Dia</a></li>
+            <li><a class="dropdown-item" href="{% url 'inv:buscar_remisiones_dia' %}">Remisiones por Dia</a></li>
             <li><a class="dropdown-item" href="{% url 'inv:buscar_remisiones_cliente' %}">Remisiones por Cliente</a></li>
-            <li><a class="dropdown-item" href="#">Compras por Producto</a></li>
-            <li><a class="dropdown-item" href="#">Compras por Proveedor</a></li>
-            <li><a class="dropdown-item" href="#">Movimientos por Cliente</a></li>
+            <li><a class="dropdown-item" href="{% url 'inv:buscar_remisiones_producto' %}">Remisiones por Producto</a></li>
+            <li><a class="dropdown-item" href="{% url 'inv:buscar_movimientos_producto' %}">Movimientos por Producto</a></li>
+            <li><a class="dropdown-item" href="{% url 'inv:buscar_movimientos_clave' %}">Movimientos por Clave</a></li>
+            <li><a class="dropdown-item" href="{% url 'inv:buscar_existencia_producto' %}">Existencia de un Producto</a></li>
           </ul>
         </li>
 
-        <!-- Reportes -->
-        <li class="nav-item dropdown">
-          <a class="nav-link dropdown-toggle" href="#" id="reportesDropdown" role="button" data-bs-toggle="dropdown">Reportes</a>
-          <ul class="dropdown-menu">
-            <li><a class="dropdown-item" href="#">Ventas</a></li>
-            <li><a class="dropdown-item" href="#">Compras</a></li>
-            <li><a class="dropdown-item" href="#">Inventario</a></li>
-            <li><a class="dropdown-item" href="#">Cuentas por Cobrar</a></li>
-            <li><a class="dropdown-item" href="#">Analítico de Almacén</a></li>
-            <li><a class="dropdown-item" href="#">Antigüedad de Saldos</a></li>
-            <li><a class="dropdown-item" href="#">Analítico de Clientes</a></li>
-          </ul>
-        </li>
 
         <!-- Información general -->
         <li class="nav-item">

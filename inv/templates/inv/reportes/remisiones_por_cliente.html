@@ -43,14 +43,13 @@
 <body>
     <div class="container mt-3" id="print-area">
 
-        <div class="d-flex justify-content-between align-items-center">
-            <h2 class="mb-0">BIT•SISTEMAS</h2>
-            <span>Fecha: {{ fecha_actual }}</span>
-        </div>
-
-        <h4 class="mt-2">REMISIONES POR CLIENTE</h4>
-        <p><strong>CLIENTE:</strong> {{ cliente.cliente }} {{ cliente.nombre }}</p>
-
+        <div class="print-header">
+            <p>BIT•SISTEMAS</p>
+            <p>REMISIONES POR CLIENTE<span style="float:right">{{ fecha_actual }}</span></p>
+        
+            <p>CLIENTE: {{ cliente.cliente }} {{ cliente.nombre }}</p>
+            <p>DEL: {{ fecha_ini|date:"d/M/Y"|upper }} AL {{ fecha_fin|date:"d/M/Y"|upper }}</p>
+        </div>    
         <div class="separador"></div>
 
         <table class="table table-sm">
@@ -59,6 +58,7 @@
                     <th>FECHA</th>
                     <th>REMISIÓN</th>
                     <th>STATUS</th>
+                    <th>CODIGO</th>
                     <th>PRODUCTO</th>
                     <th class="text-end">CANTIDAD</th>
                     <th class="text-end">PRECIO</th>
@@ -72,6 +72,7 @@
                     <td style="font-size: 0.8em; letter-spacing: -0.5px;">{{ detalle.numero_remision.fecha_remision|date:"d/M/Y"|upper }}</td>
                     <td style="font-size: 0.8em; letter-spacing: -0.5px;">{{ detalle.numero_remision.numero_remision }}</td>
                     <td style="font-size: 0.8em; letter-spacing: -0.5px;">{{ detalle.numero_remision.status }}</td>
+                    <td style="font-size: 0.8em; letter-spacing: -0.5px;">{{ detalle.producto.sku }}</td>
                     <td style="font-size: 0.8em; letter-spacing: -0.5px;">{{ detalle.producto.descripcion|truncatechars:30 }}</td>
                     <td style="text-align:right; font-size: 0.8em; letter-spacing: -0.5px;">{{ detalle.cantidad|default_if_none:0|floatformat:2|intcomma }}</td>
                     <td style="text-align:right; font-size: 0.8em; letter-spacing: -0.5px;">{{ detalle.precio|default_if_none:0|floatformat:2|intcomma }}</td>
@@ -80,8 +81,8 @@
                 </tr>
                 {% endfor %}
                 <tr class="total-general-row">
-                    <td colspan="7" class="text-end">TOTAL GENERAL</td>
-                    <td class="text-end">{{ total_general|default_if_none:0|floatformat:2|intcomma }}</td>
+                    <td colspan="8" style="font-size:1.2em;", class="text-end">TOTAL GENERAL</td>
+                    <td style="font-size:1.2em;", class="text-end">{{ total_general|default_if_none:0|floatformat:2|intcomma }}</td>
                 </tr>
             </tbody>
         </table>
@@ -100,6 +101,46 @@
         const printWindow = window.open('', '', 'height=600,width=800');
         printWindow.document.write('<html><head><title>Impresión</title>');
         printWindow.document.write(`<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">`);
+        printWindow.document.write(`
+            <style>
+              body { font-family: sans-serif; font-size: 11px; }
+              table {
+                border-collapse: collapse;
+                width: 100%;
+                page-break-after: avoid; /* evita que la tabla se rompa innecesariamente */
+              }
+              thead tr {
+                border-top: 2px solid black;
+                border-bottom: 2px solid black;
+              }
+              thead th {
+                padding: 4px;
+                text-align: left;
+                font-size: 11px;
+              }
+              td {
+                padding: 2px;
+              }
+              table, td {
+                border: none !important;
+              }
+              .total-general-row {
+                page-break-before: auto;  /* <- NO fuerza salto */
+                page-break-inside: avoid; /* evita que se corte el bloque */
+                margin-top: 20px;
+                font-size: 11px;
+                font-weight: bold;
+              }
+              .print-header {
+                h5 {
+                    font-size: 13px;
+                }
+                p {
+                    font-size: 13px;
+                }
+              }  
+            </style>
+          `);
         printWindow.document.write('</head><body>');
         printWindow.document.write(content);
         printWindow.document.write('</body></html>');

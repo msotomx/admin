@@ -41,6 +41,11 @@ class ClienteCreateView(CreateView):
     template_name = 'cxc/cliente_form.html'
     success_url = reverse_lazy('cxc:cliente_list')
 
+    def form_valid(self, form):
+        cliente = form.cleaned_data['cliente']
+        form.instance.cliente = str(cliente).zfill(6)
+        return super().form_valid(form)
+
 class ClienteUpdateView(UpdateView):
     model = Cliente
     form_class = ClienteForm

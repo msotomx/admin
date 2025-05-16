@@ -18,7 +18,7 @@
         <div class="card mb-3">
             <div class="card-header">Encabezado</div>
             <div class="row g-2">
-                <div class="col-md-3 mb-2">
+                <div class="col-md-2 mb-2">
                     <label class="form-label small">Almacén</label>
                     {{ form.almacen|add_bootstrap_class }}
                 </div>
@@ -34,26 +34,38 @@
                     <label class="form-label small">Fecha Remision</label>
                     {{ form.fecha_remision|add_bootstrap_class }}
                 </div>
-                <div class="col-md-3 mb-2">
+                <div class="col-md-4 mb-2">
                     <label class="form-label small">Cliente</label>
                     {{ form.cliente|add_bootstrap_class }}
-                </div>
-                <div class="col-md-3 mb-2">
-                    <label class="form-label small">Factura</label>
-                    {{ form.numero_factura|add_bootstrap_class }}
-                </div>
-                
-                <div class="col-md-3 mb-2">
-                    <label class="form-label small">Status</label>
-                    {{ form.status|add_bootstrap_class }}
-                </div>
-                <div class="col-md-3 mb-2">
-                    <label class="form-label small">Usuario</label>
-                    {{ form.usuario|add_bootstrap_class }}
                 </div>
 
             </div>
         </div>
+        <div class="row g-2 mt-1">
+            <div class="col-md-3 mb-2">
+                <label class="form-label small">Factura</label>
+                <input type="text" class="form-control form-control-sm" value="{{ form.instance.numero_factura }}" readonly disabled>
+            </div>
+            <div class="col-md-3 mb-2">
+                <label class="form-label small">Status</label>
+                <input type="text" class="form-control form-control-sm" 
+                    value="{% if form.instance.status == 'R' %}R - REMISIÓN
+                            {% elif form.instance.status == 'F' %}F - FACTURADO
+                            {% elif form.instance.status == 'P' %}P - PEDIDO
+                            {% else %}{{ form.instance.status }}{% endif %}" readonly disabled>
+
+            </div>
+            <div class="col-md-3 mb-2">
+                <label class="form-label small">Usuario</label>
+                <input type="text" class="form-control form-control-sm" value="{{ form.instance.usuario }}" readonly disabled>
+            </div>
+            <div class="col-md-3 mb-2">
+                <label class="form-label small">Total General</label>
+                <input type="text" id="total-general" class="form-control form-control-sm text-end" readonly disabled>
+            </div>
+
+        </div>
+        
 
         <div class="card">
             <div class="card-header d-flex justify-content-between align-items-center">
@@ -65,6 +77,7 @@
                     <thead class="table-light">
                         <tr>
                             <th>Producto</th>
+                            <th>Existencia</th>
                             <th>Cantidad</th>
                             <th>Precio</th>
                             <th>Descuento</th>
@@ -78,6 +91,9 @@
                             <tr class="formset-form">
                                 {{ form.id }}
                                 <td>{{ form.producto }}</td>
+                                <td>
+                                    <input type="text" class="form-control form-control-sm existencia" readonly disabled>
+                                </td>
                                 <td>{{ form.cantidad }}</td>
                                 <td>{{ form.precio }}</td>
                                 <td>{{ form.descuento }}</td>
@@ -87,15 +103,18 @@
                         {% endfor %}
                     </tbody>
                 </table>
-                <tfoot>
-                    <tr>
-                        <td colspan="4" class="text-end fw-bold">Total:</td>
-                        <td>
-                            <input type="text" id="total-general" class="form-control form-control-sm text-end" readonly>
-                        </td>
-                        <td></td>
+                <template id="empty-form-template">
+                    <tr class="formset-form">
+                        {{ formset.empty_form.id }}
+                        <td>{{ formset.empty_form.producto }}</td>
+                        <td>{{ formset.empty_form.cantidad }}</td>
+                        <td>{{ formset.empty_form.precio }}</td>
+                        <td>{{ formset.empty_form.descuento }}</td>
+                        <td>{{ formset.empty_form.subtotal }}</td>
+                        <td>{{ formset.empty_form.DELETE }}</td>
                     </tr>
-                </tfoot>
+                </template>
+                
             </div>
         </div>
 
@@ -112,14 +131,29 @@ document.addEventListener('DOMContentLoaded', function () {
     const totalFormsInput = document.getElementById('id_detalles-TOTAL_FORMS');
     const totalGeneral = document.getElementById('total-general'); 
     const claveMovimientoInput = document.getElementById('id_clave_movimiento');
+    const numero_remisionInput = document.getElementById('id_numero_remision');
+
     if (claveMovimientoInput) {
         claveMovimientoInput.focus();
+    }
+    // busca el ultimo numero para esa clave_movimiento
+    if (claveMovimientoInput && numero_remisionInput) {
+        claveMovimientoInput.addEventListener('change', function () {
+            const clave = this.value;
+            if (clave) {
+                fetch(`/inv/ajax/numero-remision/?clave=${clave}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        numero_remisionInput.value = data.numero_remision;
+                    });
+            }
+        });
     }
 
     // valida si clave_movimiento + Remision existe
     // Si existe, se muestra en modo edicion
     // Si no existe, continua con el proceso normal de Registro Nuevo
-    const numero_remisionInput = document.getElementById('id_numero_remision');
+    //  numero_remisionInput = document.getElementById('id_numero_remision');
     const claveMovInput = document.getElementById('id_clave_movimiento');
 
     async function verificarRemision(claveMovId, numero_remision) {
@@ -136,7 +170,7 @@ document.addEventListener('DOMContentLoaded', function () {
         numero_remisionInput.addEventListener('blur', function () {
             let ref = numero_remisionInput.value.trim();
             if (ref) {
-                ref = ref.padStart(6, '0');  // llena la referencia con ceros a la izquierda
+                ref = ref.padStart(7, '0');  // llena la referencia con ceros a la izquierda
                 numero_remisionInput.value = ref;
                 
                 const claveMovId = claveMovInput.value;
@@ -151,7 +185,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
                 let ref = numero_remisionInput.value.trim();
                 if (ref) {
-                    ref = ref.padStart(6, '0');
+                    ref = ref.padStart(7, '0');
                     numero_remisionInput.value = ref;
 
                     const claveMovId = claveMovInput.value;
@@ -170,36 +204,33 @@ document.addEventListener('DOMContentLoaded', function () {
     
     // boton agregar linea
     addBtn.addEventListener('click', function () {
-        console.log('Botón Agregar Línea presionado');
         const totalForms = parseInt(totalFormsInput.value);
-        const template = formsetBody.querySelector('.formset-form');
+        const template = document.querySelector('#empty-form-template');
 
         if (!template) return;
 
-        // Clonamos la fila
-        const newRow = template.cloneNode(true);
+        const newRow = template.content.cloneNode(true);  // clona el contenido del template
 
-        // Actualizamos los atributos name, id, for
-        newRow.querySelectorAll('input, select, textarea, label').forEach(function (el) {
-            if (el.name) {
-                el.name = el.name.replace(/detalles-(\d+)-/, `detalles-${totalForms}-`);
+        // Reemplaza "__prefix__" por el nuevo número
+        newRow.querySelectorAll('*').forEach(function (el) {
+            if (el.name) el.name = el.name.replace(/__prefix__/, totalForms);
+            if (el.id) el.id = el.id.replace(/__prefix__/, totalForms);
+            if (el.getAttribute('for')) el.setAttribute('for', el.getAttribute('for').replace(/__prefix__/, totalForms));
+
+            // Limpia valores si es input
+            if (el.tagName === 'INPUT' || el.tagName === 'SELECT') {
+                if (el.type === 'checkbox') {
+                    el.checked = false;
+                } else {
+                    el.value = '';
+                }
             }
-            if (el.id) {
-                el.id = el.id.replace(/detalles-(\d+)-/, `detalles-${totalForms}-`);
-            }
-            if (el.htmlFor) {
-                el.htmlFor = el.htmlFor.replace(/detalles-(\d+)-/, `detalles-${totalForms}-`);
-            }
-            if (el.type !== 'hidden') {
-                el.value = '';
-            }
-            
         });
 
         formsetBody.appendChild(newRow);
-        totalFormsInput.value = totalForms + 1;
-        actualizarTotal(); // ← actualiza total cuando agregas
 
+        totalFormsInput.value = totalForms + 1;
+        actualizarTotal();
     });
     
     // al generarse el evento blur del campo producto, se asigna el valor
@@ -208,23 +239,21 @@ document.addEventListener('DOMContentLoaded', function () {
     if (formsetBody) {
         ['focusout', 'change'].forEach(eventName => {
             formsetBody.addEventListener(eventName, async function (e) {
-                console.log('en evento focusout detectado - productoId');
                 if (e.target && e.target.name.includes('-producto')) {
                     const productoInput = e.target;
                     const row = productoInput.closest('tr');
                     const productoId = productoInput.value;
-                    console.log(`Evento: ${eventName}, Producto ID:`, productoId);
+                    
                     if (productoId) {
                         try {
                             const response = await fetch(`/inv/obtener_precio_producto/?producto_id=${productoId}`);
                             
                             if (!response.ok) throw new Error('Error al obtener el precio');
                             const data = await response.json();
-                            console.log('Precio recibido del servidor:', data.precio1);
-                            const precioInput = row.querySelector("input[name$='-precio']");
+                            const precioInput = row.querySelector(`[name$='-precio']`);
+
                             if (precioInput) {
                                 precioInput.value = data.precio1;
-                                console.log('Precio actualizado:', precioInput.value);
                             } else {
                                 console.warn('No se encontró el campo de precio en esta fila.');
                             }
@@ -244,7 +273,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // Recalcular subtotal automáticamente
     document.addEventListener('input', function (e) {
-        if (e.target.name.includes('cantidad') || e.target.name.includes('precio')) {
+        if (e.target.name.includes('cantidad') || e.target.name.includes('precio') || e.target.name.includes('descuento')) {
+
             const row = e.target.closest('tr');
             const cantidad = parseFloat(row.querySelector('input[name$="cantidad"]')?.value || 0);
             const precio = parseFloat(row.querySelector('input[name$="precio"]')?.value || 0);
@@ -281,7 +311,6 @@ document.addEventListener('DOMContentLoaded', function () {
     actualizarTotal(); // ojo
 });
 </script>
-
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js?ver=1.0"></script>
 
 {% endblock %}
