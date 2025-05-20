@@ -55,6 +55,7 @@ class Proveedor(models.Model):
 
 class Producto(models.Model):
     sku = models.CharField(max_length=12, default='',blank=False)
+    clave_sat = models.CharField(max_length=8, default='',blank=False)
     categoria = models.ForeignKey(Categoria,on_delete=models.RESTRICT)
     nombre = models.CharField(max_length=200,blank=False)
     descripcion = models.TextField(null=True,blank=True)
@@ -140,15 +141,15 @@ class Compra(models.Model):
     referencia = models.CharField(max_length=7,blank=False,default="")
     pedido = models.CharField(max_length=7,blank=True,default="")
     fecha_compra = models.DateField(blank=False)
+    fecha_vencimiento = models.DateField(blank=False)
+    fecha_pagada = models.DateField(blank=False)
     proveedor = models.ForeignKey(Proveedor,on_delete=models.RESTRICT)
     moneda = models.ForeignKey(Moneda,on_delete=models.RESTRICT)
     paridad = models.DecimalField(default=1,decimal_places=2, max_digits=10,null=False)
-    flete = models.DecimalField(default=1,decimal_places=2, max_digits=10,null=False)
-    fecha_vencimiento = models.DateField(blank=False)
-    descuento = models.DecimalField(default=1,decimal_places=2, max_digits=10,null=False)
+    flete = models.DecimalField(default=0,decimal_places=2, max_digits=10,null=True)
+    descuento_pp = models.DecimalField(default=1,decimal_places=2, max_digits=10,null=False)
     monto_total = models.DecimalField(default=0,decimal_places=2, max_digits=10,null=True)
-    fecha_pagada = models.DateField(blank=False)
-
+    
     def __str__(self):
         return self.referencia
 

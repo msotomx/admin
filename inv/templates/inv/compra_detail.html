@@ -1,0 +1,54 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4 small">
+    <h4>Detalle de la Compra: {{ compra.referencia }}</h4>
+
+    <div class="mb-3">
+        <strong>Almacen:</strong> {{ compra.almacen }}<br>
+        <strong>Clave Compra:</strong> {{ compra.clave_movimiento.clave_movimiento }}<br>
+        <strong>Referencia:</strong> {{ compra.referencia }}<br>
+        <strong>Fecha:</strong> {{ compra.fecha_compra|date:"d/m/Y" }}<br>
+        <strong>Fecha Vencimiento:</strong> {{ compra.fecha_vencimiento |date:"d/m/Y" }}<br>
+        <strong>Fecha de Pago:</strong> {{ compra.fecha_pagada |date:"d/m/Y" }}<br>
+        <strong>Proveedor:</strong> {{ compra.proveedor.nombre }}<br>
+        <strong>Moneda:</strong> {{ compra.moneda.nombre }}<br>
+        <strong>Paridad:</strong> {{ compra.paridad }}<br>
+        <strong>Flete:</strong> {{ compra.flete }}<br>
+        <strong>Importe Total:</strong> {{ compra.monto_total }}<br>
+        <strong>Usuario:</strong> {{ compra.usuario }}
+        
+
+    </div>
+
+    <h5>Productos</h5>
+    <table class="table table-sm table-bordered table-striped">
+        <thead class="table-light">
+            <tr>
+                <th>Producto</th>
+                <th>Cantidad</th>
+                <th>Costo Unit</th>
+                <th>Descuento</th>
+                <th>Subtotal</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for detalle in detalles %}
+                <tr>
+                    <td>{{ detalle.producto }}</td>
+                    <td>{{ detalle.cantidad }}</td>
+                    <td>${{ detalle.costo_unit }}</td>
+                    <td>${{ detalle.descuento }}</td>
+                    <td>${{ detalle.subtotal }}</td>
+                </tr>
+            {% empty %}
+                <tr>
+                    <td colspan="5" class="text-center text-muted">No hay productos en esta compra.</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <a href="{% url 'inv:compra_list' %}" class="btn btn-secondary btn-sm">Regresar</a>
+</div>
+{% endblock %}

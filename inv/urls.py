@@ -9,9 +9,13 @@ from .views import ProveedorListView, ProveedorCreateView, ProveedorUpdateView, 
 from .views import ProductoListView, ProductoCreateView, ProductoUpdateView, ProductoDeleteView
 from .views import MovimientoListView, MovimientoCreateView, MovimientoUpdateView, MovimientoDeleteView, MovimientoDetailView
 from .views import RemisionListView, RemisionCreateView, RemisionUpdateView, RemisionDeleteView, RemisionDetailView
+from .views import CompraListView, CompraCreateView, CompraUpdateView, CompraDeleteView, CompraDetailView
+from .views import EmpresaListView, EmpresaCreateView, EmpresaUpdateView
+from .views import EmpresaLugarListView, EmpresaLugarUpdateView
 from .views import verificar_movimiento, obtener_costo_producto
 from .views import verificar_remision, obtener_precio_producto
-from .views import obtener_ultimo_numero_remision, obtener_ultimo_movimiento
+from .views import verificar_compra, obtener_dias_plazo
+from .views import obtener_ultimo_numero_remision, obtener_ultimo_movimiento, obtener_ultima_compra
 from .views import remisiones_por_dia, buscar_remisiones_por_dia
 from .views import remisiones_por_cliente, buscar_remisiones_por_cliente
 from .views import remisiones_por_producto, buscar_remisiones_por_producto
@@ -19,6 +23,10 @@ from .views import movimientos_por_producto_totales, buscar_movimientos_por_prod
 from .views import movimientos_por_clave, buscar_movimientos_por_clave
 from .views import api_existencia_producto
 from .views import buscar_existencia_producto, imprimir_existencia_producto
+from .views import compras_por_dia, buscar_compras_por_dia
+from .views import compras_por_producto, buscar_compras_por_producto
+from .views import compras_por_proveedor, buscar_compras_por_proveedor
+from .views import registrar_emisor_view
 
 app_name = 'inv'
 
@@ -67,6 +75,16 @@ urlpatterns = [
     path('obtener_precio_producto/', obtener_precio_producto, name='obtener_precio_producto'),
     path('ajax/numero-remision/', obtener_ultimo_numero_remision, name='ajax_numero_remision'),
     path('ajax/numero-movimiento/', obtener_ultimo_movimiento, name='ajax_numero_movimiento'),
+    #Compras
+    path('compra/', CompraListView.as_view(), name='compra_list'),
+    path('compra/nuevo/', CompraCreateView.as_view(), name='compra_create'),
+    path('compra/editar/<int:pk>/', CompraUpdateView.as_view(), name='compra_update'),
+    path('compra/eliminar/<int:pk>/', CompraDeleteView.as_view(), name='compra_delete'),
+    path('compra/<int:pk>/', CompraDetailView.as_view(), name='compra_detail'),
+    path('verificar_compra/', verificar_compra, name='verificar_compra'),
+    path('ajax/ultima_compra/', obtener_ultima_compra, name='ajax_ultima_compra'),
+    path('obtener_dias_plazo/', obtener_dias_plazo, name='obtener_dias_plazo'),
+    #Consultas y Reportes
     path('reportes/remisiones_por_dia/', remisiones_por_dia, name='remisiones_por_dia'),
     path('reportes/buscar_remisiones_dia/', buscar_remisiones_por_dia, name='buscar_remisiones_dia'),
     path('reportes/remisiones_por_cliente/', remisiones_por_cliente, name='remisiones_por_cliente'),
@@ -81,4 +99,21 @@ urlpatterns = [
 
     path('reportes/buscar_existencia_producto/', buscar_existencia_producto, name='buscar_existencia_producto'),
     path('reportes/imprimir_existencia_producto/', imprimir_existencia_producto, name='imprimir_existencia_producto'),
+
+    path('reportes/compras_por_dia/', compras_por_dia, name='compras_por_dia'),
+    path('reportes/buscar_compras_dia/', buscar_compras_por_dia, name='buscar_compras_dia'),
+    path('reportes/compras_por_producto/', compras_por_producto, name='compras_por_producto'),
+    path('reportes/buscar_compras_producto/', buscar_compras_por_producto, name='buscar_compras_producto'),
+    path('reportes/compras_por_proveedor/', compras_por_proveedor, name='compras_por_proveedor'),
+    path('reportes/buscar_compras_proveedor/', buscar_compras_por_proveedor, name='buscar_compras_proveedor'),
+ 
+    path('empresa/', EmpresaListView.as_view(), name='empresa_list'),
+    path('empresa/nuevo/', EmpresaCreateView.as_view(), name='empresa_create'),
+    path('empresa/editar/<int:pk>/', EmpresaUpdateView.as_view(), name='empresa_update'),
+  
+    path('empresa_lugarexp/', EmpresaLugarListView.as_view(), name='empresa_lugarexp_list'),
+    path('empresa_lugarexp/editar/<int:pk>/', EmpresaLugarUpdateView.as_view(), name='empresa_lugarexp_update'),
+
+    path('facturacion/registrar_emisor/', registrar_emisor_view, name='registrar_emisor'),
+
 ]

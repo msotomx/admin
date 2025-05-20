@@ -138,10 +138,6 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 MEDIA_ROOT = os.path.join(BASE_DIR,'media')
 MEDIA_URL = '/media/'
 
-#LOGIN_URL = '/login/'  # O la URL a la que se debe redirigir si no está autenticado
-#LOGIN_REDIRECT_URL = '/'
-#LOGOUT_REDIRECT_URL = '/login/'
-
 from django.urls import reverse_lazy
 
 PASSWORD_RESET_TIMEOUT = 60 * 60  # 1 hora
@@ -152,7 +148,6 @@ LOGIN_REDIRECT_URL = reverse_lazy('core:inicio')
 # Para desarrollo, usando la consola de Django para pruebas
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
-# Para producción, configura un servidor SMTP real
 # EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 # EMAIL_HOST = 'smtp.gmail.com'  # Ejemplo, puedes usar otro proveedor
 # EMAIL_PORT = 587

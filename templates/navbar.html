@@ -5,7 +5,7 @@
     <a class="navbar-brand" href="#">
       {% if user.is_authenticated %}
         {% with empresa=user.empresa %}
-          {{ empresa.nombre }}
+          {{ empresa.nombre_comercial }}
         {% endwith %}
       {% else %}
         Bit•Sistemas
@@ -50,9 +50,10 @@
         <li class="nav-item dropdown">
           <a class="nav-link dropdown-toggle" href="#" id="comprasDropdown" role="button" data-bs-toggle="dropdown">Compras</a>
           <ul class="dropdown-menu">
-            <li><a class="dropdown-item" href="#">Registrar Compras</a></li>
-            <li><a class="dropdown-item" href="#">Consulta de Compras por Producto</a></li>
-            <li><a class="dropdown-item" href="#">Consulta de Compras por Proveedor</a></li>
+            <li><a class="dropdown-item" href="{% url 'inv:compra_list' %}">Registrar Compras</a></li>
+            <li><a class="dropdown-item" href="{% url 'inv:buscar_compras_dia' %}">Consulta de Compras por Fecha</a></li>
+            <li><a class="dropdown-item" href="{% url 'inv:buscar_compras_producto' %}">Consulta de Compras por Producto</a></li>
+            <li><a class="dropdown-item" href="{% url 'inv:buscar_compras_proveedor' %}">Consulta de Compras por Proveedor</a></li>
           </ul>
         </li>
         
@@ -71,9 +72,14 @@
 
 
         <!-- Información general -->
-        <li class="nav-item">
-          <a class="nav-link" href="#">Información General</a>
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="#" id="informacionDropdown" role="button" data-bs-toggle="dropdown">Información General</a>
+          <ul class="dropdown-menu">
+            <li><a class="dropdown-item" href="{% url 'inv:empresa_list' %}">Información General</a></li>
+            <li><a class="dropdown-item" href="{% url 'inv:empresa_lugarexp_list' %}">Lugar Expedición-Facturas</a></li>
+          </ul>
         </li>
+
       </ul>
 
       <!-- Usuario y login/logout -->

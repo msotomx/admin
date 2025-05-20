@@ -1,4 +1,4 @@
-from .models import Movimiento, DetalleMovimiento, Remision, DetalleRemision
+from .models import Movimiento, DetalleMovimiento, Remision, DetalleRemision, DetalleCompra
 from .models import SaldoInicial
 from django.db.models import Sum, DecimalField
 from decimal import Decimal
@@ -66,8 +66,18 @@ def calcular_existencia_producto(producto, almacen, fecha_leida):
         )
         .aggregate(total=Sum('cantidad'))['total'] or Decimal('0.00')
     )
+    # 4. Compras
+    compras = (
+        DetalleCompra.objects
+        .filter(
+            producto=producto,
+            referencia__almacen=almacen,
+            referencia__fecha_compra__range=(fecha_saldo, fecha_leida)
+        )
+        .aggregate(total=Sum('cantidad'))['total'] or Decimal('0.00')
+    )
 
-    # 4. Calcular salidas por remisiones
+    # 5. Calcular salidas por remisiones
     salidas_rem = (
         DetalleRemision.objects
         .filter(
@@ -80,6 +90,6 @@ def calcular_existencia_producto(producto, almacen, fecha_leida):
     )
 
     # 5. Cálculo final de existencia
-    existencia = saldo_inicial + entradas - salidas_mov - salidas_rem
+    existencia = saldo_inicial + entradas + compras - salidas_mov - salidas_rem
 
     return existencia

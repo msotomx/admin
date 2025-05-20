@@ -10,7 +10,7 @@
             border-color: #ccc;         /* Borde más tenue */
         }
     </style>
-    <h4>{% if form.instance.pk %}Editar{% else %}Nueva{% endif %} Remision</h4>
+    <h4>{% if form.instance.pk %}Editar{% else %}Nueva{% endif %} Compra</h4>
     <form method="post">
         {% csrf_token %}
         {{ formset.management_form }}  
@@ -23,50 +23,50 @@
                     {{ form.almacen|add_bootstrap_class }}
                 </div>
                 <div class="col-md-2 mb-2">
-                    <label class="form-label small">Clave Remision</label>
+                    <label class="form-label small">Clave Compra</label>
                     {{ form.clave_movimiento|add_bootstrap_class }}
                 </div>
                 <div class="col-md-2 mb-2">
-                    <label class="form-label small">Remisión</label>
-                    {{ form.numero_remision|add_bootstrap_class }}
+                    <label class="form-label small">Referencia</label>
+                    {{ form.referencia|add_bootstrap_class }}
                 </div>
                 <div class="col-md-2 mb-2">
-                    <label class="form-label small">Fecha Remision</label>
-                    {{ form.fecha_remision|add_bootstrap_class }}
+                    <label class="form-label small">Fecha Compra</label>
+                    {{ form.fecha_compra|add_bootstrap_class }}
                 </div>
-                <div class="col-md-4 mb-2">
-                    <label class="form-label small">Cliente</label>
-                    {{ form.cliente|add_bootstrap_class }}
+                <div class="col-md-3 mb-2">
+                    <label class="form-label small">Proveedor</label>
+                    {{ form.proveedor|add_bootstrap_class }}
+                </div>
+                <div class="col-md-2 mb-2">
+                    <label class="form-label small">Fecha Vencimiento</label>
+                    {{ form.fecha_vencimiento|add_bootstrap_class }}
                 </div>
 
+                <div class="col-md-2 mb-2">
+                    <label class="form-label small">Moneda</label>
+                    {{ form.moneda|add_bootstrap_class }}
+                </div>
+                <div class="col-md-1 mb-2">
+                    <label class="form-label small">Paridad</label>
+                    {{ form.paridad|add_bootstrap_class }}
+                </div>
+                <div class="col-md-2 mb-2">
+                    <label class="form-label small">Flete</label>
+                    {{ form.flete|add_bootstrap_class }}
+                </div>
+                <div class="col-md-2 mb-2">
+                    <label class="form-label small">Usuario</label>
+                    <input type="text" class="form-control form-control-sm" value="{{ form.instance.usuario }}" readonly disabled>
+                </div>
+                <div class="col-md-2 mb-2">
+                    <label class="form-label small">Total General</label>
+                    <input type="text" id="total-general" class="form-control form-control-sm text-end" readonly disabled>
+                </div>
+    
             </div>
-        </div>
-        <div class="row g-2 mt-1">
-            <div class="col-md-3 mb-2">
-                <label class="form-label small">Factura</label>
-                <input type="text" class="form-control form-control-sm" value="{{ form.instance.numero_factura }}" readonly disabled>
-            </div>
-            <div class="col-md-3 mb-2">
-                <label class="form-label small">Status</label>
-                <input type="text" class="form-control form-control-sm" 
-                    value="{% if form.instance.status == 'R' %}R - REMISIÓN
-                            {% elif form.instance.status == 'F' %}F - FACTURADO
-                            {% elif form.instance.status == 'P' %}P - PEDIDO
-                            {% else %}{{ form.instance.status }}{% endif %}" readonly disabled>
-
-            </div>
-            <div class="col-md-3 mb-2">
-                <label class="form-label small">Usuario</label>
-                <input type="text" class="form-control form-control-sm" value="{{ form.instance.usuario }}" readonly disabled>
-            </div>
-            <div class="col-md-3 mb-2">
-                <label class="form-label small">Total General</label>
-                <input type="text" id="total-general" class="form-control form-control-sm text-end" readonly disabled>
-            </div>
-
         </div>
         
-
         <div class="card">
             <div class="card-header d-flex justify-content-between align-items-center">
                 <span>Detalle</span>
@@ -77,9 +77,8 @@
                     <thead class="table-light">
                         <tr>
                             <th>Producto</th>
-                            <th>Existencia</th>
                             <th>Cantidad</th>
-                            <th>Precio</th>
+                            <th>Costo</th>
                             <th>Descuento</th>
                             <th>Subtotal</th>
                             <th>Eliminar</th>
@@ -91,11 +90,8 @@
                             <tr class="formset-form">
                                 {{ form.id }}
                                 <td>{{ form.producto }}</td>
-                                <td>
-                                    <input type="text" class="form-control form-control-sm existencia" readonly disabled>
-                                </td>
                                 <td>{{ form.cantidad }}</td>
-                                <td>{{ form.precio }}</td>
+                                <td>{{ form.costo_unit }}</td>
                                 <td>{{ form.descuento }}</td>
                                 <td>{{ form.subtotal }}</td>
                                 <td>{{ form.DELETE }}</td>
@@ -108,7 +104,7 @@
                         {{ formset.empty_form.id }}
                         <td>{{ formset.empty_form.producto }}</td>
                         <td>{{ formset.empty_form.cantidad }}</td>
-                        <td>{{ formset.empty_form.precio }}</td>
+                        <td>{{ formset.empty_form.costo_unit }}</td>
                         <td>{{ formset.empty_form.descuento }}</td>
                         <td>{{ formset.empty_form.subtotal }}</td>
                         <td>{{ formset.empty_form.DELETE }}</td>
@@ -119,8 +115,8 @@
         </div>
 
         <div class="mt-3 text-end">
-            <button type="submit" class="btn btn-success">Guardar Remision</button>
-            <a href="{% url 'inv:remision_list' %}" class="btn btn-secondary">Cancelar</a>
+            <button type="submit" class="btn btn-success">Guardar Compra</button>
+            <a href="{% url 'inv:compra_list' %}" class="btn btn-secondary">Cancelar</a>
         </div>
     </form>
 </div>
@@ -131,70 +127,75 @@ document.addEventListener('DOMContentLoaded', function () {
     const totalFormsInput = document.getElementById('id_detalles-TOTAL_FORMS');
     const totalGeneral = document.getElementById('total-general'); 
     const claveMovimientoInput = document.getElementById('id_clave_movimiento');
-    const numero_remisionInput = document.getElementById('id_numero_remision');
+    const referenciaInput = document.getElementById('id_referencia');
 
     if (claveMovimientoInput) {
         claveMovimientoInput.focus();
     }
     // busca el ultimo numero para esa clave_movimiento
-    if (claveMovimientoInput && numero_remisionInput) {
+    if (claveMovimientoInput && referenciaInput) {
         claveMovimientoInput.addEventListener('change', function () {
             const clave = this.value;
             if (clave) {
-                fetch(`/inv/ajax/numero-remision/?clave=${clave}`)
+                fetch(`/inv/ajax/ultima_compra/?clave=${clave}`)
                     .then(response => response.json())
                     .then(data => {
-                        numero_remisionInput.value = data.numero_remision;
+                        referenciaInput.value = data.referencia;
                     });
             }
         });
-    }
 
+        //  se lanza el evento manualmente si ya hay un valor precargado
+        if (claveMovimientoInput.value) {
+            claveMovimientoInput.dispatchEvent(new Event('change'));
+        }
+    }
+    
     // valida si clave_movimiento + Remision existe
     // Si existe, se muestra en modo edicion
     // Si no existe, continua con el proceso normal de Registro Nuevo
     //  numero_remisionInput = document.getElementById('id_numero_remision');
     const claveMovInput = document.getElementById('id_clave_movimiento');
 
-    async function verificarRemision(claveMovId, numero_remision) {
-        const response = await fetch(`/inv/verificar-remision/?clave_movimiento=${claveMovId}&numero_remision=${numero_remision}`);
+    async function verificarCompra(claveMovId, referencia) {
+        const response = await fetch(`/inv/verificar_compra/?clave_movimiento=${claveMovId}&referencia=${referencia}`);
         const data = await response.json();
         if (data.existe) {
             // alert('Este movimiento ya existe. Se mostrará en modo edición.');
             // Aquí podrías redirigir automáticamente, o cargar los datos con AJAX
-            window.location.href = `/inv/remision/editar/${data.id}/`;
+            window.location.href = `/inv/compra/editar/${data.id}/`;
         }
     }
 
-    if (numero_remisionInput && claveMovInput) {
-        numero_remisionInput.addEventListener('blur', function () {
-            let ref = numero_remisionInput.value.trim();
+    if (referenciaInput && claveMovInput) {
+        referenciaInput.addEventListener('blur', function () {
+            let ref = referenciaInput.value.trim();
             if (ref) {
                 ref = ref.padStart(7, '0');  // llena la referencia con ceros a la izquierda
-                numero_remisionInput.value = ref;
+                referenciaInput.value = ref;
                 
                 const claveMovId = claveMovInput.value;
                 if (claveMovId) {
-                    verificarRemision(claveMovId, ref);
+                    verificarCompra(claveMovId, ref);
                 }
             }
         });
-        numero_remisionInput.addEventListener('keydown', function (e) {
+        referenciaInput.addEventListener('keydown', function (e) {
             if (e.key === 'Enter') {
                 e.preventDefault();  // Previene el envío del formulario
 
-                let ref = numero_remisionInput.value.trim();
+                let ref = referenciaInput.value.trim();
                 if (ref) {
                     ref = ref.padStart(7, '0');
-                    numero_remisionInput.value = ref;
+                    referenciaInput.value = ref;
 
                     const claveMovId = claveMovInput.value;
                     if (claveMovId) {
-                        verificarRemision(claveMovId, ref);
+                        verificarCompra(claveMovId, ref);
                     }
 
                     // Disparar manualmente el evento blur
-                    numero_remisionInput.dispatchEvent(new Event('blur'));
+                    referenciaInput.dispatchEvent(new Event('blur'));
                 }
             }
         });
@@ -233,53 +234,57 @@ document.addEventListener('DOMContentLoaded', function () {
         actualizarTotal();
     });
     
-    // al generarse el evento blur del campo producto, se asigna el valor
-    // del precio1 al campo precio
-    
+    // al generarse el evento BLUR del campo producto, se asigna el valor
+    // del costo_reposicion al campo costo_unit y se calcula la existencia del producto
+    const fechaInput = document.querySelector('#id_fecha_compra');
+    const almacenInput = document.querySelector('#id_almacen');
+
     if (formsetBody) {
         ['focusout', 'change'].forEach(eventName => {
-            formsetBody.addEventListener(eventName, async function (e) {
+            formsetBody.addEventListener('blur', async function (e) {
                 if (e.target && e.target.name.includes('-producto')) {
                     const productoInput = e.target;
-                    const row = productoInput.closest('tr');
+                    const row = productoInput.closest('tr');  
                     const productoId = productoInput.value;
-                    
-                    if (productoId) {
-                        try {
-                            const response = await fetch(`/inv/obtener_precio_producto/?producto_id=${productoId}`);
-                            
-                            if (!response.ok) throw new Error('Error al obtener el precio');
-                            const data = await response.json();
-                            const precioInput = row.querySelector(`[name$='-precio']`);
 
-                            if (precioInput) {
-                                precioInput.value = data.precio1;
-                            } else {
-                                console.warn('No se encontró el campo de precio en esta fila.');
+                    // Toma fecha y almacen del formulario 
+                    const fechaInput = document.querySelector('#id_fecha_compra');
+                    const almacenInput = document.querySelector('#id_almacen');
+
+                    const fecha = fechaInput ? fechaInput.value : null;
+                    const almacenId = almacenInput ? almacenInput.value : null;
+
+                    if (productoId && fecha && almacenId) {
+                        try {
+                            // 1. Obtener costo_reposicion 
+                            const costoResp = await fetch(`/inv/obtener_costo_producto/?producto_id=${productoId}`);
+                            if (!costoResp.ok) throw new Error('Error al obtener costo reposicion');
+                            const costoData = await costoResp.json();
+                            const costoInput = row.querySelector("input[name$='-costo_unit']");
+                            if (costoInput) {
+                                costoInput.value = costoData.costo_reposicion;
                             }
+
                         } catch (err) {
-                            console.error('Error al obtener el precio:', err);
+                            console.error('Error al obtener datos del producto:', err);
                         }
                     }
                 }
             }, true);
         });
     }
-    else {
-        console.log('No Existe el form-set:');
-    }
-
+    
     // fin de blur producto
 
     // Recalcular subtotal automáticamente
     document.addEventListener('input', function (e) {
-        if (e.target.name.includes('cantidad') || e.target.name.includes('precio') || e.target.name.includes('descuento')) {
+        if (e.target.name.includes('cantidad') || e.target.name.includes('costo_unit') || e.target.name.includes('descuento')) {
 
             const row = e.target.closest('tr');
             const cantidad = parseFloat(row.querySelector('input[name$="cantidad"]')?.value || 0);
-            const precio = parseFloat(row.querySelector('input[name$="precio"]')?.value || 0);
+            const costo_unit = parseFloat(row.querySelector('input[name$="costo_unit"]')?.value || 0);
             const descuento = parseFloat(row.querySelector('input[name$="descuento"]')?.value || 0);
-            const subtotal = (cantidad * precio) - descuento;
+            const subtotal = (cantidad * costo_unit) - descuento;
             const subtotalField = row.querySelector('input[name$="subtotal"]');
             if (subtotalField) subtotalField.value = subtotal.toFixed(2);
             actualizarTotal(); // ← actualiza el total en cada cambio
@@ -305,8 +310,61 @@ document.addEventListener('DOMContentLoaded', function () {
         if (totalGeneral) {
             totalGeneral.value = total.toFixed(2);  // <-- aquí usa `.value` porque es un input en el html
         }
-
     }
+
+    // calcula FECHA_VENCIMIENTO  = fecha_compra + proveedor.dias_plazo 
+    const proveedorSelect = document.getElementById('id_proveedor');
+    const fechaCompraInput = document.getElementById('id_fecha_compra');
+    const fechaVencimientoInput = document.getElementById('id_fecha_vencimiento');
+
+    async function actualizarFechaVencimiento() {
+        const proveedorId = proveedorSelect.value.trim();
+        const fechaCompraValor = fechaCompraInput.value.trim();
+
+        // Validar que ambos valores existan
+        if (!proveedorId || !fechaCompraValor) {
+            console.warn("Falta proveedor o fecha_compra");
+            return;
+        }
+
+        try {
+            // Obtener días de plazo del proveedor
+            const response = await fetch(`/inv/obtener_dias_plazo/?proveedor_id=${proveedorId}`);
+            if (!response.ok) throw new Error('Error al obtener días de plazo');
+
+            const data = await response.json();
+            const diasPlazo = parseInt(data.dias_credito);
+            
+            // Validar fecha de compra
+            const fechaParts = fechaCompraValor.split('-');
+            if (fechaParts.length !== 3) throw new Error("Formato de fecha no válido");
+            
+            const yyyy = parseInt(fechaParts[0]);
+            const mm = parseInt(fechaParts[1]) - 1;  // JS: Enero = 0
+            const dd = parseInt(fechaParts[2]);
+
+            const fechaCompra = new Date(yyyy, mm, dd);
+
+            if (isNaN(fechaCompra)) throw new Error("Fecha de compra inválida");
+
+            // Sumar días de plazo
+            fechaCompra.setDate(fechaCompra.getDate() + diasPlazo);
+            
+            // Formatear al formato yyyy-mm-dd
+            const yyyyV = fechaCompra.getFullYear();
+            const mmV = String(fechaCompra.getMonth() + 1).padStart(2, '0');
+            const ddV = String(fechaCompra.getDate()).padStart(2, '0');
+            const fechaVenc = `${yyyyV}-${mmV}-${ddV}`;
+
+            fechaVencimientoInput.value = fechaVenc;
+        } catch (error) {
+            console.error('Error al calcular fecha vencimiento:', error);
+        }
+    }
+
+    // Escuchar blur en proveedor y cambio en fecha_compra
+    proveedorSelect.addEventListener('blur', actualizarFechaVencimiento);
+    fechaCompraInput.addEventListener('change', actualizarFechaVencimiento);
 
     actualizarTotal(); // ojo
 });
@@ -314,4 +372,5 @@ document.addEventListener('DOMContentLoaded', function () {
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js?ver=1.0"></script>
 
 {% endblock %}
+
 

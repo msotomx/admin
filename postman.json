@@ -1,0 +1,1399 @@
+{
+	"info": {
+		"_postman_id": "afa0ba97-1c88-42db-84c4-b9b45e63c333",
+		"name": "TechByThreeSandbox",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "29437208"
+	},
+	"item": [
+		{
+			"name": "TimbradoXml",
+			"item": [
+				{
+					"name": "RegistraEmisor",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"RfcEmisor\": \"IIA040805DZ4\",\n    \"Base64Cer\": \"MIIF1zCCA7+gAwIBAgIUMzAwMDEwMDAwMDA1MDAwMDM0MzMwDQYJKoZIhvcNAQELBQAwggErMQ8wDQYDVQQDDAZBQyBVQVQxLjAsBgNVBAoMJVNFUlZJQ0lPIERFIEFETUlOSVNUUkFDSU9OIFRSSUJVVEFSSUExGjAYBgNVBAsMEVNBVC1JRVMgQXV0aG9yaXR5MSgwJgYJKoZIhvcNAQkBFhlvc2Nhci5tYXJ0aW5lekBzYXQuZ29iLm14MR0wGwYDVQQJDBQzcmEgY2VycmFkYSBkZSBjYWxpejEOMAwGA1UEEQwFMDYzNzAxCzAJBgNVBAYTAk1YMRkwFwYDVQQIDBBDSVVEQUQgREUgTUVYSUNPMREwDwYDVQQHDAhDT1lPQUNBTjERMA8GA1UELRMIMi41LjQuNDUxJTAjBgkqhkiG9w0BCQITFnJlc3BvbnNhYmxlOiBBQ0RNQS1TQVQwHhcNMjMwNTE4MTI0NjQ5WhcNMjcwNTE4MTI0NjQ5WjCB/jE0MDIGA1UEAxMrSU5ESVNUUklBIElMVU1JTkFET1JBIERFIEFMTUFDRU5FUyBTQSBERSBDVjE0MDIGA1UEKRMrSU5ESVNUUklBIElMVU1JTkFET1JBIERFIEFMTUFDRU5FUyBTQSBERSBDVjE0MDIGA1UEChMrSU5ESVNUUklBIElMVU1JTkFET1JBIERFIEFMTUFDRU5FUyBTQSBERSBDVjElMCMGA1UELRMcSUlBMDQwODA1RFo0IC8gVkFEQTgwMDkyN0RKMzEeMBwGA1UEBRMVIC8gVkFEQTgwMDkyN0hTUlNSTDA1MRMwEQYDVQQLEwpTdWN1cnNhbCAxMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAz+hpn6PiooF9kZWedcyvkPexlLrncvsq2z51HEHG+JrugoGXikqvedT4NwoZLq4zCjJKZt+L9Rf6e1qD/zLlo7xHfjtNgkr90BZM1VSbpYOFmXHxqe4tjCfuQKYJOw/lGIoKjNUedRL6rkpwCkhPpO/zgLUA2Ro/j8H70k1NeAAs/u4RSvlhwYPCVh45z+wTg/5zcCNzS+OlUDfba7KEvogdxo0Xm98UrtB4yh7tzW48vv3QPvjZIpYiAZ3lzbbLFg4CDRGJav2tsWwwZBAtgrtreEfpR7H11uZ5i4cL7fhqnd6T5RPkwERaEh1s8p86ALZOXiD+A4lpG8U8o1PAXQIDAQABox0wGzAMBgNVHRMBAf8EAjAAMAsGA1UdDwQEAwIGwDANBgkqhkiG9w0BAQsFAAOCAgEAoLh8DXWEAatoJJlZln9SFpMB6+2+u5+VABy+AltaAOoQ0H3U6RWI31UFfjGF7QJFRW9eiQCslzLPis6EuD5ltVoOIGxNntfYFVYh9rEs1dVRwTjBOThltPH5M+9a0BQFBNLyEMus834TGNUMZdE5ekiMC2paR7gItqitMIqTan1ByPbpulP9LK/G/Wj4OuP4gyYyGCWnGzKdcdOrk7AeF4RdY7gMqcpuJ6nU77UJ5YVDLy4z6wPRqCnttl0tkemAOT9ayyBHGgVZ9sBpssP702dQYjOtHBG24Zg2D3MnYW5F/rMDT++42QRj/y+k3LprF/WJn0PeuZZ+ZVTlmTfPgDpnInoFmjDgHMRaesFLjbbxDYprsbxuJ4j9uCkEjscP3T/mnswImfsFd6gx9kDLhaf5oosPsy7RbBYZWHsfnqTmnfOd7mG1bQ1nOsm9A0RvImWiiY9y4YXOV86tt7ORwrTR6Qn5YgpyiyJo/evSqyo43b1119QI7vBmRpdVFP1k+LHejCXjoA0eaipO981iijfnm6vzS0maaY1vTnfN84vRPPW7IE3LRMWOVs7/YekMgcvyDECusTpPj0u07GmHk7DlpLmehvYjotjiPkj30nZUnMNtp9yi4vx/qJiq04rpWVwo/Nc9xTM0Ua5maXM80oeFgqJO7yiAexT4dwM0xMU=\",\n    \"Base64Key\": \"MIIFDjBABgkqhkiG9w0BBQ0wMzAbBgkqhkiG9w0BBQwwDgQIAgEAAoIBAQACAggAMBQGCCqGSIb3DQMHBAgwggS/AgEAMASCBMh4EHl7aNSCaMDA1VlRoXCZ5UUmqErAbucoZQObOaLUEg4tpJ/Rdoy4JC/geoaQqbARs+QrXe7dL28DzHf8ucGyaWRK/7xQWQvwyttN4COBO50i6deD53T9wXIW7BeHxjXWNmVsMVzNQe35K1uclE5naq3BvcT5uAq8fJyBNrVqTo4kt1Qq6QBxZBTflUstYKriBE+3CYAqynozFzntrdqkRnSustYmCpCO/Ckos7NJBe6tPfXRkpV8DIRkOlQatN5wYe6UmH1F9rI9igf1r1gE6y8s1dbw62lQgttl5ts9bqbE9QCWvjmnn99fBgF7tEUMfR1m+mWpVPciOUKUqKkdKgg2CZsuvu9f/zrUBu3eSxmpNvTNF9Kgo1JRcBqPzA0HrzdMz4N4z2fRBdcjdKLfvig1mFL51mYJXBoYl0sUSrgKXBuzUYPkUkfBEupMd+W3Zz/mU/hAEMy/u5slAx3YZc7fth2FtpS7eCaBubCWjpWZDaLxJzKkAV2UZ0OVSpYW503eQTRKlx5AZJsnvK1Jw49OYHHu4eGL1qQ5P+9a1cXlrg3ZPrx7strqs9Lgdly3pB4nyk535jOM2Rpp8ZY8J29QT/Nrk4aGyKh/1DwzgcucdumIiNQw5bt73VkeJead5iH7kggKyWzu5SxJKlbyCbzW1FutTbLW+tQqJb+Yb1cTqBLEigHl9hpo4tn/+zGtkT7j1q+CzgYhDaR4EjGYdSdbMyQAy3fiwQQd9YH7hwe0AD+Uve7AR+gwkjO/q2Wdn3DGg6v6W7cUh85HETFYd+XFM/we1vDwwDDpBuGS3Wo5V71Fhd5Ev7WSUBdOokBXOsAZg5JUq160oe1zyue+xwOTJ08tPU9rjzaXVZBPyOC13yZViH3+UfTCpNJleE1oyqjwN4BDJxjgJzyK1dvzd/80T7qwp7Q69YIi2er9DUOdKMiYBNjcgtISTEDC2UCnxLgmGB7YToF6dSmAMhheqv3PUKkP1RgXFt39jdZKmp82hBiE/1NWYNr4kFI55okwouPKYGskvZFUZZTPcjRUxHLvBHKKlt/0DUYJ/A02d9ycrGuqFBW/rRixJRtDb20+GK+dLOoeRWmMnr0pOuHcTYJ7KV6Te6nkdFTFPrvt4HE/RwL/ilnyfGncnvUHjvjSpSstzCq3dkNoDj7KzS9fo2tmohYpUEYBpDwMEJmtAvBUgMlyALa5To7CiPT8TjdtAZJi2RwstvvCL2LwKhR4vDTuiMMseAnE8ugqI/1aEIHgOhZzDOVAPF19/phCQfGccSZF01MUT9H3YxxSEnMi6q/VMUdPkrCgyFzImDkr8m6jaBcHL4ErgOw6CIzdrI/5dkXAN9pAB1oWS12N+vUHdaqqmZx326oc8VvNxcmoixBwgKBADtU6aaobCXgLvXDe2Ex1xWdDyQJuBv7xX12aiCnI4irIWCMn/K80q0e/8FB1uN+IImdNqqBF8UsDRhrAhAT92JdQU0xEIapMFehlNK3HRjBbRnDJVcLEN+AHWw4pie0UOVW8X0IdI3zg2sRXLgTKjaGJKlZXNVf2iWOngyY7y+FNu/bM4+4bFjgi4vefuOHjDpg3TFUNXRQrgxwstmL+bk7NqEsqP1GSIFT9Uuj51RYXEzw=\",\n    \"Contrasena\": \"12345678a\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{API_URL}}/v1/compatibilidad/{{CLIENT_ID}}/RegistraEmisor",
+							"host": [
+								"{{API_URL}}"
+							],
+							"path": [
+								"v1",
+								"compatibilidad",
+								"{{CLIENT_ID}}",
+								"RegistraEmisor"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "ObtieneTimbresDisponibles",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"RfcEmisor\": \"IIA040805DZ4\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{API_URL}}/v1/compatibilidad/{{CLIENT_ID}}/ObtieneTimbresDisponibles",
+							"host": [
+								"{{API_URL}}"
+							],
+							"path": [
+								"v1",
+								"compatibilidad",
+								"{{CLIENT_ID}}",
+								"ObtieneTimbresDisponibles"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "AsignaTimbresEmisor",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"RfcEmisor\": \"IIA040805DZ4\",\n    \"CantidadTimbres\": 10\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{API_URL}}/v1/compatibilidad/{{CLIENT_ID}}/AsignaTimbresEmisor",
+							"host": [
+								"{{API_URL}}"
+							],
+							"path": [
+								"v1",
+								"compatibilidad",
+								"{{CLIENT_ID}}",
+								"AsignaTimbresEmisor"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "TimbraCFDI",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"XmlComprobanteBase64\": \"PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0idXRmLTgiPz4KPGNmZGk6Q29tcHJvYmFudGUgeHNpOnNjaGVtYUxvY2F0aW9uPSJodHRwOi8vd3d3LnNhdC5nb2IubXgvY2ZkLzQgaHR0cDovL3d3dy5zYXQuZ29iLm14L3NpdGlvX2ludGVybmV0L2NmZC80L2NmZHY0MC54c2QiIFZlcnNpb249IjQuMCIgU2VyaWU9IlNlcmllIiBGb2xpbz0iMTIzIiBGZWNoYT0iMjAyNC0wNS0zMFQwOTowMTowMCIgQ29uZGljaW9uZXNEZVBhZ289IkNvbmRpY2lvbmVzRGVQYWdvIiBTdWJUb3RhbD0iMjAwIiBEZXNjdWVudG89IjEiIE1vbmVkYT0iQU1EIiBUaXBvQ2FtYmlvPSIxIiBUb3RhbD0iMTk4Ljk2IiBUaXBvRGVDb21wcm9iYW50ZT0iSSIgRXhwb3J0YWNpb249IjAxIiBNZXRvZG9QYWdvPSJQUEQiIEZvcm1hUGFnbz0iOTkiIEx1Z2FyRXhwZWRpY2lvbj0iMjAwMDAiIHhtbG5zOmNmZGk9Imh0dHA6Ly93d3cuc2F0LmdvYi5teC9jZmQvNCIgeG1sbnM6eHNpPSJodHRwOi8vd3d3LnczLm9yZy8yMDAxL1hNTFNjaGVtYS1pbnN0YW5jZSI+CiAgICA8Y2ZkaTpFbWlzb3IgUmZjPSJJSUEwNDA4MDVEWjQiIE5vbWJyZT0iSU5ESVNUUklBIElMVU1JTkFET1JBIERFIEFMTUFDRU5FUyIgUmVnaW1lbkZpc2NhbD0iNjAxIi8+CiAgICA8Y2ZkaTpSZWNlcHRvciBSZmM9IlBGRTE0MDMxMklXOCIgTm9tYnJlPSJQUk9WRUVET1JFUyBERSBGQUNUVVJBQ0lPTiBFTEVDVFJPTklDQSBZIFNPRlRXQVJFIiBEb21pY2lsaW9GaXNjYWxSZWNlcHRvcj0iNTMxMDAiIFJlZ2ltZW5GaXNjYWxSZWNlcHRvcj0iNjAxIiBVc29DRkRJPSJHMDEiLz4KICAgIDxjZmRpOkNvbmNlcHRvcz4KICAgICAgICA8Y2ZkaTpDb25jZXB0byBDbGF2ZVByb2RTZXJ2PSI1MDIxMTUwMyIgQ2FudGlkYWQ9IjEiIENsYXZlVW5pZGFkPSJIODciIFVuaWRhZD0iUGllemEiIERlc2NyaXBjaW9uPSJDaWdhcnJvcyIgVmFsb3JVbml0YXJpbz0iMjAwLjAwIiBEZXNjdWVudG89IjEiIEltcG9ydGU9IjIwMC4wMCIgT2JqZXRvSW1wPSIwMiI+CiAgICAgICAgICAgIDxjZmRpOkltcHVlc3Rvcz4KICAgICAgICAgICAgICAgIDxjZmRpOlRyYXNsYWRvcz4KICAgICAgICAgICAgICAgICAgICA8Y2ZkaTpUcmFzbGFkbyBCYXNlPSIxIiBJbXBvcnRlPSIwLjE2IiBJbXB1ZXN0bz0iMDAyIiBUYXNhT0N1b3RhPSIwLjE2MDAwMCIgVGlwb0ZhY3Rvcj0iVGFzYSIvPgogICAgICAgICAgICAgICAgPC9jZmRpOlRyYXNsYWRvcz4KICAgICAgICAgICAgICAgIDxjZmRpOlJldGVuY2lvbmVzPgogICAgICAgICAgICAgICAgICAgIDxjZmRpOlJldGVuY2lvbiBCYXNlPSIxIiBJbXB1ZXN0bz0iMDAxIiBUaXBvRmFjdG9yPSJUYXNhIiBUYXNhT0N1b3RhPSIwLjEwMDAwMCIgSW1wb3J0ZT0iMC4xMCIvPgogICAgICAgICAgICAgICAgICAgIDxjZmRpOlJldGVuY2lvbiBCYXNlPSIxIiBJbXB1ZXN0bz0iMDAyIiBUaXBvRmFjdG9yPSJUYXNhIiBUYXNhT0N1b3RhPSIwLjEwNjY2NiIgSW1wb3J0ZT0iMC4xMCIvPgogICAgICAgICAgICAgICAgPC9jZmRpOlJldGVuY2lvbmVzPgogICAgICAgICAgICA8L2NmZGk6SW1wdWVzdG9zPgogICAgICAgIDwvY2ZkaTpDb25jZXB0bz4KICAgIDwvY2ZkaTpDb25jZXB0b3M+CiAgICA8Y2ZkaTpJbXB1ZXN0b3MgVG90YWxJbXB1ZXN0b3NSZXRlbmlkb3M9IjAuMjAiIFRvdGFsSW1wdWVzdG9zVHJhc2xhZGFkb3M9IjAuMTYiPgogICAgICAgIDxjZmRpOlJldGVuY2lvbmVzPgogICAgICAgICAgICA8Y2ZkaTpSZXRlbmNpb24gSW1wdWVzdG89IjAwMSIgSW1wb3J0ZT0iMC4xMCIvPgogICAgICAgICAgICA8Y2ZkaTpSZXRlbmNpb24gSW1wdWVzdG89IjAwMiIgSW1wb3J0ZT0iMC4xMCIvPgogICAgICAgIDwvY2ZkaTpSZXRlbmNpb25lcz4KICAgICAgICA8Y2ZkaTpUcmFzbGFkb3M+CiAgICAgICAgICAgIDxjZmRpOlRyYXNsYWRvIEJhc2U9IjEiIEltcG9ydGU9IjAuMTYiIEltcHVlc3RvPSIwMDIiIFRhc2FPQ3VvdGE9IjAuMTYwMDAwIiBUaXBvRmFjdG9yPSJUYXNhIi8+CiAgICAgICAgPC9jZmRpOlRyYXNsYWRvcz4KICAgIDwvY2ZkaTpJbXB1ZXN0b3M+CjwvY2ZkaTpDb21wcm9iYW50ZT4=\",\n    \"IdComprobante\": \"abc\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{API_URL}}/v1/compatibilidad/{{CLIENT_ID}}/TimbraCFDI",
+							"host": [
+								"{{API_URL}}"
+							],
+							"path": [
+								"v1",
+								"compatibilidad",
+								"{{CLIENT_ID}}",
+								"TimbraCFDI"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "TimbraCFDISellado",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"XmlComprobanteBase64\": \"Contenido del xml sellado en base64\",\n    \"IdComprobante\": \"abc\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{API_URL}}/v1/compatibilidad/{{CLIENT_ID}}/TimbraCFDISellado",
+							"host": [
+								"{{API_URL}}"
+							],
+							"path": [
+								"v1",
+								"compatibilidad",
+								"{{CLIENT_ID}}",
+								"TimbraCFDISellado"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "CancelaCFDI",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"RfcEmisor\": \"IIA040805DZ4\",\n    \"FolioFiscal\": \"6bed62ac-bc5e-4fc7-be9a-eaa6f3e612c8\",\n    \"MotivoCancelacion\": \"01\",\n    \"FolioFiscalSustitucion\": \"9072de4b-d071-4b74-bfde-4248a86e5996\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{API_URL}}/v1/compatibilidad/{{CLIENT_ID}}/CancelaCFDI",
+							"host": [
+								"{{API_URL}}"
+							],
+							"path": [
+								"v1",
+								"compatibilidad",
+								"{{CLIENT_ID}}",
+								"CancelaCFDI"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "CancelaCFDIAck",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"RfcEmisor\": \"IIA040805DZ4\",\n    \"FolioFiscal\": \"380230be-e125-4bce-8ca4-e0a059389cc2\",\n    \"MotivoCancelacion\": \"01\",\n    \"FolioFiscalSustitucion\": \"9072de4b-d071-4b74-bfde-4248a86e5996\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{API_URL}}/v1/compatibilidad/{{CLIENT_ID}}/CancelaCFDIAck",
+							"host": [
+								"{{API_URL}}"
+							],
+							"path": [
+								"v1",
+								"compatibilidad",
+								"{{CLIENT_ID}}",
+								"CancelaCFDIAck"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "CancelaCFDIAckExterno",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"RfcEmisor\": \"IIA040805DZ4\",\n    \"FolioFiscal\": \"16cea322-1f29-4ebb-8537-17dcbf7583ce\",\n    \"MotivoCancelacion\": \"01\",\n    \"FolioFiscalSustitucion\": \"9072de4b-d071-4b74-bfde-4248a86e5996\",\n    \"RfcReceptor\": \"BBA830831LJ2\",\n    \"Total\": \"23.20\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{API_URL}}/v1/compatibilidad/{{CLIENT_ID}}/CancelaCFDIAckExterno",
+							"host": [
+								"{{API_URL}}"
+							],
+							"path": [
+								"v1",
+								"compatibilidad",
+								"{{CLIENT_ID}}",
+								"CancelaCFDIAckExterno"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "ConsultaPeticionesPendientesCFDI",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"FolioFiscal\": \"ABC123456789\",\n    \"RfcReceptor\": \"IIA040805DZ4\",\n    \"MontoTotalCfdi\": 1500.50\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{API_URL}}/v1/compatibilidad/{{CLIENT_ID}}/ConsultaPeticionesPendientesCFDI",
+							"host": [
+								"{{API_URL}}"
+							],
+							"path": [
+								"v1",
+								"compatibilidad",
+								"{{CLIENT_ID}}",
+								"ConsultaPeticionesPendientesCFDI"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "AceptaRechazaCFDI",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"RfcReceptor\": \"IIA040805DZ4\",\n    \"FolioUUID\": \"01dbdb7b-e70e-472c-9ff1-313145787018\",\n    \"Accion\": \"RECHAZA\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{API_URL}}/v1/compatibilidad/{{CLIENT_ID}}/AceptaRechazaCFDI",
+							"host": [
+								"{{API_URL}}"
+							],
+							"path": [
+								"v1",
+								"compatibilidad",
+								"{{CLIENT_ID}}",
+								"AceptaRechazaCFDI"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "ObtieneCFDI",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"FolioFiscal\": \"1d277320-c6d5-4114-b5fd-dacbbae76ecb\",\n    \"RfcEmisor\": \"IIA040805DZ4\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{API_URL}}/v1/compatibilidad/{{CLIENT_ID}}/ObtieneCFDI",
+							"host": [
+								"{{API_URL}}"
+							],
+							"path": [
+								"v1",
+								"compatibilidad",
+								"{{CLIENT_ID}}",
+								"ObtieneCFDI"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "ConsultaEstatusSat",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"FolioFiscal\": \"380230be-e125-4bce-8ca4-e0a059389cc2\",\n    \"RfcEmisor\": \"IIA040805DZ4\",\n    \"RfcReceptor\": \"EKU9003173C9\",\n    \"MontoTotalCfdi\": 10800.00\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{API_URL}}/v1/compatibilidad/{{CLIENT_ID}}/ConsultaEstatusSat",
+							"host": [
+								"{{API_URL}}"
+							],
+							"path": [
+								"v1",
+								"compatibilidad",
+								"{{CLIENT_ID}}",
+								"ConsultaEstatusSat"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "ConsultaEstatusSatExterno",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"FolioFiscal\": \"380230be-e125-4bce-8ca4-e0a059389cc2\",\n    \"RfcEmisor\": \"IIA040805DZ4\",\n    \"RfcReceptor\": \"EKU9003173C9\",\n    \"MontoTotalCfdi\": 10800.00\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{API_URL}}/v1/compatibilidad/{{CLIENT_ID}}/ConsultaEstatusSatExterno",
+							"host": [
+								"{{API_URL}}"
+							],
+							"path": [
+								"v1",
+								"compatibilidad",
+								"{{CLIENT_ID}}",
+								"ConsultaEstatusSatExterno"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "ConsultaCfdisRelacionados",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"FolioFiscal\": \"16e1cd18-b256-412f-b3fe-a1b64ce5214b\",\n    \"RfcReceptor\": \"IIA040805DZ4\",\n    \"RfcEmisor\": \"IIA040805DZ4\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{API_URL}}/v1/compatibilidad/{{CLIENT_ID}}/ConsultaCfdisRelacionados",
+							"host": [
+								"{{API_URL}}"
+							],
+							"path": [
+								"v1",
+								"compatibilidad",
+								"{{CLIENT_ID}}",
+								"ConsultaCfdisRelacionados"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "ConsultaCfdisRelacionadosEmisor",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"FolioFiscal\": \"16e1cd18-b256-412f-b3fe-a1b64ce5214b\",\n    \"RfcReceptor\": \"IIA040805DZ4\",\n    \"RfcEmisor\": \"IIA040805DZ4\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{API_URL}}/v1/compatibilidad/{{CLIENT_ID}}/ConsultaCfdisRelacionadosEmisor",
+							"host": [
+								"{{API_URL}}"
+							],
+							"path": [
+								"v1",
+								"compatibilidad",
+								"{{CLIENT_ID}}",
+								"ConsultaCfdisRelacionadosEmisor"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "TimbraRetencion",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"XmlComprobanteBase64\": \"PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0idXRmLTgiPz4KPHJldGVuY2lvbmVzOlJldGVuY2lvbmVzIHhtbG5zOnhzaT0iaHR0cDovL3d3dy53My5vcmcvMjAwMS9YTUxTY2hlbWEtaW5zdGFuY2UiIHhtbG5zOnJldGVuY2lvbmVzPSJodHRwOi8vd3d3LnNhdC5nb2IubXgvZXNxdWVtYXMvcmV0ZW5jaW9ucGFnby8yIiB4c2k6c2NoZW1hTG9jYXRpb249Imh0dHA6Ly93d3cuc2F0LmdvYi5teC9lc3F1ZW1hcy9yZXRlbmNpb25wYWdvLzIgaHR0cDovL3d3dy5zYXQuZ29iLm14L2VzcXVlbWFzL3JldGVuY2lvbnBhZ28vMi9yZXRlbmNpb25wYWdvdjIueHNkIGh0dHA6Ly93d3cuc2F0LmdvYi5teC9lc3F1ZW1hcy9yZXRlbmNpb25wYWdvLzEvaW50ZXJlc2VzIGh0dHA6Ly93d3cuc2F0LmdvYi5teC9lc3F1ZW1hcy9yZXRlbmNpb25wYWdvLzEvaW50ZXJlc2VzL2ludGVyZXNlcy54c2QiIFZlcnNpb249IjIuMCIgRm9saW9JbnQ9IkJBIiBGZWNoYUV4cD0iMjAyNC0wMS0yOFQxMTozODowMiIgTHVnYXJFeHBSZXRlbmM9IjMyNjkwIiBDdmVSZXRlbmM9IjE2Ij4KICA8cmV0ZW5jaW9uZXM6RW1pc29yIFJmY0U9IklJQTA0MDgwNURaNCIgTm9tRGVuUmF6U29jRT0iSU5ESVNUUklBIElMVU1JTkFET1JBIERFIEFMTUFDRU5FUyIgUmVnaW1lbkZpc2NhbEU9IjYyNiIgLz4KICA8cmV0ZW5jaW9uZXM6UmVjZXB0b3IgTmFjaW9uYWxpZGFkUj0iTmFjaW9uYWwiPgogICAgPHJldGVuY2lvbmVzOk5hY2lvbmFsIFJmY1I9IkVLVTkwMDMxNzNDOSIgTm9tRGVuUmF6U29jUj0iRVNDVUVMQSBLRU1QRVIgVVJHQVRFIiBEb21pY2lsaW9GaXNjYWxSPSI0MjUwMSIgLz4KICA8L3JldGVuY2lvbmVzOlJlY2VwdG9yPgogIDxyZXRlbmNpb25lczpQZXJpb2RvIE1lc0luaT0iMDEiIE1lc0Zpbj0iMDEiIEVqZXJjaWNpbz0iMjAyNCIgLz4KICA8cmV0ZW5jaW9uZXM6VG90YWxlcyBNb250b1RvdE9wZXJhY2lvbj0iMi4yNSIgTW9udG9Ub3RHcmF2PSIyLjIiIE1vbnRvVG90RXhlbnQ9IjAuMDUiIE1vbnRvVG90UmV0PSIwLjA0Ij4KICAgIDxyZXRlbmNpb25lczpJbXBSZXRlbmlkb3MgQmFzZVJldD0iMC4wMiIgSW1wdWVzdG9SZXQ9IjAwMSIgTW9udG9SZXQ9IjAuMDQiIFRpcG9QYWdvUmV0PSIwNCIgLz4KICA8L3JldGVuY2lvbmVzOlRvdGFsZXM+CiAgPHJldGVuY2lvbmVzOkNvbXBsZW1lbnRvPgogICAgPGludGVyZXNlczpJbnRlcmVzZXMgeG1sbnM6aW50ZXJlc2VzPSJodHRwOi8vd3d3LnNhdC5nb2IubXgvZXNxdWVtYXMvcmV0ZW5jaW9ucGFnby8xL2ludGVyZXNlcyIgVmVyc2lvbj0iMS4wIiBTaXN0RmluYW5jaWVybz0iTk8iIFJldGlyb0FPUkVTUmV0SW50PSJTSSIgT3BlckZpbmFuY0Rlcml2YWQ9IlNJIiBNb250SW50Tm9taW5hbD0iMCIgTW9udEludFJlYWw9IjAiIFBlcmRpZGE9IjAiIC8+CiAgPC9yZXRlbmNpb25lczpDb21wbGVtZW50bz4KPC9yZXRlbmNpb25lczpSZXRlbmNpb25lcz4=\",\n  \"IdComprobante\": \"12345\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{API_URL}}/v1/compatibilidad/{{CLIENT_ID}}/TimbraRetencion",
+							"host": [
+								"{{API_URL}}"
+							],
+							"path": [
+								"v1",
+								"compatibilidad",
+								"{{CLIENT_ID}}",
+								"TimbraRetencion"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "ObtieneRetencion",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"RfcEmisor\": \"IIA040805DZ4\",\n    \"FolioFiscal\": \"db0e4c65-4035-4981-8643-ee1743d347f5\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{API_URL}}/v1/compatibilidad/{{CLIENT_ID}}/ObtieneRetencion",
+							"host": [
+								"{{API_URL}}"
+							],
+							"path": [
+								"v1",
+								"compatibilidad",
+								"{{CLIENT_ID}}",
+								"ObtieneRetencion"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "CancelaRetencion",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"RfcEmisor\": \"IIA040805DZ4\",\n    \"FolioFiscal\": \"aacab0c4-f295-4cdf-a8d3-c8960727815e\",\n    \"MotivoCancelacion\": \"01\",\n    \"FolioFiscalSustitucion\": \"9072de4b-d071-4b74-bfde-4248a86e5996\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{API_URL}}/v1/compatibilidad/{{CLIENT_ID}}/CancelaRetencion",
+							"host": [
+								"{{API_URL}}"
+							],
+							"path": [
+								"v1",
+								"compatibilidad",
+								"{{CLIENT_ID}}",
+								"CancelaRetencion"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "CancelarRetencionCSD",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"KeyBase64\": \"\",\n    \"CerBase64\": \"\",\n    \"Contrasena\": \"\",\n    \"RfcEmisor\": \"\",\n    \"FolioFiscal\": \"\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{API_URL}}/v1/compatibilidad/{{CLIENT_ID}}/CancelarRetencionCSD",
+							"host": [
+								"{{API_URL}}"
+							],
+							"path": [
+								"v1",
+								"compatibilidad",
+								"{{CLIENT_ID}}",
+								"CancelarRetencionCSD"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "TimbradoJSON",
+			"item": [
+				{
+					"name": "Consultar factura",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{TOKEN}}",
+								"type": "text"
+							},
+							{
+								"key": "X-CLIENT-ID",
+								"value": "{{CLIENT_ID}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{API_URL}}/v1/facturacion/consultar/798c9977-a076-44b6-937c-b1fe90c4567c",
+							"host": [
+								"{{API_URL}}"
+							],
+							"path": [
+								"v1",
+								"facturacion",
+								"consultar",
+								"798c9977-a076-44b6-937c-b1fe90c4567c"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Descargar factura",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{TOKEN}}",
+								"type": "text"
+							},
+							{
+								"key": "X-CLIENT-ID",
+								"value": "{{CLIENT_ID}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{API_URL}}/v1/facturacion/descargar/9a881c59-f1c5-4d86-8ec0-fdd6b8dc505c/xml",
+							"host": [
+								"{{API_URL}}"
+							],
+							"path": [
+								"v1",
+								"facturacion",
+								"descargar",
+								"9a881c59-f1c5-4d86-8ec0-fdd6b8dc505c",
+								"xml"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Timbrar sin impuestos",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{TOKEN}}",
+								"type": "text"
+							},
+							{
+								"key": "X-CLIENT-ID",
+								"value": "{{CLIENT_ID}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"fecha_emision\": \"2024-02-29 09:00:00\",\n    \"serie\": \"FEB\",\n    \"folio\": 1000,\n    \"forma_pago\": \"01\",\n    \"condiciones_pago\": \"Contado\",\n    \"metodo_pago\": \"PUE\",\n    \"moneda\": \"MXN\",\n    \"lugar_expedicion\": \"42501\",\n    \"observaciones\": \"Esta es una factura de prueba\",\n    \"tipo_comprobante\": \"I\",\n    \"subtotal\": 1000,\n    \"total\": 1000,\n    \"exportacion\": \"01\",\n    \"emisor\": {\n        \"rfc\": \"EKU9003173C9\",\n        \"razon_social\": \"ESCUELA KEMPER URGATE\",\n        \"uso_cfdi\": \"G03\",\n        \"regimen_fiscal\": \"601\",\n        \"codigo_postal\": \"42501\"\n    },\n    \"receptor\": {\n        \"rfc\": \"FUNK671228PH6\",\n        \"razon_social\": \"KARLA FUENTE NOLASCO\",\n        \"uso_cfdi\": \"G03\",\n        \"regimen_fiscal\": \"621\",\n        \"codigo_postal\": \"01160\"\n    },\n    \"conceptos\": [\n        {\n            \"clave_prod_serv\": \"78101800\",\n            \"descripcion\": \"TRANSPORTE DE CARGA\",\n            \"clave_unidad\": \"E48\",\n            \"unidad\": \"SERVICIOS\",\n            \"valor_unitario\": 1000.00,\n            \"cantidad\": 1,\n            \"subtotal\": 1000.00,\n            \"descuento\": 0.00,\n            \"importe\": 1000.00,\n            \"numero_identificacion\": \"SERV0001\",\n            \"objeto_impuesto\": \"01\"\n        }\n    ]\n}"
+						},
+						"url": {
+							"raw": "{{API_URL}}/v1/facturacion/timbrar",
+							"host": [
+								"{{API_URL}}"
+							],
+							"path": [
+								"v1",
+								"facturacion",
+								"timbrar"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Timbrar con impuestos",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{TOKEN}}",
+								"type": "text"
+							},
+							{
+								"key": "X-CLIENT-ID",
+								"value": "{{CLIENT_ID}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"fecha_emision\": \"2024-02-27 09:01:00\",\n    \"serie\": \"IVNIMP\",\n    \"folio\": 1000,\n    \"forma_pago\": \"01\",\n    \"condiciones_pago\": \"Contado\",\n    \"metodo_pago\": \"PUE\",\n    \"moneda\": \"MXN\",\n    \"lugar_expedicion\": \"62661\",\n    \"observaciones\": \"Esta es una factura de prueba\",\n    \"tipo_comprobante\": \"I\",\n    \"subtotal\": 1000,\n    \"total\": 1120,\n    \"exportacion\": \"01\",\n    \"emisor\": {\n        \"rfc\": \"EKU9003173C9\",\n        \"razon_social\": \"ESCUELA KEMPER URGATE\",\n        \"uso_cfdi\": \"G03\",\n        \"regimen_fiscal\": \"601\",\n        \"codigo_postal\": \"42501\"\n    },\n    \"receptor\": {\n        \"rfc\": \"FUNK671228PH6\",\n        \"razon_social\": \"KARLA FUENTE NOLASCO\",\n        \"uso_cfdi\": \"G03\",\n        \"regimen_fiscal\": \"621\",\n        \"codigo_postal\": \"01160\"\n    },\n    \"conceptos\": [\n        {\n            \"clave_prod_serv\": \"78101800\",\n            \"descripcion\": \"TRANSPORTE DE CARGA\",\n            \"clave_unidad\": \"E48\",\n            \"unidad\": \"SERVICIOS\",\n            \"valor_unitario\": 1000.00,\n            \"cantidad\": 1,\n            \"subtotal\": 1000.00,\n            \"descuento\": 0.00,\n            \"importe\": 1000.00,\n            \"numero_identificacion\": \"SERV0001\",\n            \"objeto_impuesto\": \"02\",\n            \"impuestos\": {\n                \"traslados\": [\n                    {\n                        \"base\": 1000,\n                        \"impuesto\": \"002\",\n                        \"tipo_factor\": \"Tasa\",\n                        \"tasa_cuota\": \"0.160000\",\n                        \"importe\": 160\n                    }\n                ],\n                \"retenciones\": [\n                    {\n                        \"base\": 1000,\n                        \"impuesto\": \"002\",\n                        \"tipo_factor\": \"Tasa\",\n                        \"tasa_cuota\": 0.04,\n                        \"importe\": 40\n                    }\n                ]\n            }\n        }\n    ],\n    \"impuestos\": {\n        \"total_impuestos_trasladados\": 160,\n        \"total_impuestos_retenidos\": 40,\n        \"traslados\": [\n            {\n                \"base\": 1000,\n                \"impuesto\": \"002\",\n                \"tipo_factor\": \"Tasa\",\n                \"tasa_cuota\": \"0.160000\",\n                \"importe\": 160\n            }\n        ],\n        \"retenciones\": [\n            {\n                \"impuesto\": \"002\",\n                \"importe\": 40\n            }\n        ]\n    }\n}"
+						},
+						"url": {
+							"raw": "{{API_URL}}/v1/facturacion/timbrar",
+							"host": [
+								"{{API_URL}}"
+							],
+							"path": [
+								"v1",
+								"facturacion",
+								"timbrar"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Complemento Pagos 2.0",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{TOKEN}}",
+								"type": "text"
+							},
+							{
+								"key": "X-CLIENT-ID",
+								"value": "{{CLIENT_ID}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"fecha_emision\": \"2024-04-11 12:00:00\",\n    \"serie\": \"CP\",\n    \"folio\": 1001,\n    \"moneda\": \"XXX\",\n    \"lugar_expedicion\": \"42501\",\n    \"observaciones\": \"Esta es una factura de prueba\",\n    \"tipo_comprobante\": \"P\",\n    \"subtotal\": 0,\n    \"total\": 0,\n    \"exportacion\": \"01\",\n    \"emisor\": {\n        \"rfc\": \"EKU9003173C9\",\n        \"razon_social\": \"ESCUELA KEMPER URGATE\",\n        \"uso_cfdi\": \"G03\",\n        \"regimen_fiscal\": \"601\",\n        \"codigo_postal\": \"42501\"\n    },\n    \"receptor\": {\n        \"rfc\": \"FUNK671228PH6\",\n        \"razon_social\": \"KARLA FUENTE NOLASCO\",\n        \"uso_cfdi\": \"CP01\",\n        \"regimen_fiscal\": \"621\",\n        \"codigo_postal\": \"01160\"\n    },\n    \"conceptos\": [\n        {\n            \"clave_prod_serv\": \"84111506\",\n            \"descripcion\": \"Pago\",\n            \"clave_unidad\": \"ACT\",\n            \"valor_unitario\": 0,\n            \"cantidad\": 1,\n            \"subtotal\": 0,\n            \"importe\": 0,\n            \"objeto_impuesto\": \"01\"\n        }\n    ],\n    \"complementos\": {\n        \"pagos_20\": {\n            \"version\": \"2.0\",\n            \"totales\": {\n                \"monto_total_pagos\": 200\n            },\n            \"pago\": [\n                {\n                    \"fecha_pago\": \"2021-12-15T00:00:00\",\n                    \"forma_de_pago_p\": \"01\",\n                    \"moneda_p\": \"MXN\",\n                    \"tipo_cambio_p\": 1,\n                    \"monto\": 200,\n                    \"docto_relacionado\": [\n                        {\n                            \"id_documento\": \"bfc36522-4b8e-45c4-8f14-d11b289f9eb7\",\n                            \"moneda_dr\": \"MXN\",\n                            \"equivalencia_dr\": 1,\n                            \"num_parcialidad\": 1,\n                            \"imp_saldo_ant\": 200,\n                            \"imp_pagado\": 200,\n                            \"imp_saldo_insoluto\": 0,\n                            \"objeto_imp_dr\": \"01\"\n                        }\n                    ]\n                }\n            ]\n        }\n    }\n}"
+						},
+						"url": {
+							"raw": "{{API_URL}}/v1/facturacion/timbrar",
+							"host": [
+								"{{API_URL}}"
+							],
+							"path": [
+								"v1",
+								"facturacion",
+								"timbrar"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Complemento Nomina 1.2",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{TOKEN}}",
+								"type": "text"
+							},
+							{
+								"key": "X-CLIENT-ID",
+								"value": "{{CLIENT_ID}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"fecha_emision\": \"2024-04-17 09:00:00\",\n    \"serie\": \"NOM\",\n    \"folio\": 1002,\n    \"moneda\": \"MXN\",\n    \"lugar_expedicion\": \"42501\",\n    \"observaciones\": \"Esta es una factura de prueba\",\n    \"tipo_comprobante\": \"N\",\n    \"metodo_pago\": \"PUE\",\n    \"subtotal\": 2875.49,\n    \"total\": 2261.29,\n    \"descuento\": 614.20,\n    \"exportacion\": \"01\",\n    \"emisor\": {\n        \"rfc\": \"EKU9003173C9\",\n        \"razon_social\": \"ESCUELA KEMPER URGATE\",\n        \"uso_cfdi\": \"G03\",\n        \"regimen_fiscal\": \"601\",\n        \"codigo_postal\": \"42501\"\n    },\n    \"receptor\": {\n        \"rfc\": \"XOJI740919U48\",\n        \"razon_social\": \"INGRID XODAR JIMENEZ\",\n        \"uso_cfdi\": \"CN01\",\n        \"regimen_fiscal\": \"605\",\n        \"codigo_postal\": \"76028\"\n    },\n    \"conceptos\": [\n        {\n            \"clave_prod_serv\": \"84111505\",\n            \"descripcion\": \"Pago de nómina\",\n            \"clave_unidad\": \"ACT\",\n            \"valor_unitario\": 2875.49,\n            \"cantidad\": 1,\n            \"subtotal\": 2875.49,\n            \"descuento\": 614.20,\n            \"importe\": 2875.49,\n            \"objeto_impuesto\": \"01\"\n        }\n    ],\n    \"complementos\": {\n        \"nomina\": {\n            \"version\": \"1.2\",\n            \"tipo_nomina\": \"O\",\n            \"fecha_pago\": \"2021-10-31\",\n            \"fecha_inicial_pago\": \"2021-10-15\",\n            \"fecha_final_pago\": \"2021-10-31\",\n            \"num_dias_pagados\": \"15\",\n            \"total_percepciones\": 2875.49,\n            \"total_deducciones\": 614.20,\n            \"total_otros_pagos\": 0.00,\n            \"emisor\": {\n                \"registro_patronal\": \"123456789\"\n            },\n            \"receptor\": {\n                \"curp\": \"MICR681027HJCRBB05\",\n                \"num_seguridad_social\": \"12345678901\",\n                \"fecha_inicio_rel_laboral\": \"2016-07-15\",\n                \"antiguedad\": \"P276W\",\n                \"tipo_contrato\": \"01\",\n                \"sindicalizado\": \"No\",\n                \"tipo_regimen\": \"02\",\n                \"num_empleado\": \"002\",\n                \"puesto\": \"JEFE DEPARTAMENTO DE PERSONAL\",\n                \"riesgo_puesto\": \"1\",\n                \"periodicidad_pago\": \"02\",\n                \"salario_base_cot_apor\": \"588.13\",\n                \"salario_diario_integrado\": \"1099.05\",\n                \"clave_entidad_federativa\": \"JAL\"\n            },\n            \"percepciones\": {\n                \"total_sueldos\": \"2875.49\",\n                \"total_separacion_indemnizacion\": \"0.00\",\n                \"total_gravado\": \"2875.49\",\n                \"total_exento\": \"0.00\",\n                \"percepcion\": [\n                    {\n                        \"tipo_percepcion\": \"002\",\n                        \"clave\": \"002\",\n                        \"concepto\": \"Salario QA - TESTER\",\n                        \"importe_gravado\": \"2875.49\",\n                        \"importe_exento\": \"0.00\"\n                    }\n                ]\n            },\n            \"deducciones\": {\n                \"total_otras_deducciones\": \"0.00\",\n                \"total_impuestos_retenidos\": \"614.20\",\n                \"deduccion\": [\n                    {\n                        \"tipo_deduccion\": \"002\",\n                        \"clave\": \"043\",\n                        \"concepto\": \"ISR ART 142\",\n                        \"importe\": 614.20\n                    }\n                ]\n            },\n            \"otros_pagos\": {\n                \"otro_pago\": [\n                    {\n                        \"clave\": \"002\",\n                        \"concepto\": \"002 - Subsidio para el empleo (efectivamente entregado al trabajador).\",\n                        \"importe\": 0.00,\n                        \"tipo_otro_pago\": \"002\",\n                        \"subsidio_al_empleo\": {\n                            \"subsidio_causado\": 0.00\n                        }\n                    }\n                ]\n            }\n        }\n    }\n}"
+						},
+						"url": {
+							"raw": "{{API_URL}}/v1/facturacion/timbrar",
+							"host": [
+								"{{API_URL}}"
+							],
+							"path": [
+								"v1",
+								"facturacion",
+								"timbrar"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Complemento ComercioExterior 2.0",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{TOKEN}}",
+								"type": "text"
+							},
+							{
+								"key": "X-CLIENT-ID",
+								"value": "{{CLIENT_ID}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"fecha_emision\": \"2024-04-24 09:10:00\",\n    \"serie\": \"CCE\",\n    \"folio\": 1000,\n    \"forma_pago\": \"01\",\n    \"condiciones_pago\": \"Contado\",\n    \"metodo_pago\": \"PUE\",\n    \"moneda\": \"USD\",\n    \"tipo_cambio\": 17.1243,\n    \"lugar_expedicion\": \"66634\",\n    \"observaciones\": \"Esta es una factura de prueba\",\n    \"tipo_comprobante\": \"I\",\n    \"subtotal\": 510,\n    \"total\": 510,\n    \"exportacion\": \"02\",\n    \"emisor\": {\n        \"rfc\": \"EKU9003173C9\",\n        \"razon_social\": \"ESCUELA KEMPER URGATE\",\n        \"uso_cfdi\": \"G03\",\n        \"regimen_fiscal\": \"601\",\n        \"codigo_postal\": \"42501\"\n    },\n    \"receptor\": {\n        \"rfc\": \"XEXX010101000\",\n        \"razon_social\": \"CENTURY GOLD MEXICO LLC\",\n        \"uso_cfdi\": \"S01\",\n        \"regimen_fiscal\": \"616\",\n        \"codigo_postal\": \"66634\",\n        \"residencia_fiscal\": \"USA\",\n        \"num_reg_id_trib\": \"890787631\"\n    },\n    \"conceptos\": [\n        {\n            \"clave_prod_serv\": \"24121511\",\n            \"descripcion\": \"BOX 24X15X9 EMPKPB0535 PO: QU-000766\",\n            \"clave_unidad\": \"H87\",\n            \"unidad\": \"Pieza\",\n            \"valor_unitario\": 0.850000,\n            \"cantidad\": 600,\n            \"subtotal\": 510.00,\n            \"descuento\": 0.00,\n            \"importe\": 510.00,\n            \"numero_identificacion\": \"CJ2414\",\n            \"objeto_impuesto\": \"02\",\n            \"impuestos\": {\n                \"traslados\": [\n                    {\n                        \"base\": 510,\n                        \"impuesto\": \"002\",\n                        \"tipo_factor\": \"Tasa\",\n                        \"tasa_cuota\": \"0.000000\",\n                        \"importe\": 0\n                    }\n                ]\n            }\n        }\n    ],\n    \"impuestos\": {\n        \"total_impuestos_trasladados\": 0,\n        \"traslados\": [\n            {\n                \"base\": 510,\n                \"impuesto\": \"002\",\n                \"tipo_factor\": \"Tasa\",\n                \"tasa_cuota\": \"0.000000\",\n                \"importe\": 0\n            }\n        ]\n    },\n    \"complementos\": {\n        \"comercio_exterior_20\": {\n            \"version\": \"2.0\",\n            \"clave_de_pedimento\": \"A1\",\n            \"certificado_origen\": \"0\",\n            \"incoterm\": \"DPU\",\n            \"observaciones\": \"ESTA FACTURA SUSTITUYE A LA KPUSA008\",\n            \"tipo_cambio_usd\": 17.1243,\n            \"total_usd\": \"510.00\",\n            \"emisor\": {\n                \"domicilio\": {\n                    \"calle\": \"CARLOS ROUSSEAU\",\n                    \"numero_exterior\": \"501\",\n                    \"colonia\": \"1403\",\n                    \"municipio\": \"006\",\n                    \"localidad\": \"01\",\n                    \"estado\": \"NLE\",\n                    \"pais\": \"MEX\",\n                    \"codigo_postal\": \"66634\"\n                }\n            },\n            \"receptor\": {\n                \"num_reg_id_trib\": \"123456789\",\n                \"domicilio\": {\n                    \"calle\": \"25 Vantage Point Dr.\",\n                    \"municipio\": \"Rochester\",\n                    \"estado\": \"NY\",\n                    \"pais\": \"USA\",\n                    \"codigo_postal\": \"14624\"\n                }\n            },\n            \"destinatario\": [\n                {\n                    \"num_reg_id_trib\": \"123456789\",\n                    \"nombre\": \"CENTURY MOLD\",\n                    \"domicilio\": [\n                        {\n                            \"calle\": \"25 Vantage Point Dr.\",\n                            \"municipio\": \"Rochester\",\n                            \"estado\": \"NY\",\n                            \"pais\": \"USA\",\n                            \"codigo_postal\": \"14624\"\n                        }\n                    ]\n                }\n            ],\n            \"mercancias\": {\n                \"mercancia\": [\n                    {\n                        \"no_identificacion\": \"CJ2414\",\n                        \"fraccion_arancelaria\": \"4819100100\",\n                        \"cantidad_aduana\": 600,\n                        \"unidad_aduana\": \"01\",\n                        \"valor_unitario_aduana\": 0.85,\n                        \"valor_dolares\": \"510.00\",\n                        \"descripciones_especificas\": [\n                            {\n                                \"marca\": \"EJ-8578\",\n                                \"modelo\": \"2015-LT\",\n                                \"numero_serie\": \"123456789\",\n                                \"sub_modelo\": \"LF10\"\n                            }\n                        ]\n                    }\n                ]\n            }\n        }\n    }\n}"
+						},
+						"url": {
+							"raw": "{{API_URL}}/v1/facturacion/timbrar",
+							"host": [
+								"{{API_URL}}"
+							],
+							"path": [
+								"v1",
+								"facturacion",
+								"timbrar"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "CartaPorte 3.1 - Autotransporte",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{TOKEN}}"
+							},
+							{
+								"key": "X-CLIENT-ID",
+								"value": "{{CLIENT_ID}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"fecha_emision\": \"2025-03-14 09:00:00\",\n    \"serie\": \"MAR\",\n    \"folio\": 2503001,\n    \"forma_pago\": \"01\",\n    \"condiciones_pago\": \"Contado\",\n    \"metodo_pago\": \"PUE\",\n    \"moneda\": \"MXN\",\n    \"lugar_expedicion\": \"42501\",\n    \"observaciones\": \"Esta es una factura de prueba\",\n    \"tipo_comprobante\": \"I\",\n    \"subtotal\": 1000,\n    \"total\": 1000,\n    \"exportacion\": \"01\",\n    \"emisor\": {\n        \"rfc\": \"EKU9003173C9\",\n        \"razon_social\": \"ESCUELA KEMPER URGATE\",\n        \"uso_cfdi\": \"G03\",\n        \"regimen_fiscal\": \"601\",\n        \"codigo_postal\": \"42501\"\n    },\n    \"receptor\": {\n        \"rfc\": \"FUNK671228PH6\",\n        \"razon_social\": \"KARLA FUENTE NOLASCO\",\n        \"uso_cfdi\": \"G03\",\n        \"regimen_fiscal\": \"621\",\n        \"codigo_postal\": \"01160\"\n    },\n    \"conceptos\": [\n        {\n            \"clave_prod_serv\": \"78101800\",\n            \"descripcion\": \"TRANSPORTE DE CARGA\",\n            \"clave_unidad\": \"E48\",\n            \"unidad\": \"SERVICIOS\",\n            \"valor_unitario\": 1000,\n            \"cantidad\": 1,\n            \"subtotal\": 1000,\n            \"descuento\": 0,\n            \"importe\": 1000,\n            \"numero_identificacion\": \"SERV0001\",\n            \"objeto_impuesto\": \"01\"\n        }\n    ],\n    \"complementos\": {\n        \"carta_porte_31\": {\n            \"version\": \"3.1\",\n            \"id_ccp\": \"CCCBCD94-870A-4332-A52A-A52AA52AA52A\",\n            \"transp_internac\": \"No\",\n            \"total_dist_rec\": \"1\",\n            \"registro_istmo\": \"Sí\",\n            \"ubicacion_polo_origen\": \"01\",\n            \"ubicacion_polo_destino\": \"01\",\n            \"ubicaciones\": {\n                \"ubicacion\": [\n                    {\n                        \"tipo_ubicacion\": \"Origen\",\n                        \"id_ubicacion\": \"OR101010\",\n                        \"rfc_remitente_destinatario\": \"URE180429TM6\",\n                        \"nombre_remitente_destinatario\": \"NombreRemitenteDestinatario1\",\n                        \"fecha_hora_salida_llegada\": \"2023-08-01T00:00:00\",\n                        \"domicilio\": {\n                            \"calle\": \"Calle1\",\n                            \"numero_exterior\": \"211\",\n                            \"numero_interior\": \"212\",\n                            \"colonia\": \"1957\",\n                            \"localidad\": \"13\",\n                            \"referencia\": \"casa blanca\",\n                            \"municipio\": \"011\",\n                            \"estado\": \"CMX\",\n                            \"pais\": \"MEX\",\n                            \"codigo_postal\": \"13250\"\n                        }\n                    },\n                    {\n                        \"tipo_ubicacion\": \"Destino\",\n                        \"id_ubicacion\": \"DE202020\",\n                        \"rfc_remitente_destinatario\": \"URE180429TM6\",\n                        \"nombre_remitente_destinatario\": \"NombreRemitenteDestinatario2\",\n                        \"fecha_hora_salida_llegada\": \"2023-08-01T00:00:01\",\n                        \"distancia_recorrida\": \"1\",\n                        \"domicilio\": {\n                            \"calle\": \"Calle2\",\n                            \"numero_exterior\": \"214\",\n                            \"numero_interior\": \"215\",\n                            \"colonia\": \"0347\",\n                            \"localidad\": \"23\",\n                            \"referencia\": \"casa negra\",\n                            \"municipio\": \"004\",\n                            \"estado\": \"COA\",\n                            \"pais\": \"MEX\",\n                            \"codigo_postal\": \"25350\"\n                        }\n                    }\n                ]\n            },\n            \"mercancias\": {\n                \"peso_bruto_total\": 1,\n                \"unidad_peso\": \"XBX\",\n                \"num_total_mercancias\": 1,\n                \"logistica_inversa_recoleccion_devolucion\": \"Sí\",\n                \"mercancia\": [\n                    {\n                        \"bienes_transp\": \"11121900\",\n                        \"descripcion\": \"Accesorios de equipo de telefonía\",\n                        \"cantidad\": \"1.0\",\n                        \"clave_unidad\": \"XBX\",\n                        \"material_peligroso\": \"No\",\n                        \"denominacion_generica_prod\": \"DenominacionGenericaProd1\",\n                        \"denominacion_distintiva_prod\": \"DenominacionDistintivaProd1\",\n                        \"fabricante\": \"Fabricante1\",\n                        \"fecha_caducidad\": \"2003-04-02\",\n                        \"lote_medicamento\": \"LoteMedic1\",\n                        \"forma_farmaceutica\": \"01\",\n                        \"condiciones_esp_transp\": \"01\",\n                        \"registro_sanitario_folio_autorizacion\": \"RegistroSanita1\",\n                        \"peso_en_kg\": \"1\",\n                        \"fraccion_arancelaria\": \"6309000100\",\n                        \"cantidad_transporta\": [\n                            {\n                                \"cantidad\": \"1\",\n                                \"id_origen\": \"OR101010\",\n                                \"id_destino\": \"DE202020\"\n                            }\n                        ]\n                    }\n                ],\n                \"autotransporte\": {\n                    \"perm_sct\": \"TPAF01\",\n                    \"num_permiso_sct\": \"NumPermisoSCT1\",\n                    \"identificacion_vehicular\": {\n                        \"config_vehicular\": \"VL\",\n                        \"peso_bruto_vehicular\": 1,\n                        \"placa_vm\": \"plac892\",\n                        \"anio_modelo_vm\": 2020\n                    },\n                    \"seguros\": {\n                        \"asegura_resp_civil\": \"AseguraRespCivil\",\n                        \"poliza_resp_civil\": \"123456789\"\n                    },\n                    \"remolques\": {\n                        \"remolque\": [\n                            {\n                                \"sub_tipo_rem\": \"CTR004\",\n                                \"placa\": \"VL45K98\"\n                            }\n                        ]\n                    }\n                }\n            },\n            \"figura_transporte\": {\n                \"tipos_figura\": [\n                    {\n                        \"tipo_figura\": \"01\",\n                        \"rfc_figura\": \"URE180429TM6\",\n                        \"num_licencia\": \"NumLicencia1\",\n                        \"nombre_figura\": \"NombreFigura1\",\n                        \"domicilio\": {\n                            \"calle\": \"Calle1\",\n                            \"numero_exterior\": \"NumeroExterior1\",\n                            \"numero_interior\": \"NumeroInterior1\",\n                            \"colonia\": \"Colonia1\",\n                            \"localidad\": \"Localidad1\",\n                            \"referencia\": \"Referencia1\",\n                            \"municipio\": \"Municipio1\",\n                            \"estado\": \"Estado1\",\n                            \"pais\": \"AFG\",\n                            \"codigo_postal\": \"CodigoPosta1\"\n                        }\n                    }\n                ]\n            }\n        }\n    }\n}"
+						},
+						"url": {
+							"raw": "{{API_URL}}/v1/facturacion/timbrar",
+							"host": [
+								"{{API_URL}}"
+							],
+							"path": [
+								"v1",
+								"facturacion",
+								"timbrar"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "CartaPorte 3.1 - Ferroviario",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{TOKEN}}"
+							},
+							{
+								"key": "X-CLIENT-ID",
+								"value": "{{CLIENT_ID}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"fecha_emision\": \"2025-03-14 09:00:00\",\n    \"serie\": \"MAR\",\n    \"folio\": 2503002,\n    \"forma_pago\": \"01\",\n    \"condiciones_pago\": \"Contado\",\n    \"metodo_pago\": \"PUE\",\n    \"moneda\": \"MXN\",\n    \"lugar_expedicion\": \"42501\",\n    \"observaciones\": \"Esta es una factura de prueba\",\n    \"tipo_comprobante\": \"I\",\n    \"subtotal\": 1000,\n    \"total\": 1000,\n    \"exportacion\": \"01\",\n    \"emisor\": {\n        \"rfc\": \"EKU9003173C9\",\n        \"razon_social\": \"ESCUELA KEMPER URGATE\",\n        \"uso_cfdi\": \"G03\",\n        \"regimen_fiscal\": \"601\",\n        \"codigo_postal\": \"42501\"\n    },\n    \"receptor\": {\n        \"rfc\": \"FUNK671228PH6\",\n        \"razon_social\": \"KARLA FUENTE NOLASCO\",\n        \"uso_cfdi\": \"G03\",\n        \"regimen_fiscal\": \"621\",\n        \"codigo_postal\": \"01160\"\n    },\n    \"conceptos\": [\n        {\n            \"clave_prod_serv\": \"78101800\",\n            \"descripcion\": \"TRANSPORTE DE CARGA\",\n            \"clave_unidad\": \"E48\",\n            \"unidad\": \"SERVICIOS\",\n            \"valor_unitario\": 1000,\n            \"cantidad\": 1,\n            \"subtotal\": 1000,\n            \"descuento\": 0,\n            \"importe\": 1000,\n            \"numero_identificacion\": \"SERV0001\",\n            \"objeto_impuesto\": \"01\"\n        }\n    ],\n    \"complementos\": {\n        \"carta_porte_31\": {\n            \"version\": \"3.1\",\n            \"id_ccp\": \"CCCBCD94-870A-4332-A52A-A52AA52AA52A\",\n            \"transp_internac\": \"No\",\n            \"total_dist_rec\": \"500\",\n            \"registro_istmo\": \"Sí\",\n            \"ubicacion_polo_origen\": \"01\",\n            \"ubicacion_polo_destino\": \"01\",\n            \"ubicaciones\": {\n                \"ubicacion\": [\n                    {\n                        \"tipo_ubicacion\": \"Origen\",\n                        \"id_ubicacion\": \"OR101010\",\n                        \"rfc_remitente_destinatario\": \"EKU9003173C9\",\n                        \"nombre_remitente_destinatario\": \"NombreRemitenteDestinatario1\",\n                        \"num_estacion\": \"Q0736\",\n                        \"nombre_estacion\": \"SANTO NINO\",\n                        \"fecha_hora_salida_llegada\": \"2023-08-01T00:00:00\",\n                        \"tipo_estacion\": \"01\",\n                        \"domicilio\": {\n                            \"calle\": \"Calle1\",\n                            \"numero_exterior\": \"211\",\n                            \"numero_interior\": \"212\",\n                            \"colonia\": \"1957\",\n                            \"localidad\": \"13\",\n                            \"referencia\": \"casa blanca\",\n                            \"municipio\": \"011\",\n                            \"estado\": \"CMX\",\n                            \"pais\": \"MEX\",\n                            \"codigo_postal\": \"13250\"\n                        }\n                    },\n                    {\n                        \"tipo_ubicacion\": \"Destino\",\n                        \"id_ubicacion\": \"DE202021\",\n                        \"rfc_remitente_destinatario\": \"EKU9003173C9\",\n                        \"nombre_remitente_destinatario\": \"NombreRemitenteDestinatario2\",\n                        \"num_estacion\": \"SC283\",\n                        \"nombre_estacion\": \"HUAXTITLA\",\n                        \"fecha_hora_salida_llegada\": \"2023-08-01T01:00:01\",\n                        \"tipo_estacion\": \"02\",\n                        \"distancia_recorrida\": \"100.00\"\n                    },\n                    {\n                        \"tipo_ubicacion\": \"Destino\",\n                        \"id_ubicacion\": \"DE202022\",\n                        \"rfc_remitente_destinatario\": \"EKU9003173C9\",\n                        \"nombre_remitente_destinatario\": \"NombreRemitenteDestinatario2\",\n                        \"num_estacion\": \"TG0\",\n                        \"nombre_estacion\": \"NAVOJOA\",\n                        \"fecha_hora_salida_llegada\": \"2023-08-01T02:00:01\",\n                        \"tipo_estacion\": \"02\",\n                        \"distancia_recorrida\": \"100.00\"\n                    },\n                    {\n                        \"tipo_ubicacion\": \"Destino\",\n                        \"id_ubicacion\": \"DE202023\",\n                        \"rfc_remitente_destinatario\": \"EKU9003173C9\",\n                        \"nombre_remitente_destinatario\": \"NombreRemitenteDestinatario2\",\n                        \"num_estacion\": \"E0029\",\n                        \"nombre_estacion\": \"TRES JAGUEYES\",\n                        \"fecha_hora_salida_llegada\": \"2023-08-01T03:00:01\",\n                        \"tipo_estacion\": \"02\",\n                        \"distancia_recorrida\": \"100.00\"\n                    },\n                    {\n                        \"tipo_ubicacion\": \"Destino\",\n                        \"id_ubicacion\": \"DE202024\",\n                        \"rfc_remitente_destinatario\": \"EKU9003173C9\",\n                        \"nombre_remitente_destinatario\": \"NombreRemitenteDestinatario2\",\n                        \"num_estacion\": \"TI032\",\n                        \"nombre_estacion\": \"NAVOLATO\",\n                        \"fecha_hora_salida_llegada\": \"2023-08-01T04:00:01\",\n                        \"tipo_estacion\": \"02\",\n                        \"distancia_recorrida\": \"100.00\"\n                    },\n                    {\n                        \"tipo_ubicacion\": \"Destino\",\n                        \"id_ubicacion\": \"DE202025\",\n                        \"rfc_remitente_destinatario\": \"EKU9003173C9\",\n                        \"nombre_remitente_destinatario\": \"NombreRemitenteDestinatario2\",\n                        \"num_estacion\": \"JM047\",\n                        \"nombre_estacion\": \"HUEHUETOCA\",\n                        \"fecha_hora_salida_llegada\": \"2023-08-01T05:00:01\",\n                        \"tipo_estacion\": \"03\",\n                        \"distancia_recorrida\": \"100.00\",\n                        \"domicilio\": {\n                            \"calle\": \"Calle2\",\n                            \"numero_exterior\": \"214\",\n                            \"numero_interior\": \"215\",\n                            \"colonia\": \"0347\",\n                            \"localidad\": \"23\",\n                            \"referencia\": \"casa negra\",\n                            \"municipio\": \"004\",\n                            \"estado\": \"COA\",\n                            \"pais\": \"MEX\",\n                            \"codigo_postal\": \"25350\"\n                        }\n                    }\n                ]\n            },\n            \"mercancias\": {\n                \"peso_bruto_total\": 1,\n                \"unidad_peso\": \"XBX\",\n                \"peso_neto_total\": 10,\n                \"num_total_mercancias\": 1,\n                \"mercancia\": [\n                    {\n                        \"bienes_transp\": \"11121900\",\n                        \"descripcion\": \"Accesorios de equipo de telefonía\",\n                        \"cantidad\": \"1.0\",\n                        \"clave_unidad\": \"XBX\",\n                        \"material_peligroso\": \"No\",\n                        \"denominacion_generica_prod\": \"DenominacionGenericaProd1\",\n                        \"denominacion_distintiva_prod\": \"DenominacionDistintivaProd1\",\n                        \"fabricante\": \"Fabricante1\",\n                        \"fecha_caducidad\": \"2028-01-01\",\n                        \"lote_medicamento\": \"LoteMedic1\",\n                        \"registro_sanitario_folio_autorizacion\": \"RegistroSanita1\",\n                        \"peso_en_kg\": \"1\",\n                        \"cantidad_transporta\": [\n                            {\n                                \"cantidad\": \"1\",\n                                \"id_origen\": \"OR101010\",\n                                \"id_destino\": \"DE202025\"\n                            }\n                        ]\n                    }\n                ],\n                \"transporte_ferroviario\": {\n                    \"tipo_de_servicio\": \"TS01\",\n                    \"tipo_de_trafico\": \"TT01\",\n                    \"derechos_de_paso\": [\n                        {\n                            \"tipo_derecho_de_paso\": \"CDP114\",\n                            \"kilometraje_pagado\": 100\n                        }\n                    ],\n                    \"carro\": [\n                        {\n                            \"tipo_carro\": \"TC08\",\n                            \"matricula_carro\": \"A00012\",\n                            \"guia_carro\": \"123ASD\",\n                            \"toneladas_netas_carro\": 10\n                        }\n                    ]\n                }\n            },\n            \"figura_transporte\": {\n                \"tipos_figura\": [\n                    {\n                        \"tipo_figura\": \"02\",\n                        \"rfc_figura\": \"EKU9003173C9\",\n                        \"nombre_figura\": \"NombreFigura\",\n                        \"partes_transporte\": [\n                            \"PT02\"\n                        ],\n                        \"domicilio\": {\n                            \"calle\": \"calle\",\n                            \"numero_exterior\": \"211\",\n                            \"colonia\": \"0814\",\n                            \"localidad\": \"01\",\n                            \"referencia\": \"casa blanca\",\n                            \"municipio\": \"010\",\n                            \"estado\": \"ZAC\",\n                            \"pais\": \"MEX\",\n                            \"codigo_postal\": \"99080\"\n                        }\n                    }\n                ]\n            }\n        }\n    }\n}"
+						},
+						"url": {
+							"raw": "{{API_URL}}/v1/facturacion/timbrar",
+							"host": [
+								"{{API_URL}}"
+							],
+							"path": [
+								"v1",
+								"facturacion",
+								"timbrar"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "CartaPorte 3.1 - Aéreo",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{TOKEN}}"
+							},
+							{
+								"key": "X-CLIENT-ID",
+								"value": "{{CLIENT_ID}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"fecha_emision\": \"2025-03-14 09:00:00\",\n    \"serie\": \"MAR\",\n    \"folio\": 2503003,\n    \"forma_pago\": \"01\",\n    \"condiciones_pago\": \"Contado\",\n    \"metodo_pago\": \"PUE\",\n    \"moneda\": \"MXN\",\n    \"lugar_expedicion\": \"42501\",\n    \"observaciones\": \"Esta es una factura de prueba\",\n    \"tipo_comprobante\": \"I\",\n    \"subtotal\": 1000,\n    \"total\": 1000,\n    \"exportacion\": \"01\",\n    \"emisor\": {\n        \"rfc\": \"EKU9003173C9\",\n        \"razon_social\": \"ESCUELA KEMPER URGATE\",\n        \"uso_cfdi\": \"G03\",\n        \"regimen_fiscal\": \"601\",\n        \"codigo_postal\": \"42501\"\n    },\n    \"receptor\": {\n        \"rfc\": \"FUNK671228PH6\",\n        \"razon_social\": \"KARLA FUENTE NOLASCO\",\n        \"uso_cfdi\": \"G03\",\n        \"regimen_fiscal\": \"621\",\n        \"codigo_postal\": \"01160\"\n    },\n    \"conceptos\": [\n        {\n            \"clave_prod_serv\": \"78101800\",\n            \"descripcion\": \"TRANSPORTE DE CARGA\",\n            \"clave_unidad\": \"E48\",\n            \"unidad\": \"SERVICIOS\",\n            \"valor_unitario\": 1000,\n            \"cantidad\": 1,\n            \"subtotal\": 1000,\n            \"descuento\": 0,\n            \"importe\": 1000,\n            \"numero_identificacion\": \"SERV0001\",\n            \"objeto_impuesto\": \"01\"\n        }\n    ],\n    \"complementos\": {\n        \"carta_porte_31\": {\n            \"version\": \"3.1\",\n            \"id_ccp\": \"CCCBCD94-870A-4332-A52A-A52AA52AA52A\",\n            \"transp_internac\": \"No\",\n            \"ubicaciones\": {\n                \"ubicacion\": [\n                    {\n                        \"tipo_ubicacion\": \"Origen\",\n                        \"id_ubicacion\": \"OR101010\",\n                        \"rfc_remitente_destinatario\": \"EKU9003173C9\",\n                        \"nombre_remitente_destinatario\": \"NombreRemitenteDestinatario1\",\n                        \"num_estacion\": \"EA0417\",\n                        \"nombre_estacion\": \"Loreto\",\n                        \"fecha_hora_salida_llegada\": \"2023-08-01T00:00:00\",\n                        \"tipo_estacion\": \"01\",\n                        \"domicilio\": {\n                            \"calle\": \"Calle1\",\n                            \"numero_exterior\": \"211\",\n                            \"numero_interior\": \"212\",\n                            \"colonia\": \"1957\",\n                            \"localidad\": \"13\",\n                            \"referencia\": \"casa blanca\",\n                            \"municipio\": \"011\",\n                            \"estado\": \"CMX\",\n                            \"pais\": \"MEX\",\n                            \"codigo_postal\": \"13250\"\n                        }\n                    },\n                    {\n                        \"tipo_ubicacion\": \"Destino\",\n                        \"id_ubicacion\": \"DE202020\",\n                        \"rfc_remitente_destinatario\": \"EKU9003173C9\",\n                        \"nombre_remitente_destinatario\": \"NombreRemitenteDestinatario2\",\n                        \"num_estacion\": \"EA0418\",\n                        \"nombre_estacion\": \"Los Cabos\",\n                        \"fecha_hora_salida_llegada\": \"2023-08-01T00:00:01\",\n                        \"tipo_estacion\": \"03\",\n                        \"domicilio\": {\n                            \"calle\": \"Calle2\",\n                            \"numero_exterior\": \"214\",\n                            \"numero_interior\": \"215\",\n                            \"colonia\": \"0347\",\n                            \"localidad\": \"23\",\n                            \"referencia\": \"casa negra\",\n                            \"municipio\": \"004\",\n                            \"estado\": \"COA\",\n                            \"pais\": \"MEX\",\n                            \"codigo_postal\": \"25350\"\n                        }\n                    }\n                ]\n            },\n            \"mercancias\": {\n                \"peso_bruto_total\": 1,\n                \"unidad_peso\": \"XBX\",\n                \"peso_neto_total\": 10,\n                \"num_total_mercancias\": 1,\n                \"mercancia\": [\n                    {\n                        \"bienes_transp\": \"11121900\",\n                        \"descripcion\": \"Accesorios de equipo de telefonía\",\n                        \"cantidad\": \"1.0\",\n                        \"clave_unidad\": \"XBX\",\n                        \"material_peligroso\": \"No\",\n                        \"denominacion_generica_prod\": \"DenominacionGenericaProd1\",\n                        \"denominacion_distintiva_prod\": \"DenominacionDistintivaProd1\",\n                        \"fabricante\": \"Fabricante1\",\n                        \"fecha_caducidad\": \"2028-01-01\",\n                        \"lote_medicamento\": \"LoteMedic1\",\n                        \"registro_sanitario_folio_autorizacion\": \"RegistroSanita1\",\n                        \"peso_en_kg\": \"1\",\n                        \"valor_mercancia\": \"100\",\n                        \"moneda\": \"MXN\",\n                        \"cantidad_transporta\": [\n                            {\n                                \"cantidad\": \"1\",\n                                \"id_origen\": \"OR101010\",\n                                \"id_destino\": \"DE202020\"\n                            }\n                        ]\n                    }\n                ],\n                \"transporte_aereo\": {\n                    \"perm_sct\": \"TPAF01\",\n                    \"num_permiso_sct\": \"Demo\",\n                    \"matricula_aeronave\": \"61E5-WZ\",\n                    \"nombre_aseg\": \"NombreAseg\",\n                    \"num_poliza_seguro\": \"NumPolizaSeguro\",\n                    \"numero_guia\": \"acUbYlBVTmlzx\",\n                    \"lugar_contrato\": \"LugarContrato\",\n                    \"codigo_transportista\": \"CA001\",\n                    \"rfc_embarcador\": \"EKU9003173C9\",\n                    \"nombre_embarcador\": \"Embarcador\"\n                }\n            },\n            \"figura_transporte\": {\n                \"tipos_figura\": [\n                    {\n                        \"tipo_figura\": \"01\",\n                        \"rfc_figura\": \"EKU9003173C9\",\n                        \"num_licencia\": \"a234567890\",\n                        \"nombre_figura\": \"NombreFigura\"\n                    }\n                ]\n            }\n        }\n    }\n}"
+						},
+						"url": {
+							"raw": "{{API_URL}}/v1/facturacion/timbrar",
+							"host": [
+								"{{API_URL}}"
+							],
+							"path": [
+								"v1",
+								"facturacion",
+								"timbrar"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "CartaPorte 3.1 - Marítimo",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{TOKEN}}"
+							},
+							{
+								"key": "X-CLIENT-ID",
+								"value": "{{CLIENT_ID}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"fecha_emision\": \"2025-03-14 09:00:00\",\n    \"serie\": \"MAR\",\n    \"folio\": 2503001,\n    \"forma_pago\": \"01\",\n    \"condiciones_pago\": \"Contado\",\n    \"metodo_pago\": \"PUE\",\n    \"moneda\": \"MXN\",\n    \"lugar_expedicion\": \"42501\",\n    \"observaciones\": \"Esta es una factura de prueba\",\n    \"tipo_comprobante\": \"I\",\n    \"subtotal\": 1000,\n    \"total\": 1000,\n    \"exportacion\": \"01\",\n    \"emisor\": {\n        \"rfc\": \"EKU9003173C9\",\n        \"razon_social\": \"ESCUELA KEMPER URGATE\",\n        \"uso_cfdi\": \"G03\",\n        \"regimen_fiscal\": \"601\",\n        \"codigo_postal\": \"42501\"\n    },\n    \"receptor\": {\n        \"rfc\": \"FUNK671228PH6\",\n        \"razon_social\": \"KARLA FUENTE NOLASCO\",\n        \"uso_cfdi\": \"G03\",\n        \"regimen_fiscal\": \"621\",\n        \"codigo_postal\": \"01160\"\n    },\n    \"conceptos\": [\n        {\n            \"clave_prod_serv\": \"78101800\",\n            \"descripcion\": \"TRANSPORTE DE CARGA\",\n            \"clave_unidad\": \"E48\",\n            \"unidad\": \"SERVICIOS\",\n            \"valor_unitario\": 1000,\n            \"cantidad\": 1,\n            \"subtotal\": 1000,\n            \"descuento\": 0,\n            \"importe\": 1000,\n            \"numero_identificacion\": \"SERV0001\",\n            \"objeto_impuesto\": \"01\"\n        }\n    ],\n    \"complementos\": {\n        \"carta_porte_31\": {\n            \"version\": \"3.1\",\n            \"id_ccp\": \"CCCBCD94-870A-4332-A52A-A52AA52AA52A\",\n            \"transp_internac\": \"No\",\n            \"total_dist_rec\": \"1\",\n            \"registro_istmo\": \"Sí\",\n            \"ubicacion_polo_origen\": \"01\",\n            \"ubicacion_polo_destino\": \"01\",\n            \"ubicaciones\": {\n                \"ubicacion\": [\n                    {\n                        \"tipo_ubicacion\": \"Origen\",\n                        \"id_ubicacion\": \"OR101010\",\n                        \"rfc_remitente_destinatario\": \"URE180429TM6\",\n                        \"nombre_remitente_destinatario\": \"NombreRemitenteDestinatario1\",\n                        \"fecha_hora_salida_llegada\": \"2023-08-01T00:00:00\",\n                        \"domicilio\": {\n                            \"calle\": \"Calle1\",\n                            \"numero_exterior\": \"211\",\n                            \"numero_interior\": \"212\",\n                            \"colonia\": \"1957\",\n                            \"localidad\": \"13\",\n                            \"referencia\": \"casa blanca\",\n                            \"municipio\": \"011\",\n                            \"estado\": \"CMX\",\n                            \"pais\": \"MEX\",\n                            \"codigo_postal\": \"13250\"\n                        }\n                    },\n                    {\n                        \"tipo_ubicacion\": \"Destino\",\n                        \"id_ubicacion\": \"DE202020\",\n                        \"rfc_remitente_destinatario\": \"URE180429TM6\",\n                        \"nombre_remitente_destinatario\": \"NombreRemitenteDestinatario2\",\n                        \"fecha_hora_salida_llegada\": \"2023-08-01T00:00:01\",\n                        \"distancia_recorrida\": \"1\",\n                        \"domicilio\": {\n                            \"calle\": \"Calle2\",\n                            \"numero_exterior\": \"214\",\n                            \"numero_interior\": \"215\",\n                            \"colonia\": \"0347\",\n                            \"localidad\": \"23\",\n                            \"referencia\": \"casa negra\",\n                            \"municipio\": \"004\",\n                            \"estado\": \"COA\",\n                            \"pais\": \"MEX\",\n                            \"codigo_postal\": \"25350\"\n                        }\n                    }\n                ]\n            },\n            \"mercancias\": {\n                \"peso_bruto_total\": 1,\n                \"unidad_peso\": \"XBX\",\n                \"num_total_mercancias\": 1,\n                \"logistica_inversa_recoleccion_devolucion\": \"Sí\",\n                \"mercancia\": [\n                    {\n                        \"bienes_transp\": \"11121900\",\n                        \"descripcion\": \"Accesorios de equipo de telefonía\",\n                        \"cantidad\": \"1.0\",\n                        \"clave_unidad\": \"XBX\",\n                        \"material_peligroso\": \"No\",\n                        \"denominacion_generica_prod\": \"DenominacionGenericaProd1\",\n                        \"denominacion_distintiva_prod\": \"DenominacionDistintivaProd1\",\n                        \"fabricante\": \"Fabricante1\",\n                        \"fecha_caducidad\": \"2003-04-02\",\n                        \"lote_medicamento\": \"LoteMedic1\",\n                        \"forma_farmaceutica\": \"01\",\n                        \"condiciones_esp_transp\": \"01\",\n                        \"registro_sanitario_folio_autorizacion\": \"RegistroSanita1\",\n                        \"peso_en_kg\": \"1\",\n                        \"fraccion_arancelaria\": \"6309000100\",\n                        \"cantidad_transporta\": [\n                            {\n                                \"cantidad\": \"1\",\n                                \"id_origen\": \"OR101010\",\n                                \"id_destino\": \"DE202020\"\n                            }\n                        ]\n                    }\n                ],\n                \"autotransporte\": {\n                    \"perm_sct\": \"TPAF01\",\n                    \"num_permiso_sct\": \"NumPermisoSCT1\",\n                    \"identificacion_vehicular\": {\n                        \"config_vehicular\": \"VL\",\n                        \"peso_bruto_vehicular\": 1,\n                        \"placa_vm\": \"plac892\",\n                        \"anio_modelo_vm\": 2020\n                    },\n                    \"seguros\": {\n                        \"asegura_resp_civil\": \"AseguraRespCivil\",\n                        \"poliza_resp_civil\": \"123456789\"\n                    },\n                    \"remolques\": {\n                        \"remolque\": [\n                            {\n                                \"sub_tipo_rem\": \"CTR004\",\n                                \"placa\": \"VL45K98\"\n                            }\n                        ]\n                    }\n                }\n            },\n            \"figura_transporte\": {\n                \"tipos_figura\": [\n                    {\n                        \"tipo_figura\": \"01\",\n                        \"rfc_figura\": \"URE180429TM6\",\n                        \"num_licencia\": \"NumLicencia1\",\n                        \"nombre_figura\": \"NombreFigura1\",\n                        \"domicilio\": {\n                            \"calle\": \"Calle1\",\n                            \"numero_exterior\": \"NumeroExterior1\",\n                            \"numero_interior\": \"NumeroInterior1\",\n                            \"colonia\": \"Colonia1\",\n                            \"localidad\": \"Localidad1\",\n                            \"referencia\": \"Referencia1\",\n                            \"municipio\": \"Municipio1\",\n                            \"estado\": \"Estado1\",\n                            \"pais\": \"AFG\",\n                            \"codigo_postal\": \"CodigoPosta1\"\n                        }\n                    }\n                ]\n            }\n        }\n    }\n}"
+						},
+						"url": {
+							"raw": "{{API_URL}}/v1/facturacion/timbrar",
+							"host": [
+								"{{API_URL}}"
+							],
+							"path": [
+								"v1",
+								"facturacion",
+								"timbrar"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Nota Credito",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{TOKEN}}",
+								"type": "text"
+							},
+							{
+								"key": "X-CLIENT-ID",
+								"value": "{{CLIENT_ID}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"fecha_emision\": \"2024-04-25 09:00:00\",\n    \"serie\": \"NOTA\",\n    \"folio\": 1000,\n    \"forma_pago\": \"01\",\n    \"condiciones_pago\": \"Contado\",\n    \"metodo_pago\": \"PUE\",\n    \"moneda\": \"MXN\",\n    \"lugar_expedicion\": \"42501\",\n    \"observaciones\": \"Esta es una factura de prueba\",\n    \"tipo_comprobante\": \"I\",\n    \"subtotal\": 1000,\n    \"total\": 1000,\n    \"exportacion\": \"01\",\n    \"cfdi_relacionados\": {\n        \"tipo_relacion\": \"01\",\n        \"cfdi_relacionado\": [\n            \"1fac4464-1111-0000-1111-cd37179db12e\"\n        ]\n    },\n    \"emisor\": {\n        \"rfc\": \"EKU9003173C9\",\n        \"razon_social\": \"ESCUELA KEMPER URGATE\",\n        \"uso_cfdi\": \"G03\",\n        \"regimen_fiscal\": \"601\",\n        \"codigo_postal\": \"42501\"\n    },\n    \"receptor\": {\n        \"rfc\": \"FUNK671228PH6\",\n        \"razon_social\": \"KARLA FUENTE NOLASCO\",\n        \"uso_cfdi\": \"G03\",\n        \"regimen_fiscal\": \"621\",\n        \"codigo_postal\": \"01160\"\n    },\n    \"conceptos\": [\n        {\n            \"clave_prod_serv\": \"78101800\",\n            \"descripcion\": \"TRANSPORTE DE CARGA\",\n            \"clave_unidad\": \"E48\",\n            \"unidad\": \"SERVICIOS\",\n            \"valor_unitario\": 1000.00,\n            \"cantidad\": 1,\n            \"subtotal\": 1000.00,\n            \"descuento\": 0.00,\n            \"importe\": 1000.00,\n            \"numero_identificacion\": \"SERV0001\",\n            \"objeto_impuesto\": \"01\"\n        }\n    ]\n}"
+						},
+						"url": {
+							"raw": "{{API_URL}}/v1/facturacion/timbrar",
+							"host": [
+								"{{API_URL}}"
+							],
+							"path": [
+								"v1",
+								"facturacion",
+								"timbrar"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Cancelar factura",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{TOKEN}}",
+								"type": "text"
+							},
+							{
+								"key": "X-CLIENT-ID",
+								"value": "{{CLIENT_ID}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{API_URL}}/v1/facturacion/cancelar/9a881c59-f1c5-4d86-8ec0-fdd6b8dc505c?motivo=03&folio_sustitucion=",
+							"host": [
+								"{{API_URL}}"
+							],
+							"path": [
+								"v1",
+								"facturacion",
+								"cancelar",
+								"9a881c59-f1c5-4d86-8ec0-fdd6b8dc505c"
+							],
+							"query": [
+								{
+									"key": "motivo",
+									"value": "03"
+								},
+								{
+									"key": "folio_sustitucion",
+									"value": ""
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Validación Xml",
+			"item": [
+				{
+					"name": "ValidaXml - API XML",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"XmlComprobanteBase64\": \"\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{API_URL}}/v1/compatibilidad/{{CLIENT_ID}}/ValidarXml",
+							"host": [
+								"{{API_URL}}"
+							],
+							"path": [
+								"v1",
+								"compatibilidad",
+								"{{CLIENT_ID}}",
+								"ValidarXml"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "ValidarXml - API JSON",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{TOKEN}}",
+								"type": "text"
+							},
+							{
+								"key": "X-CLIENT-ID",
+								"value": "{{CLIENT_ID}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"xml\": \"xml en base64\"\n}"
+						},
+						"url": {
+							"raw": "{{API_URL}}/v1/facturacion/validar-xml",
+							"host": [
+								"{{API_URL}}"
+							],
+							"path": [
+								"v1",
+								"facturacion",
+								"validar-xml"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"auth": {
+		"type": "inherit"
+	},
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "API_URL",
+			"value": "https://dev.techbythree.com/api",
+			"type": "string"
+		},
+		{
+			"key": "CLIENT_ID",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "TOKEN",
+			"value": "",
+			"type": "string"
+		}
+	]
+}

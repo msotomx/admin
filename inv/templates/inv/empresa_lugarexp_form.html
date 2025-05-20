@@ -1,0 +1,60 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load form_tags %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Lugar Expedición para Facturas</h2>
+    
+    <form method="POST" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div class="row g-2">
+            <div class="col-md-4 mb-2">
+                <label class="form-label small">Nombre Comercial</label>
+                {{ form.nombre_comercial|add_bootstrap_class }}
+            </div>
+            <div class="col-md-4 mb-2">
+                <label class="form-label small">Calle</label>
+                {{ form.calle_expedicion|add_bootstrap_class }}
+            </div>
+            <div class="col-md-2 mb-2">
+                <label class="form-label small">Número Exterior</label>
+                {{ form.numero_exterior_expedicion|add_bootstrap_class }}
+            </div>
+            <div class="col-md-2 mb-2">
+                <label class="form-label small">Número Interior</label>
+                {{ form.numero_interior_expedicion|add_bootstrap_class }}
+            </div>
+            <div class="col-md-3 mb-2">
+                <label class="form-label small">Colonia</label>
+                {{ form.colonia_expedicion|add_bootstrap_class }}
+            </div>
+            <div class="col-md-2 mb-2">
+                <label class="form-label small">Código Postal</label>
+                {{ form.codigo_postal_expedicion|add_bootstrap_class }}
+            </div>
+            <div class="col-md-3 mb-2">
+                <label class="form-label small">Localidad</label>
+                {{ form.localidad_expedicion|add_bootstrap_class }}
+            </div>
+            <div class="col-md-4 mb-2">
+                <label class="form-label small">Municipio</label>
+                {{ form.municipio_expedicion|add_bootstrap_class }}
+            </div>
+            <div class="col-md-3 mb-2">
+                <label class="form-label small">Estado</label>
+                {{ form.estado_expedicion|add_bootstrap_class }}
+            </div>
+            <div class="col-md-2 mb-2">
+                <label class="form-label small">Pais</label>
+                {{ form.pais_expedicion|add_bootstrap_class }}
+            </div>
+        </div>
+        
+        <div class="mt-4">
+            <button type="submit" class="btn btn-success">Guardar Datos</button>
+            <a href="{% url 'inv:empresa_lugarexp_list' %}" class="btn btn-secondary">Cancelar</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

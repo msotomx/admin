@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% block content %}
+
+<form id="form-compras" method="get" class="card p-3 shadow-sm">
+    
+    <h4 class="card-title mb-3">Compras por Fecha</h4>
+    
+    <div class="row g-2 align-items-end">
+        <div class="col-md-4">
+            <label>Almacén:</label>
+            <select id="almacen" name="almacen" class="form-select">
+                {% for a in almacenes %}
+                    <option value="{{ a.id }}" {% if almacen_seleccionado and a.id == almacen_seleccionado.id %}selected{% endif %}>
+                        {{ a.nombre }}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+
+
+        <div class="col-md-3">
+            <label class="form-label">Fecha Inicial:</label>
+            <input id="fecha_ini" type="date" name="fecha_ini" value="{{ fecha_ini }}" class="form-control">
+        </div>
+        <div class="col-md-3">
+            <label class="form-label">Fecha Final:</label>
+            <input id="fecha_fin" type="date" name="fecha_fin" value="{{ fecha_fin }}" class="form-control">
+        </div>
+        <div class="col-md-2">
+            <button class="btn btn-primary w-100" type="submit">Buscar</button>
+        </div>
+    </div>
+</form>
+<script>
+    window.addEventListener('DOMContentLoaded', function() {
+        const today = new Date().toLocaleDateString('en-CA');
+        const dateFields = document.querySelectorAll('input[type="date"]');
+
+        dateFields.forEach(field => {
+            if (!field.value) {
+                field.value = today;
+            }
+        });
+    });
+</script>
+
+<script>
+    document.getElementById('form-compras').addEventListener('submit', function(event) {
+      event.preventDefault();
+  
+      const almacenId = document.getElementById('almacen').value;
+      const fechaIni = document.getElementById('fecha_ini').value;
+      const fechaFin = document.getElementById('fecha_fin').value;
+  
+      // 🚨 Verifica que clienteId no esté vacío
+      if (!almacenId) {
+        alert("Debes seleccionar un almacen");
+        return;
+      }
+  
+      const url = `/inv/reportes/compras_por_dia/?almacen=${almacenId}&fecha_ini=${fechaIni}&fecha_fin=${fechaFin}`;
+      window.open(url, '_blank');
+    });
+</script>
+
+{% endblock %}

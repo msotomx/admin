@@ -51,8 +51,9 @@ La existencia se calcula asi:
 existencia = saldo_inicial + entradas - salidas
 
 1) saldo_inicial, se calcula asi: 
-   Saldo_Inicial.existencia, esa existencia indica la existencia a la fecha Saldo_Inicial.fecha
+   el el valor del campo Saldo_Inicial.existencia, esa existencia indica la existencia a la fecha Saldo_Inicial.fecha
      si hay varios registros de ese producto, se toma el valor de SaldoInicial.existencia mas cercano a la fecha_leida
+
 2) entradas = DetalleMovimiento
    Se toman todos los movimientos de la tabla DetalleMovimiento, con:
 	Movimiento.move_s ='E'     
@@ -63,9 +64,11 @@ existencia = saldo_inicial + entradas - salidas
   	Movimiento.move_s ='S'     
 	(Movimiento.fecha_movimiento >= SaldoInicial.fecha) and (Movimiento.fecha_movimiento<= fecha_leida)
       mas
-	Las remisiones de la tabla DetalleRemision, con:
-	(Remision.fecha_movimiento >= SaldoInicial.fecha) and (Movimiento.fecha_movimiento<= fecha_leida)
+	todos los movimientos de la tabla DetalleRemision, con:
+	   (Remision.fecha_remision >= SaldoInicial.fecha) and (Remision.fecha_remision <= fecha_leida)
+	   Remision.status = 'R' o 'F'
 
+Aqui te paso los modelos de las tablas:
 class SaldoInicial(models.Model):
     almacen = models.ForeignKey(Almacen,on_delete=models.RESTRICT)
     producto = models.ForeignKey(Producto,on_delete=models.RESTRICT)
@@ -79,9 +82,6 @@ class Movimiento(models.Model):
     clave_movimiento = models.ForeignKey(ClaveMovimiento,on_delete=models.RESTRICT)
     fecha_movimiento = models.DateField(blank=False)
     almacen = models.ForeignKey(Almacen,on_delete=models.RESTRICT)
-
-    def __str__(self):
-        return self.referencia
     
 class DetalleMovimiento(models.Model):
     referencia = models.ForeignKey(Movimiento,on_delete=models.CASCADE, related_name='detalles')
@@ -108,8 +108,6 @@ class Remision(models.Model):
     monto_total = models.DecimalField(default=0,decimal_places=2, max_digits=10,null=True)
     status = models.CharField(max_length=1,default='R',choices=ESTADO_CHOICES)   # CON Esto, solo permite 0 o 1
 
-    def __str__(self):
-        return self.numero_remision
 
 class DetalleRemision(models.Model):
     numero_remision = models.ForeignKey(Remision,related_name='detalles',on_delete=models.CASCADE)
