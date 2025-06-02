@@ -38,7 +38,6 @@ def calcular_existencia_producto(producto, almacen, fecha_leida):
     if not saldo:
         saldo_inicial = Decimal('0.00')
         fecha_saldo = '1900-01-01'  # si no hay saldo, se parte desde la fecha_base
-        print("fecha saldo inicial", fecha_saldo)
     else:
         saldo_inicial = saldo.existencia
         fecha_saldo = saldo.fecha

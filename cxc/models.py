@@ -9,6 +9,13 @@ class TipoCliente(models.Model):
     def __str__(self):
         return self.nombre 
 
+class RegimenFiscal(models.Model):
+    regimen = models.CharField(max_length=3)  # 601 602  
+    nombre = models.CharField(max_length=75,blank=False)
+    
+    def __str__(self):
+        return self.nombre
+
 # 'C' cargo, 'A' abono
 class ClaveMovimientoCxC(models.Model):   
     clave_movimiento = models.SmallIntegerField(default=1, null=False)
@@ -38,6 +45,7 @@ class Cliente(models.Model):
     retencion_iva = models.BooleanField(default='False',blank=True)   # False - No se aplica, True - Se aplica al facturar
     retencion_isr = models.BooleanField(default='False',blank=True)   # False - No se aplica, True - Se aplica al facturar
     ieps = models.BooleanField(default='False')            # False - No se aplica, True - Se aplica al facturar
+    regimen_fiscal = models.ForeignKey(RegimenFiscal,on_delete=models.RESTRICT, blank=True)
     campo_libre_str = models.CharField(max_length=50,blank=True,default="")
     campo_libre_num = models.FloatField(null=True,default=0, blank=True) 
     comentarios = models.TextField(blank=True,default="")

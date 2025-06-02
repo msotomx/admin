@@ -3,27 +3,34 @@
 import base64
 import requests
 
-def registrar_emisor_pac(rfc, cer_path, key_path, key_password, api_key):
-    with open(cer_path, "rb") as cer_file:
-        cer_b64 = base64.b64encode(cer_file.read()).decode()
+import requests
+import base64
 
-    with open(key_path, "rb") as key_file:
-        key_b64 = base64.b64encode(key_file.read()).decode()
+def registrar_emisor_pac(rfc, cer_path, key_path, password, api_token, client_id):
+    url = f"https://dev.techbythree.com/api/v1/compatibilidad/{client_id}/RegistraEmisor"
+
+    # Leer archivos y convertir a base64 si es requerido
+    with open(cer_path, "rb") as f:
+        certificado_b64 = base64.b64encode(f.read()).decode()
+
+    with open(key_path, "rb") as f:
+        llave_b64 = base64.b64encode(f.read()).decode()
 
     payload = {
         "rfc": rfc,
-        "certificate": cer_b64,
-        "key": key_b64,
-        "password": key_password,
+        "certificate": certificado_b64,
+        "private_key": llave_b64,
+        "private_key_password": password,
     }
 
     headers = {
-        "Content-Type": "application/json",
-        "x-api-key": api_key,
+        "Authorization": f"Bearer {api_token}",
+        "X-CLIENT-ID": client_id,
+        "Accept": "application/json",
+        "Content-Type": "application/json"
     }
 
-    url = "https://sandbox-api.techbythree.com/api/v1/issuer"
-
-    response = requests.post(url, json=payload, headers=headers)
-
+    response = requests.post(url, headers=headers, json=payload)
+    
     return response
+

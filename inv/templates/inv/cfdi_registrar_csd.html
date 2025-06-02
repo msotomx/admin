@@ -1,6 +1,25 @@
-<form method="post" enctype="multipart/form-data">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit">Registrar Emisor</button>
-  </form>
-  
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>REGISTRAR Certificado Sello Digital</h2>
+    <h2> </h2>
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">Registrar Emisor</button>
+    </form>
+
+</div>
+{% if messages %}
+<div class="container mt-3">
+  {% for message in messages %}
+    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+      {{ message }}
+      <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+  {% endfor %}
+</div>
+{% endif %}
+
+{% endblock %}  

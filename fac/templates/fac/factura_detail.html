@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4 small">
+    <h4>Detalle de la Factura: {{ factura.numero_factura }}</h4>
+
+    <div class="mb-3">
+        <strong>Fecha:</strong> {{ factura.fecha_emision|date:"d/m/Y" }}<br>
+        <strong>Factura:</strong> {{ factura.numero_factura }}<br>
+        <strong>Cliente:</strong> {{ factura.cliente }}<br>
+        <strong>Clave Remision:</strong> {{ factura.clave_remision }}<br>
+        <strong>Remision Número:</strong> {{ factura.numero_remision }}<br>
+        <strong>Forma de Pago:</strong> {{ factura.forma_pago" }}<br>
+        <strong>Método de Pago:</strong> {{ factura.metodo_pago }}<br>
+        <strong>Uso de CFDI:</strong> {{ factura.uso_cfdi }}<br>
+        <strong>Serie Emisor:</strong> {{ factura.serie_emisor }}<br>
+        <strong>Serie SAT:</strong> {{ factura.serie_sat }}<br>
+        <strong>Fecha Certificacion:</strong> {{ factura.fecha_hora_certificacion|date:"d/m/Y" }}<br>
+        <strong>Tipo de Comprobante:</strong> {{ factura.tipo_comprobante }}<br>
+        <strong>Importe Total:</strong> {{ factura.monto_total }}<br>
+        <strong>Status:</strong> {{ factura.status }}<br>
+        <strong>Usuario:</strong> {{ factura.usuario }}
+    </div>
+
+    <h5>Productos</h5>
+    <table class="table table-sm table-bordered table-striped">
+        <thead class="table-light">
+            <tr>
+                <th>Producto</th>
+                <th>Clave SAT</th>
+                <th>Cantidad</th>
+                <th>Precio Unit</th>
+                <th>Descuento</th>
+                <th>Subtotal</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for detalle in detalles %}
+                <tr>
+                    <td>{{ detalle.producto }}</td>
+                    <td>{{ detalle.clave_prod_serv }}</td>   <!-- clave SAT -->
+                    <td>{{ detalle.cantidad }}</td>
+                    <td>${{ detalle.precio }}</td>
+                    <td>${{ detalle.descuento }}</td>
+                    <td>${{ detalle.subtotal }}</td>
+                </tr>
+            {% empty %}
+                <tr>
+                    <td colspan="5" class="text-center text-muted">No hay productos en esta factura.</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <a href="{% url 'inv:factura_list' %}" class="btn btn-secondary btn-sm">Regresar</a>
+</div>
+{% endblock %}

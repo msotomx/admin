@@ -70,12 +70,20 @@
           </ul>
         </li>
 
+        <!-- Generar CFDI's -->
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="#" id="cfdiDropdown" role="button" data-bs-toggle="dropdown">Generar CFDI's</a>
+          <ul class="dropdown-menu">
+            <li><a class="dropdown-item" href="{% url 'inv:cfdi_registrar_emisor' %}">Registrar Emisor</a></li>
+            <li><a class="dropdown-item" href="{% url 'fac:factura_list' %}">Generar CFDI</a></li>
+          </ul>
+        </li>
 
         <!-- Información general -->
         <li class="nav-item dropdown">
           <a class="nav-link dropdown-toggle" href="#" id="informacionDropdown" role="button" data-bs-toggle="dropdown">Información General</a>
           <ul class="dropdown-menu">
-            <li><a class="dropdown-item" href="{% url 'inv:empresa_list' %}">Información General</a></li>
+            <li><a class="dropdown-item" href="{% url 'inv:empresa_list' %}">General</a></li>
             <li><a class="dropdown-item" href="{% url 'inv:empresa_lugarexp_list' %}">Lugar Expedición-Facturas</a></li>
           </ul>
         </li>

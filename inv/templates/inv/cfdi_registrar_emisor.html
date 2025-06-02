@@ -1,9 +1,38 @@
-<form method="post">
-    {% csrf_token %}
-    <label>RFC:</label><input type="text" name="rfc"><br>
-    <label>CER path:</label><input type="text" name="cer_path"><br>
-    <label>KEY path:</label><input type="text" name="key_path"><br>
-    <label>Contraseña:</label><input type="password" name="password"><br>
-    <button type="submit">Registrar</button>
-  </form>
-  
+{% extends 'base.html' %}
+
+{% block content %}
+<div>
+    <h2>REGISTRAR EMISOR DE CFDI</h2>
+    <form method="post" enctype="multipart/form-data" action="{% url 'inv:cfdi_registrar_csd' %}">
+        {% csrf_token %}
+    
+        <div class="mb-3">
+        <label class="form-label">RFC del Emisor</label>
+        <input type="text" name="rfc" class="form-control" required>
+        </div>
+    
+        <div class="mb-3">
+        <label class="form-label">Archivo .CER</label>
+        <input type="file" name="cer_archivo" class="form-control" accept=".cer" required>
+        </div>
+    
+        <div class="mb-3">
+        <label class="form-label">Archivo .KEY</label>
+        <input type="file" name="key_archivo" class="form-control" accept=".key" required>
+        </div>
+    
+        <div class="mb-3">
+        <label class="form-label">Contraseña de la llave privada</label>
+        <input type="password" name="password" class="form-control" required>
+        </div>
+    
+        <button type="submit" class="btn btn-primary">Registrar Emisor</button>
+    </form>
+</div>
+{% if messages %}
+  {% for message in messages %}
+    <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+  {% endfor %}
+{% endif %}
+
+{% endblock %}  

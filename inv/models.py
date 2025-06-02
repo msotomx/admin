@@ -27,6 +27,7 @@ class Moneda(models.Model):
     clave = models.CharField(max_length=10, unique=True)
     simbolo = models.CharField(max_length=5, blank=True, null=True)
     activa = models.BooleanField(default=True)
+    paridad = models.DecimalField(default=1,decimal_places=2, max_digits=10,null=False) 
 
     def __str__(self):
         return f"{self.nombre} ({self.clave})"

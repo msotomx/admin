@@ -63,9 +63,9 @@ class Empresa(models.Model):
 class CertificadoCSD(models.Model):
     empresa = models.OneToOneField(User, on_delete=models.CASCADE)
     rfc = models.CharField(max_length=13)
-    archivo_cer = models.FileField(upload_to='csd/')
-    archivo_key = models.FileField(upload_to='csd/')
-    contrasena = models.CharField(max_length=100)
+    cer_archivo = models.FileField(upload_to='csd/')
+    key_archivo = models.FileField(upload_to='csd/')
+    password = models.CharField(max_length=100)
     fecha_registro = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):

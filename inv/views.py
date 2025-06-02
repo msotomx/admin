@@ -1,5 +1,6 @@
 from django.shortcuts import redirect, render, get_object_or_404
 from django.db.models import Sum, Q
+from django.conf import settings
 
 from .forms import CertificadoCSDForm
 from core.models import CertificadoCSD
@@ -18,6 +19,7 @@ from .models import SaldoInicial
 from core.models import Empresa
 from cxc.models import Cliente
 from core.models import Empresa
+from core.models import CertificadoCSD
 from .forms import MonedaForm, CategoriaForm, UnidadMedidaForm, AlmacenForm, ClaveMovimientoForm
 from .forms import ProveedorForm, ProductoForm, MovimientoForm,  DetalleMovimientoFormSet
 from .forms import RemisionForm,  DetalleRemisionFormSet
@@ -807,7 +809,6 @@ def movimientos_por_clave(request):
             clave_seleccionado = ClaveMovimiento.objects.get(id=clave_id)
         except ClaveMovimiento.DoesNotExist:
             clave_seleccionado = None
-    print("clave_seleccionado:",clave_seleccionado)
 
     resultados = DetalleMovimiento.objects.filter(
         referencia__clave_movimiento_id=clave_id,
@@ -1313,7 +1314,7 @@ def compras_por_proveedor(request):
     # Calcula el total general
     total_general = detalles.aggregate(total=Sum('subtotal'))['total'] or 0
     total_cantidad = detalles.aggregate(total_qty=Sum('cantidad'))['total_qty'] or 0
-    print("total_general:", total_general)
+    
     # pasa fechas de string a fecha
     fecha_ini = datetime.strptime(fecha_ini, '%Y-%m-%d').date() if fecha_ini else None
     fecha_fin = datetime.strptime(fecha_fin, '%Y-%m-%d').date() if fecha_fin else None
@@ -1335,9 +1336,9 @@ def buscar_compras_por_proveedor(request):
     proveedores = Proveedor.objects.all()
     return render(request, 'inv/reportes/compras_por_proveedor_buscar.html', {'proveedores': proveedores})
 
-def buscar_info_general(request):
-    empresa = Empresa.objects.filter(pk=empresa_id)
-    return render(request, 'inv/reportes/info_general_buscar.html', {'empresa': empresa})
+#def buscar_info_general(request):
+#    empresa = Empresa.objects.filter(pk=empresa_id)
+#    return render(request, 'inv/reportes/info_general_buscar.html', {'empresa': empresa})
 
 # CRUD INFORMACION GENERAL - SOLO LIST y UPDATE 
 class EmpresaListView(ListView):
@@ -1358,7 +1359,6 @@ class EmpresaUpdateView(UpdateView):
     success_url = reverse_lazy('inv:empresa_list')
 
     def form_invalid(self, form):
-        print("Errores del formulario:", form.errors)
         return super().form_invalid(form)
 
 # CRUD INFORMACION GENERAL - LUGAR DE EXPEDICION 
@@ -1374,65 +1374,66 @@ class EmpresaLugarUpdateView(UpdateView):
     success_url = reverse_lazy('inv:empresa_lugarexp_list')
 
     def form_invalid(self, form):
-        print("Errores del formulario:", form.errors)
         return super().form_invalid(form)
 
 # REGISTRO DEL EMISOR DE CFDI
-
 def registrar_emisor_view(request):
-    if request.method == "POST":
-        rfc = request.POST.get("rfc")
-        cer_path = request.POST.get("cer_path")  # o desde archivo
-        key_path = request.POST.get("key_path")
-        password = request.POST.get("password")
-        api_key = "TU_API_KEY_DEL_PAC"
-
-        try:
-            response = registrar_emisor_pac(rfc, cer_path, key_path, password, api_key)
-
-            if response.status_code == 200:
-                messages.success(request, "Emisor registrado correctamente.")
-            else:
-                messages.error(request, f"Error al registrar: {response.text}")
-        except Exception as e:
-            messages.error(request, f"Error: {str(e)}")
-
-        return redirect('ruta_de_tu_formulario')
-
-    return render(request, 'facturacion/cfdi_registrar_emisor.html')
+    return render(request, "inv/cfdi_registrar_emisor.html")
 
 # VISTA PARA REGISTRA CSD Y ENVIAR AL PAC
+# CSD - Certificado de Sello Digital
 
-from django.shortcuts import render, redirect
-from .forms import CertificadoCSDForm
-from core.models import CertificadoCSD
-from services.pac import registrar_emisor_pac
-from django.contrib import messages
+import base64
+import requests
 
 def registrar_csd_view(request):
-    if request.method == 'POST':
-        form = CertificadoCSDForm(request.POST, request.FILES)
-        if form.is_valid():
-            csd = form.save(commit=False)
-            csd.empresa = request.user
-            csd.save()
+    if request.method == "POST":
+        rfc = request.POST.get("rfc")
+        password = request.POST.get("password")
+        cer_file = request.FILES.get("cer_archivo")
+        key_file = request.FILES.get("key_archivo")
 
-            # Registrar en el PAC
-            response = registrar_emisor_pac(
-                rfc=csd.rfc,
-                cer_path=csd.archivo_cer.path,
-                key_path=csd.archivo_key.path,
-                key_password=csd.contrasena,
-                api_key="TU_API_KEY_DEL_PAC"
-            )
+        client_id = settings.PAC_CLIENT_ID
+        api_token = settings.PAC_API_TOKEN
+        url = f"https://dev.techbythree.com/api/v1/compatibilidad/{client_id}/RegistraEmisor"
+
+        try:
+            # Codifica los archivos a base64
+            base64_cer = base64.b64encode(cer_file.read()).decode('utf-8')
+            base64_key = base64.b64encode(key_file.read()).decode('utf-8')
+
+            # Construye el cuerpo JSON
+            payload = {
+                "RfcEmisor": rfc,
+                "Base64Cer": base64_cer,
+                "Base64Key": base64_key,
+                "Contrasena": password
+            }
+
+            headers = {
+                "Authorization": f"Bearer {api_token}",
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            }
+
+            response = requests.post(url, json=payload, headers=headers)
 
             if response.status_code == 200:
+                # Guarda los archivos localmente y registra en la base de datos
+                csd = CertificadoCSD.objects.create(
+                    empresa=request.user,
+                    rfc=rfc,
+                    cer_archivo=cer_file,
+                    key_archivo=key_file,
+                    password=password
+                )
                 messages.success(request, "Emisor registrado correctamente en el PAC.")
             else:
-                messages.error(request, f"Error al registrar: {response.text}")
+                messages.error(request, f"❌ Error {response.status_code}: {response.text}")
 
-            return redirect('ruta_confirmacion')
-    else:
-        form = CertificadoCSDForm()
+        except Exception as e:
+            messages.error(request, f"❌ Excepción: {str(e)}")
 
-    return render(request, 'facturacion/registrar_csd.html', {'form': form})
+        return redirect('inv:cfdi_registrar_emisor')
+
+    return render(request, 'inv/cfdi_registrar_emisor.html')

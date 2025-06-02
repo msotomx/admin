@@ -4,3 +4,9 @@ from django.contrib import admin
 from .models import Empresa
 
 admin.site.register(Empresa)
+from django.contrib import admin
+from .models import CertificadoCSD
+
+@admin.register(CertificadoCSD)
+class CertificadoCSDAdmin(admin.ModelAdmin):
+    list_display = ('rfc', 'fecha_registro')

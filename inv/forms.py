@@ -392,5 +392,5 @@ class EmpresaLugarForm(forms.ModelForm):
 class CertificadoCSDForm(forms.ModelForm):
     class Meta:
         model = CertificadoCSD
-        fields = ['rfc', 'archivo_cer', 'archivo_key', 'contrasena']
+        fields = ['rfc', 'cer_archivo', 'key_archivo', 'password']
 

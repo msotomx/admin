@@ -1,0 +1,64 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <h4>¿Estás seguro que deseas eliminar esta factura?</h4>
+
+    <div class="card mt-3 mb-4">
+        <div class="card-body">
+            <p><strong>Fecha:</strong> {{ object.fecha_emision|date:"d/m/Y" }}</p>
+            <p><strong>Factura:</strong> {{ object.numero_factura }}</p>
+            <p><strong>Cliente:</strong> {{ object.cliente }}</p>
+            <p><strong>Clave Remision:</strong> {{ object.clave_remision }}</p>
+            <p><strong>Remision:</strong> {{ object.numero_remision }}</p>
+            <p><strong>Forma de Pago:</strong> {{ object.forma_pago }}</p>
+            <p><strong>Metodo de Pago:</strong> {{ object.metodo_pago }}</p>
+            <p><strong>Uso de CFDI:</strong> {{ object.uso_cfdi }}</p>
+            <p><strong>Serie Emisor:</strong> {{ object.serie_emisor }}</p>
+            <p><strong>Serie_SAT:</strong> {{ object.serie_sat }}</p>
+            <p><strong>Fecha Certificacion:</strong> {{ object.fecha_hora_certificacion|date:"d/m/Y" }}</p>
+            <p><strong>Tipo de Comprobante:</strong> {{ object.tipo_comprobante }}</p>
+            <p><strong>Tipo de Comprobante:</strong> {{ object.tipo_comprobante }}</p>
+            <p><strong>Importe Total:</strong> {{ object.monto_total }}</p>
+            <p><strong>Status:</strong> {{ object.status }}</p>
+            <p><strong>Usuario:</strong> {{ object.usuario }}</p>
+        </div>
+    </div>
+
+    {% if detalles %}
+    <h5>Detalle de la Factura</h5>
+    <div class="table-responsive">
+        <table class="table table-sm table-bordered table-striped small">
+            <thead class="table-light">
+                <tr>
+                    <th>Producto</th>
+                    <th>Clave SAT Producto</th>
+                    <th>Cantidad</th>
+                    <th>Precio</th>
+                    <th>Descuento</th>
+                    <th>Subtotal</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for detalle in detalles %}
+                <tr>
+                    <td>{{ detalle.producto }}</td>
+                    <td>{{ detalle.clave_prod_serv }}</td>
+                    <td class="text-end">{{ detalle.cantidad }}</td>
+                    <td class="text-end">{{ detalle.precio }}</td>
+                    <td class="text-end">{{ detalle.descuento }}</td>
+                    <td class="text-end">{{ detalle.subtotal }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% endif %}
+
+    <form method="post" class="mt-4">
+        {% csrf_token %}
+        <a href="{% url 'inv:factura_list' %}" class="btn btn-secondary">Cancelar</a>
+        <button type="submit" class="btn btn-danger">Eliminar</button>
+    </form>
+</div>
+{% endblock %}

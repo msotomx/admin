@@ -26,7 +26,7 @@ from .views import buscar_existencia_producto, imprimir_existencia_producto
 from .views import compras_por_dia, buscar_compras_por_dia
 from .views import compras_por_producto, buscar_compras_por_producto
 from .views import compras_por_proveedor, buscar_compras_por_proveedor
-from .views import registrar_emisor_view
+from .views import registrar_emisor_view, registrar_csd_view
 
 app_name = 'inv'
 
@@ -114,6 +114,6 @@ urlpatterns = [
     path('empresa_lugarexp/', EmpresaLugarListView.as_view(), name='empresa_lugarexp_list'),
     path('empresa_lugarexp/editar/<int:pk>/', EmpresaLugarUpdateView.as_view(), name='empresa_lugarexp_update'),
 
-    path('facturacion/registrar_emisor/', registrar_emisor_view, name='registrar_emisor'),
-
+    path('cfdi_registrar_emisor/', registrar_emisor_view, name='cfdi_registrar_emisor'),
+    path('cfdi_registrar_csd/', registrar_csd_view, name='cfdi_registrar_csd'),
 ]
