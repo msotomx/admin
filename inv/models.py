@@ -9,11 +9,11 @@ class Categoria(models.Model):
         return self.nombre 
 
 class UnidadMedida(models.Model):
-    unidad_medida = models.CharField(max_length=20,blank=False)
+    unidad_medida = models.CharField(max_length=3,blank=False)
     descripcion = models.CharField(max_length=30,blank=False)
 
     def __str__(self):
-        return self.unidad_medida
+        return f'{self.unidad_medida} | {self.descripcion}'
 
 class Almacen(models.Model):
     almacen = models.IntegerField(null=False,unique=True)
@@ -72,10 +72,11 @@ class Producto(models.Model):
     reorden = models.IntegerField(default=0) 
     fecha_registro = models.DateField()
     proveedor = models.ForeignKey(Proveedor,on_delete=models.RESTRICT)
-    unidad_de_medida = models.ForeignKey(UnidadMedida,on_delete=models.RESTRICT)
-    descuento_venta = models.DecimalField(default=0, decimal_places=2, max_digits=10)
+    unidad_medida = models.ForeignKey(UnidadMedida,on_delete=models.RESTRICT)
+    precio_promocion = models.DecimalField(default=0, decimal_places=2, max_digits=10)
     costo_reposicion = models.DecimalField(default=0, decimal_places=2, max_digits=10)
-    iva = models.DecimalField(max_digits=10,decimal_places=4)  # Tasa de IVA
+    iva = models.BooleanField(blank=True)   # False - No se aplica, True - Se aplica al facturar
+    ieps = models.BooleanField(blank=True)   # False - No se aplica, True - Se aplica al facturar
     campo_libre_str = models.CharField(max_length=50,blank=True,default='')
     campo_libre_num = models.DecimalField(max_digits=10,decimal_places=4, default=0, null=True, blank=True)
 

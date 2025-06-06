@@ -21,9 +21,9 @@ class Empresa(models.Model):
     clave_traspasos = models.CharField(max_length=2,blank=False,default='TR')
     clave_remision = models.CharField(max_length=2,blank=False,default='RE')
     iva = models.DecimalField(max_digits=9,decimal_places=2)   # tasa de iva en facturas
-    retencion_iva = models.DecimalField(max_digits=9,decimal_places=5)  # % de retencion de iva en facturas
-    retencion_isr = models.DecimalField(max_digits=9,decimal_places=5)  # % de retencion de isr en facturas
-    ieps = models.DecimalField(max_digits=9,decimal_places=5)  # % de retencion de ieps en facturas
+    ieps = models.DecimalField(max_digits=9,decimal_places=5)  # Tasa de IEPS
+    retencion_iva = models.DecimalField(max_digits=9,decimal_places=5)  #Tasa de Retencion 16% = 16, 8% = 8 se usa al facturar
+    retencion_isr = models.DecimalField(max_digits=9,decimal_places=5)  
     ip = models.CharField(max_length=24,blank=True)  #direccion ip de la app en el servidor
     comentarios = models.TextField(blank=True)
     factor = models.DecimalField(max_digits=10,decimal_places=5,blank=True) # campo extra

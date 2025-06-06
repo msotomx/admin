@@ -25,17 +25,37 @@
                 <label class="form-label small">Nombre</label>
                 {{ form.nombre|add_bootstrap_class }}
             </div>
-            <div class="col-md-6 mb-2">
-                <label class="form-label small">Dirección Fiscal</label>
-                {{ form.direccion|add_bootstrap_class }}
+            <div class="col-md-4 mb-2">
+                <label class="form-label small">Calle Fiscal</label>
+                {{ form.calle|add_bootstrap_class }}
             </div>
             <div class="col-md-2 mb-2">
-                <label class="form-label small">Código Postal</label>
-                {{ form.codigo_postal|add_bootstrap_class }}
+                <label class="form-label small">Numero Exterior</label>
+                {{ form.numero_exterior|add_bootstrap_class }}
+            </div>
+            <div class="col-md-2 mb-2">
+                <label class="form-label small">Numero Interior</label>
+                {{ form.numero_interior|add_bootstrap_class }}
+            </div>
+            <div class="col-md-4 mb-2">
+                <label class="form-label small">Régimen Fiscal</label>
+                {{ form.regimen_fiscal|add_bootstrap_class }}
+            </div>
+            <div class="col-md-4 mb-2">
+                <label class="form-label small">Colonia</label>
+                {{ form.colonia|add_bootstrap_class }}
             </div>
             <div class="col-md-3 mb-2">
                 <label class="form-label small">Ciudad</label>
                 {{ form.ciudad|add_bootstrap_class }}
+            </div>
+            <div class="col-md-3 mb-2">
+                <label class="form-label small">Estado</label>
+                {{ form.estado|add_bootstrap_class }}
+            </div>
+            <div class="col-md-2 mb-2">
+                <label class="form-label small">Código Postal</label>
+                {{ form.codigo_postal|add_bootstrap_class }}
             </div>
             <div class="col-md-6 mb-2">
                 <label class="form-label small">Dirección de Entrega</label>
@@ -85,14 +105,8 @@
                 {{ form.ieps }}
                 <label class="form-check-label small">Aplica IEPS</label>
             </div>
-            <div class="col-md-4 mb-2">
-                <label class="form-label small">Campo Libre (Texto)</label>
-                {{ form.campo_libre_str|add_bootstrap_class }}
-            </div>
-            <div class="col-md-2 mb-2">
-                <label class="form-label small">Campo Libre (Num)</label>
-                {{ form.campo_libre_num|add_bootstrap_class }}
-            </div>
+            <input type="hidden" name="campo_libre_str" id="moneda" value="{{ form.campo_libre_str.value|default:'' }}">
+            <input type="hidden" name="campo_libre_num" id="moneda" value="{{ form.campo_libre_num.value|default:'' }}">
             <div class="col-md-12 mb-2">
                 <label class="form-label small">Comentarios</label>
                 {{ form.comentarios|add_bootstrap_class }}

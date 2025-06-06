@@ -2,6 +2,7 @@ from django.db import models
 from django.contrib.auth.models import User
 from cxc.models import Cliente
 from inv.models import Moneda, Producto, ClaveMovimiento
+from decimal import Decimal
 
 # Create your models here.
 
@@ -31,7 +32,7 @@ class UsoCfdi(models.Model):
     nombre = models.CharField(max_length=106,blank=False)
 
     def __str__(self):
-        return self.nombre
+        return f'{self.uso_cfdi} | {self.nombre}'
 
 class Exportacion(models.Model):
     exportacion = models.CharField(max_length=20,blank=False)
@@ -41,10 +42,11 @@ class Exportacion(models.Model):
         return self.nombre
 
 class Factura(models.Model):
-    ESTADO_CHOICES = (
-        ('B','Borrador'),  
-        ('T','Timbrado'),      
-        ('C','Cancelado') 
+    ESTATUS_CHOICES = (
+        ('BORRADOR','Borrador'),  
+        ('TIMBRADA','Timbrado'),      
+        ('CANCELADA','Cancelado'), 
+        ('ERROR','Error') 
             )
     usuario = models.ForeignKey(User,on_delete=models.RESTRICT)
     cliente = models.ForeignKey(Cliente,on_delete=models.RESTRICT)
@@ -61,7 +63,6 @@ class Factura(models.Model):
     total = models.DecimalField(max_digits=12, decimal_places=2)
     impuestos_trasladados = models.DecimalField(max_digits=12, decimal_places=2, default=0)
     impuestos_retenidos = models.DecimalField(max_digits=12, decimal_places=2, default=0)
-    status = models.CharField(max_length=1,default='B',choices=ESTADO_CHOICES)  
     serie_emisor = models.CharField(max_length=50,blank=False,default="")
     serie_sat = models.CharField(max_length=50,blank=False,default="")
     fecha_hora_certificacion = models.DateField(blank=False)
@@ -69,6 +70,7 @@ class Factura(models.Model):
     tipo_cambio = models.DecimalField(max_digits=10, decimal_places=4, default=1)
     tipo_comprobante = models.ForeignKey(TipoComprobante,on_delete=models.RESTRICT)
     exportacion = models.ForeignKey(Exportacion,on_delete=models.RESTRICT)
+    condiciones_pago = models.CharField(max_length=1,default="1") # 1- CONTADO 2-CREDITO
 
     # Archivos generados
     xml = models.FileField(upload_to='cfdi/xml/', null=True, blank=True)
@@ -78,10 +80,10 @@ class Factura(models.Model):
     uuid = models.CharField(max_length=40, blank=True)
     fecha_timbrado = models.DateTimeField(null=True, blank=True)
     sello_cfdi = models.TextField(blank=True)
-    no_certificado_sat = models.CharField(max_length=20, blank=True)
-    estatus = models.CharField(max_length=20, default='PENDIENTE')  # o 'TIMBRADA', 'CANCELADA'
+    no_certificado_sat = models.CharField(max_length=21, blank=True)
+    estatus = models.CharField(max_length=10, choices=ESTATUS_CHOICES, default='BORRADOR')  # o 'TIMBRADA', 'CANCELADA' 'ERROR'
 
-    fecha_creacion = models.DateField(auto_now_add=True, blank=True)
+    fecha_creacion = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return f'{self.numero_factura or ""} - {self.cliente.nombre}'
@@ -98,15 +100,27 @@ class DetalleFactura(models.Model):
     descuento = models.DecimalField(max_digits=12, decimal_places=2, default=0)
 
     # impuestos
-    tasa_iva = models.DecimalField(max_digits=5, decimal_places=2, default=16.00)
-    iva = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    tasa_iva = models.DecimalField(max_digits=5, decimal_places=2, default=Decimal('0'))  # ej. 16.00
+    iva = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal('0'))
+
+    descuento = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal('0'))
+
+    # Impuestos trasladados por concepto
+
+    tasa_ieps = models.DecimalField(max_digits=5, decimal_places=2, default=Decimal('0'))
+    ieps = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal('0'))
+
+    # Retenciones por concepto (si aplican)
+    retencion_iva = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal('0'))
+    retencion_isr = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal('0'))
 
     # información adicional
     objeto_imp = models.CharField(max_length=3, default='02')  # Obligatorio desde CFDI 4.0
 
     def calcular_importes(self):
         self.importe = self.cantidad * self.valor_unitario
-        self.iva = (self.importe - self.descuento) * (self.tasa_iva / 100)
+        tasa = Decimal(self.tasa_iva) / Decimal(100)
+        self.iva = (self.importe - self.descuento) * tasa
 
     def save(self, *args, **kwargs):
         self.calcular_importes()

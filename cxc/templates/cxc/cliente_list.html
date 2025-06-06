@@ -12,6 +12,7 @@
             <thead class="table-dark">
                 <tr>
                     <th>Nombre</th>
+                    <th>Código</th>
                     <th>Tipo de Cliente</th>
                     <th>Teléfono 1</th>
                     <th>Teléfono 2</th>
@@ -23,6 +24,7 @@
                 {% for cliente in clientes %}
                 <tr>
                     <td>{{ cliente.nombre }}</td>
+                    <td>{{ cliente.cliente }}</td>
                     <td>{{ cliente.tipo_cliente }}</td>
                     <td>{{ cliente.telefono1 }}</td>
                     <td>{{ cliente.telefono2 }}</td>

@@ -65,6 +65,15 @@
                 {{ form.reorden|add_bootstrap_class }}
             </div>
             <div class="col-md-2 mb-2">
+                <label class="form-label small">Aplicar IVA</label>
+                {{ form.iva|add_bootstrap_class }}
+            </div>
+            <div class="col-md-2 mb-2">
+                <label class="form-label small">Aplicar Ieps</label>
+                {{ form.ieps|add_bootstrap_class }}
+            </div>
+
+            <div class="col-md-2 mb-2">
                 <label class="form-label small">Fecha de Registro</label>
                 {{ form.fecha_registro|add_bootstrap_class }}
             </div>
@@ -72,25 +81,21 @@
                 <label class="form-label small">Proveedor</label>
                 {{ form.proveedor|add_bootstrap_class }}
             </div>
-            <div class="col-md-4 mb-2">
+            <div class="col-md-2 mb-2">
                 <label class="form-label small">Unidad de Medida</label>
-                {{ form.unidad_de_medida|add_bootstrap_class }}
+                {{ form.unidad_medida|add_bootstrap_class }}
             </div>
             <div class="col-md-2 mb-2">
                 <label class="form-label small">Clave SAT</label>
                 {{ form.clave_sat|add_bootstrap_class }}
             </div>
             <div class="col-md-2 mb-2">
-                <label class="form-label small">Descuento de Venta</label>
-                {{ form.descuento_venta|add_bootstrap_class }}
+                <label class="form-label small">Precio Promoción</label>
+                {{ form.precio_promocion|add_bootstrap_class }}
             </div>
             <div class="col-md-2 mb-2">
                 <label class="form-label small">Costo de Reposición</label>
                 {{ form.costo_reposicion|add_bootstrap_class }}
-            </div>
-            <div class="col-md-2 mb-2">
-                <label class="form-label small">Tasa de IVA</label>
-                {{ form.iva|add_bootstrap_class }}
             </div>
             <div class="d-none">
                 {{ form.campo_libre_str }}

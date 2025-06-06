@@ -19,6 +19,8 @@ class ClienteForm(forms.ModelForm):
             super().__init__(*args, **kwargs)
             self.fields['campo_libre_str'].required = False
             self.fields['campo_libre_num'].required = False
+            self.fields['campo_libre_str'].initial = ''
+            self.fields['campo_libre_num'].initial = 0
 
         def clean_cliente(self):
             cliente = self.cleaned_data['cliente']
@@ -34,3 +36,4 @@ class ClienteForm(forms.ModelForm):
             'direccion_entrega': forms.Textarea(attrs={'rows': 3, 'class': 'form-control form-control-sm'}),
             'comentarios': forms.Textarea(attrs={'rows': 2, 'class': 'form-control form-control-sm'}),
         }
+

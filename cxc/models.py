@@ -7,14 +7,14 @@ class TipoCliente(models.Model):
     nombre = models.CharField(max_length=30,blank=True)
     
     def __str__(self):
-        return self.nombre 
+        return self.nombre
 
 class RegimenFiscal(models.Model):
-    regimen = models.CharField(max_length=3)  # 601 602  
-    nombre = models.CharField(max_length=75,blank=False)
+    regimen_fiscal = models.CharField(max_length=3)  # 601 602  
+    nombre = models.CharField(max_length=110,blank=False)
     
     def __str__(self):
-        return self.nombre
+        return f'{self.regimen_fiscal} | {self.nombre}'
 
 # 'C' cargo, 'A' abono
 class ClaveMovimientoCxC(models.Model):   
@@ -30,9 +30,14 @@ class Cliente(models.Model):
     tipo_cliente = models.ForeignKey(TipoCliente,on_delete=models.RESTRICT)
     nombre = models.CharField(max_length=100,blank=False)
     rfc = models.CharField(max_length=13,blank=True)
-    direccion = models.TextField(blank=True,default="")  # direccion fiscal
+    calle = models.CharField(max_length=50,blank=True,default="")  # direccion fiscal
+    numero_exterior = models.CharField(max_length=10,blank=True)
+    numero_interior = models.CharField(max_length=10,blank=True)
+    colonia = models.CharField(max_length=30,blank=True)
     codigo_postal = models.CharField(max_length=5,default="",blank=True)  #cp fiscal
     ciudad = models.CharField(max_length=100,blank=True,default="")       #ciudad fiscal
+    municipio = models.CharField(max_length=100,blank=True,default="")       #fiscal para factura
+    estado = models.CharField(max_length=30,blank=True,default="")       #fiscal para factura
     direccion_entrega = models.TextField(blank=True,default="")
     codigo_postal_entrega = models.CharField(max_length=5,default="",blank=True)
     ciudad_entrega = models.CharField(max_length=100, blank=True,default="")
@@ -42,10 +47,10 @@ class Cliente(models.Model):
     plazo_credito = models.SmallIntegerField(default=0, null=True)
     limite_credito = models.BigIntegerField(default=0,null=True)
     cuenta_cnt = models.CharField(max_length=24, blank=True,default="")
-    retencion_iva = models.BooleanField(default='False',blank=True)   # False - No se aplica, True - Se aplica al facturar
-    retencion_isr = models.BooleanField(default='False',blank=True)   # False - No se aplica, True - Se aplica al facturar
-    ieps = models.BooleanField(default='False')            # False - No se aplica, True - Se aplica al facturar
-    regimen_fiscal = models.ForeignKey(RegimenFiscal,on_delete=models.RESTRICT, blank=True)
+    retencion_iva = models.BooleanField(blank=True)   # False - No se aplica, True - Se aplica al facturar
+    retencion_isr = models.BooleanField(blank=True)   # False - No se aplica, True - Se aplica al facturar
+    ieps = models.BooleanField(blank=True)           # False - No se aplica, True - Se aplica al facturar
+    regimen_fiscal = models.ForeignKey(RegimenFiscal,on_delete=models.RESTRICT, blank=True,null=True)
     campo_libre_str = models.CharField(max_length=50,blank=True,default="")
     campo_libre_num = models.FloatField(null=True,default=0, blank=True) 
     comentarios = models.TextField(blank=True,default="")
