@@ -59,7 +59,10 @@ class DetalleFacturaForm(forms.ModelForm):
     class Meta:
         model = DetalleFactura
         fields = ['producto', 'clave_prod_serv', 'clave_unidad', 'descripcion',
-                  'cantidad', 'valor_unitario', 'descuento', 'importe', 'objeto_imp' ]
+                  'cantidad', 'valor_unitario', 'descuento', 'importe', 'objeto_imp',
+                  'tasa_iva', 'iva_producto', 'tasa_ieps', 'ieps_producto', 'retencion_iva', 'retencion_isr',
+                  'tasa_retencion_iva', 'tasa_retencion_isr'
+                ]
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -74,6 +77,13 @@ class DetalleFacturaForm(forms.ModelForm):
 
         self.fields['objeto_imp'].initial = '02'  # Por defecto, objeto de impuesto
         self.fields['objeto_imp'].widget = forms.HiddenInput()
+        # Impuestos ocultos
+        for tax_field in ['tasa_iva', 'iva_producto', 'tasa_ieps', 'ieps_producto', 
+                          'tasa_retencion_iva', 'tasa_retencion_isr', 'retencion_iva', 'retencion_isr']:
+            self.fields[tax_field].initial = 0
+            self.fields[tax_field].widget = forms.HiddenInput()
+
+        # Clave SAT readonly
         self.fields['clave_prod_serv'].widget.attrs.update({
             'readonly': True,
             'tabindex': '-1',

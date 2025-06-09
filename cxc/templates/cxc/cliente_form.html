@@ -94,17 +94,14 @@
                 {{ form.cuenta_cnt|add_bootstrap_class }}
             </div>
             <div class="col-md-2 mb-2 form-check">
-                {{ form.retencion_iva }}
+                {{ form.aplica_retencion_iva }}
                 <label class="form-check-label small">Retención IVA</label>
             </div>
             <div class="col-md-2 mb-2 form-check">
-                {{ form.retencion_isr }}
+                {{ form.aplica_retencion_isr }}
                 <label class="form-check-label small">Retención ISR</label>
             </div>
-            <div class="col-md-2 mb-2 form-check">
-                {{ form.ieps }}
-                <label class="form-check-label small">Aplica IEPS</label>
-            </div>
+
             <input type="hidden" name="campo_libre_str" id="moneda" value="{{ form.campo_libre_str.value|default:'' }}">
             <input type="hidden" name="campo_libre_num" id="moneda" value="{{ form.campo_libre_num.value|default:'' }}">
             <div class="col-md-12 mb-2">

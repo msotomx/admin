@@ -12,7 +12,7 @@
         }
     </style>
     <h4>{% if form.instance.pk %}Consultar{% else %}Nueva{% endif %} Factura</h4>
-    <form method="post">
+    <form id="factura-form" method="post">
         {% csrf_token %}
         {{ formset.management_form }}  
 
@@ -119,6 +119,18 @@
                                 <td>{{ form.descuento }}</td>
                                 <td>{{ form.importe }}</td>
                                 <td>{{ form.DELETE }}</td>
+                                <!-- Campos ocultos -->
+                                <td style="display: none;">
+                                    {{ form.tasa_iva.as_hidden }}
+                                    {{ form.iva_producto.as_hidden }}
+                                    {{ form.tasa_ieps.as_hidden }}
+                                    {{ form.ieps_producto.as_hidden }}
+                                    {{ form.tasa_retencion_iva.as_hidden }}
+                                    {{ form.tasa_retencion_isr.as_hidden }}
+                                    {{ form.retencion_iva.as_hidden }}
+                                    {{ form.retencion_isr.as_hidden }}
+                                </td>
+                            </tr>
                         {% endfor %}
                     </tbody>
                 </table>
@@ -132,6 +144,17 @@
                         <td>{{ formset.empty_form.descuento }}</td>
                         <td>{{ formset.empty_form.importe }}</td>
                         <td>{{ formset.empty_form.DELETE }}</td>
+                        <!-- Campos ocultos -->
+                        <td style="display: none;">
+                            {{ formset.empty_form.tasa_iva.as_hidden }}
+                            {{ formset.empty_form.iva_producto.as_hidden }}
+                            {{ formset.empty_form.tasa_ieps.as_hidden }}
+                            {{ formset.empty_form.ieps_producto.as_hidden }}
+                            {{ formset.empty_form.tasa_retencion_iva.as_hidden }}
+                            {{ formset.empty_form.tasa_retencion_isr.as_hidden }}
+                            {{ formset.empty_form.retencion_iva.as_hidden }}
+                            {{ formset.empty_form.retencion_isr.as_hidden }}
+                        </td> 
                     </tr>
                 </template>
                 
@@ -264,60 +287,136 @@ document.addEventListener('DOMContentLoaded', function () {
         actualizarTotal();
     });
     
-    // al generarse el evento BLUR del campo producto, se asigna el valor
+    // BLUR DE CLIENTE
+    const facturaForm = document.querySelector('#factura-form'); // o el selector que uses
+
+    if (facturaForm) {
+        facturaForm.addEventListener('change', async function (e) {
+            const target = e.target;
+            // Ahora atrapamos el select principal de cliente:
+            if (target.name === 'cliente') {
+                const clienteId = target.value;
+                if (/^\d+$/.test(clienteId)) {
+                    //  Obtener si cliente tiene retencion_iva, retencion_isr
+                    //  Tambien obtiene la tasa_iva_empresa, tasa_ieps_empresa, 
+                    //                     tasa_retencion_iva_empresa, tasa_retencion_ieps_empresa
+
+                    const tasaResp = await fetch(`/fac/obtener_tasa_empresa/?cliente_id=${clienteId}`);
+                    if (!tasaResp.ok) throw new Error('Error al obtener datos del Cliente y Empresa');
+                    const data = await tasaResp.json();
+                    // Usar como variables globales 
+                    
+                    window.tasasEmpresa = {
+                        tasa_iva: parseFloat(data.tasa_iva_empresa),
+                        tasa_ieps: parseFloat(data.tasa_ieps_empresa),
+                        tasa_retencion_iva: parseFloat(data.tasa_retencion_iva_empresa),
+                        tasa_retencion_isr: parseFloat(data.tasa_retencion_isr_empresa)
+                    };
+                } 
+                
+            }
+        })
+    }
+
+    // al generarse el evento CHANGE del campo PRODUCTO, se asigna el valor
     // del precio1 al campo precio y se calcula la existencia del producto
     if (formsetBody) {
-    ['blur', 'change'].forEach(eventName => {
-        formsetBody.addEventListener(eventName, async function (e) {
-                if (e.target && e.target.name.includes('-producto')) {
-                    const productoInput = e.target;
-                    const row = productoInput.closest('tr');  
-                    const productoId = productoInput.value;
-
-                    if (productoId) {
-                        try {
-                            // 1. Obtener precio 
-                            const precioResp = await fetch(`/inv/obtener_precio_producto/?producto_id=${productoId}`);
-                            if (!precioResp.ok) throw new Error('Error al obtener precio');
-                            const precioData = await precioResp.json();
-                            const valor_unitarioInput = row.querySelector("input[name$='-valor_unitario']");
-                                                
-                            if (valor_unitarioInput) {
-                                valor_unitarioInput.value = parseFloat(precioData.precio1).toFixed(2);
-                            }
-
-                            // 2. Obtener clave_prod_serv 
-                            const clave_prod_servResp = await fetch(`/fac/obtener_clave_prod_serv/?producto_id=${productoId}`);
-                            if (!clave_prod_servResp.ok) throw new Error('Error al obtener precio');
-                            const clave_prod_servData = await clave_prod_servResp.json();
-                            const clave_prod_servInput = row.querySelector("input[name$='-clave_prod_serv']");
-                            
-                            if (clave_prod_servInput) {
-                                clave_prod_servInput.value = clave_prod_servData.clave_prod_serv;
-                            }
-
-                        } catch (err) {
-                            console.error('Error al obtener datos del producto:', err);
-                        }
-                    }
+        formsetBody.addEventListener('change', async function (e) {
+            if (e.target && e.target.name.includes('-producto')) {
+                const productoInput = e.target;
+                const row = productoInput.closest('tr');  
+                const productoId = productoInput.value;
+                if (!productoId) {
+                    productoInput.focus();
                 }
-            }, true);
-        });
-    }
-    
-    // fin de blur producto
+                if (productoId) {
+                    try {
+                        // 1. Obtener precio 
+                        const precioResp = await fetch(`/inv/obtener_precio_producto/?producto_id=${productoId}`);
+                        if (!precioResp.ok) throw new Error('Error al obtener precio');
+                        const data = await precioResp.json();
+                        
+                        const precio      = parseFloat(data.precio1);      // convierte a numerico
+                        const aplica_iva  = parseFloat(data.aplica_iva);   // convierte a numerico 1 o 0
+                        const aplica_ieps = parseFloat(data.aplica_ieps);  // convierte a numerico 1 o 0
+                        
+                        // pasa clave_prod_serv al campo en el formulario
+                        const clave_prod_servInput = row.querySelector("input[name$='-clave_prod_serv']");
+                        if (clave_prod_servInput) {
+                            clave_prod_servInput.value = data.clave_prod_serv;
+                        }
+                        const valor_unitarioInput = row.querySelector("input[name$='-valor_unitario']");
+                        if (valor_unitarioInput) {
+                            valor_unitarioInput.value = precio.toFixed(2);
+                        }
 
-    // Recalcular subtotal automáticamente
+                        const tasa_ivaInput  = row.querySelector("input[name$='-tasa_iva']");
+                        const tasa_iepsInput = row.querySelector("input[name$='-tasa_ieps']");
+                        const tasa_retencion_ivaInput = row.querySelector("input[name$='-tasa_retencion_iva']");
+                        const tasa_retencion_isrInput = row.querySelector("input[name$='-tasa_retencion_isr']");
+
+                        const tasaIva_producto  = (window.tasasEmpresa.tasa_iva / 100) * aplica_iva;
+                        const tasaIeps_producto = (window.tasasEmpresa.tasa_ieps / 100) * aplica_ieps;
+                        const tasa_retencion_iva = (window.tasasEmpresa.tasa_retencion_iva / 100);
+                        const tasa_retencion_isr = (window.tasasEmpresa.tasa_retencion_isr / 100);
+
+                        // pasa los valores a los campos del formulario 
+                        if (tasa_ivaInput) {
+                            tasa_ivaInput.value = tasaIva_producto.toFixed(2);   // convierte a string
+                        }
+                        if (tasa_iepsInput) {
+                            tasa_iepsInput.value = tasaIeps_producto.toFixed(2);
+                        }
+                        if (tasa_retencion_ivaInput) {
+                            tasa_retencion_ivaInput.value = tasa_retencion_iva.toFixed(2);
+                        }
+                        if (tasa_retencion_isrInput) {
+                            tasa_retencion_isrInput.value = tasa_retencion_isr.toFixed(2);
+                        }
+                        console.log("En Blur Producto, tasa_retencion_iva:", tasa_retencion_iva);
+                        console.log("En Blur Producto, tasa_retencion_isr:", tasa_retencion_isr);
+                        actualizarTotal();                                             
+                    } catch (err) {
+                        console.error('Error al obtener datos del producto:', err);
+                        }
+                } // if productoId
+            }
+        }, true);
+    };
+    
+    // fin de change producto
+
+    // Recalcular subtotal automáticamente al input de: cantidad | valor_unitario | descuento
     document.addEventListener('input', function (e) {
         if (e.target.name.includes('cantidad') || e.target.name.includes('valor_unitario') || e.target.name.includes('descuento')) {
-
             const row = e.target.closest('tr');
-            const cantidad = parseFloat(row.querySelector('input[name$="cantidad"]')?.value || 0);
-            const precio = parseFloat(row.querySelector('input[name$="valor_unitario"]')?.value || 0);
-            const descuento = parseFloat(row.querySelector('input[name$="descuento"]')?.value || 0);
+            const cantidad   = parseFloat(row.querySelector('input[name$="-cantidad"]')?.value || 0);
+            const precio     = parseFloat(row.querySelector('input[name$="-valor_unitario"]')?.value || 0);
+            const descuento  = parseFloat(row.querySelector('input[name$="-descuento"]')?.value || 0);
+            const tasa_iva   = parseFloat(row.querySelector('input[name$="-tasa_iva"]')?.value || 0);
+            const tasa_ieps  = parseFloat(row.querySelector('input[name$="-tasa_ieps"]')?.value || 0);
+            const tasa_retencion_iva = parseFloat(row.querySelector('input[name$="-tasa_retencion_iva"]')?.value || 0);
+            const tasa_retencion_isr = parseFloat(row.querySelector('input[name$="-tasa_retencion_isr"]')?.value || 0);
+
+            const importeField = row.querySelector('input[name$="-importe"]');
+
             const importe = (cantidad * precio) - descuento;
-            const importeField = row.querySelector('input[name$="importe"]');
             if (importeField) importeField.value = importe.toFixed(2);
+            console.log("tasa_retencion_iva en calcular subtotales:", tasa_retencion_iva);
+            console.log("tasa_retencion_isr en calcular subtotales:", tasa_retencion_isr);
+
+            // calcula iva del producto:
+            const iva = importe * tasa_iva; // esta tasa_iva se grabo en el formset en el BLUR de PRODUCTO
+            const ieps = importe * tasa_ieps;
+            const retencion_iva = iva * tasa_retencion_iva;
+            const retencion_isr = importe * tasa_retencion_isr;
+
+            // pasar valores al formulario
+            row.querySelector('input[name$="-iva_producto"]').value   = iva.toFixed(2);
+            row.querySelector('input[name$="-ieps_producto"]').value   = ieps.toFixed(2);
+            row.querySelector('input[name$="-retencion_iva"]').value   = retencion_iva.toFixed(2);
+            row.querySelector('input[name$="-retencion_isr"]').value   = retencion_isr.toFixed(2);
+                        
             actualizarTotal(); // ← actualiza el total en cada cambio
         }
 
@@ -333,59 +432,69 @@ document.addEventListener('DOMContentLoaded', function () {
         let retencion_iva_total = 0;
         let retencion_isr_total = 0;
 
-        formsetBody.querySelectorAll('tr').forEach(function (row) {
-            const importeField = row.querySelector('input[name$="importe"]');
-            const ivaCheckbox = row.querySelector('input[name$="producto_iva"]');  // campo oculto o input en cada renglón
-            const iepsCheckbox = row.querySelector('input[name$="producto_ieps"]');
-            const deleteCheckbox = row.querySelector('input[type="checkbox"][name$="DELETE"]');
+        formsetBody.querySelectorAll('tr').forEach(row => {
+            const importeInput = row.querySelector('input[name$="-importe"]');
+            const delBox  = row.querySelector('input[type="checkbox"][name$="DELETE"]');
 
-            if (importeField && (!deleteCheckbox || !deleteCheckbox.checked)) {
-                const importe = parseFloat(importeField.value) || 0;
-                subtotal += importe;
+            if (!importeInput || (delBox && delBox.checked)) return;
 
-                // Tasa fija desde empresa (puedes pasarlas como variables JS si cambian)
-                const tasaIVA = 0.16;  // ejemplo: 16%
-                const tasaIEPS = 0.08; // ejemplo: 8%
-                const tasaRetIVA = 0.106667; // 2/3 de IVA retenido
-                const tasaRetISR = 0.10;     // 10%
+            const importe = parseFloat(importeInput.value) || 0;
+            subtotal += importe;
 
-                if (ivaCheckbox && ivaCheckbox.checked) {
-                    iva_total += importe * tasaIVA;
-                    retencion_iva_total += importe * tasaRetIVA;
-                }
 
-                if (iepsCheckbox && iepsCheckbox.checked) {
-                    ieps_total += importe * tasaIEPS;
-                }
+            // tasa_iva y tasa_ieps se grabo en change de producto
+            const ivaRate   = parseFloat(row.querySelector('input[name$="-tasa_iva"]')?.value) || 0;
+            const iepsRate  = parseFloat(row.querySelector('input[name$="-tasa_ieps"]')?.value) || 0;
 
-                // Si el cliente retiene ISR, lo puedes pasar como variable JS también
-                const clienteRetieneISR = true;
-                if (clienteRetieneISR) {
-                    retencion_isr_total += importe * tasaRetISR;
-                }
-            }
+            const iva  = importe * ivaRate;
+            const ieps = importe * iepsRate;
+
+            iva_total  += iva;
+            ieps_total += ieps;
+            const retencionIvaRate   = parseFloat(row.querySelector('input[name$="-tasa_retencion_iva"]')?.value) || 0;
+            const retencionIsrRate   = parseFloat(row.querySelector('input[name$="-tasa_retencion_isr"]')?.value) || 0;
+
+            const retencionIvaInput = row.querySelector('input[name$="-retencion_iva"]');
+            const retencionIsrInput = row.querySelector('input[name$="-retencion_isr"]');
+
+            const retIva = iva * retencionIvaRate;
+            const retIsr = importe * retencionIsrRate;
+
+            retencion_iva_total += retIva;
+            retencion_isr_total += retIsr;
+
+            // Asignar de nuevo a la fila (si existieran)
+            if (retencionIvaInput) retencionIvaInput.value = retIva.toFixed(2);
+            if (retencionIsrInput) retencionIsrInput.value = retIsr.toFixed(2);
+
         });
-    
-        const impuestos_trasladados = iva_total + ieps_total;
-        const impuestos_retenidos = retencion_iva_total + retencion_isr_total;
-        const total = subtotal + impuestos_trasladados - impuestos_retenidos;
+        const trasladados = iva_total + ieps_total;
+        const retenidos = retencion_iva_total + retencion_isr_total;
+        const total     = subtotal + trasladados - retenidos;
+        console.log("En actualizar_total, retencion_iva_total:",retencion_iva_total);
+        console.log("retencion_isr_total:",retencion_isr_total);
+        console.log("retenidos:",retenidos);
+        console.log("iva_total:",iva_total);
+        console.log("ieps_total:",ieps_total);
+
 
         // Mostrar en campos visibles
         document.getElementById('subtotal').value = subtotal.toFixed(2);
-        document.getElementById('impuestos_trasladados').value = impuestos_trasladados.toFixed(2);
-        document.getElementById('impuestos_retenidos').value = impuestos_retenidos.toFixed(2);
+        document.getElementById('impuestos_trasladados').value = trasladados.toFixed(2);
+        document.getElementById('impuestos_retenidos').value = retenidos.toFixed(2);
         document.getElementById('total').value = total.toFixed(2);
 
         // Asignar a campos ocultos
         document.getElementById('subtotal_hidden').value = subtotal.toFixed(2);
-        document.getElementById('impuestos_trasladados_hidden').value = impuestos_trasladados.toFixed(2);
-        document.getElementById('impuestos_retenidos_hidden').value = impuestos_retenidos.toFixed(2);
+        document.getElementById('impuestos_trasladados_hidden').value = trasladados.toFixed(2);
+        document.getElementById('impuestos_retenidos_hidden').value = retenidos.toFixed(2);
         document.getElementById('total_hidden').value = total.toFixed(2);
-    }
-    
 
+
+    };
     actualizarTotal(); 
-});
+});    
+    
 </script>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js?ver=1.0"></script>

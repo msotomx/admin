@@ -47,9 +47,8 @@ class Cliente(models.Model):
     plazo_credito = models.SmallIntegerField(default=0, null=True)
     limite_credito = models.BigIntegerField(default=0,null=True)
     cuenta_cnt = models.CharField(max_length=24, blank=True,default="")
-    retencion_iva = models.BooleanField(blank=True)   # False - No se aplica, True - Se aplica al facturar
-    retencion_isr = models.BooleanField(blank=True)   # False - No se aplica, True - Se aplica al facturar
-    ieps = models.BooleanField(blank=True)           # False - No se aplica, True - Se aplica al facturar
+    aplica_retencion_iva = models.BooleanField(blank=True)   # False - No se aplica, True - Se aplica al facturar
+    aplica_retencion_isr = models.BooleanField(blank=True)   # False - No se aplica, True - Se aplica al facturar
     regimen_fiscal = models.ForeignKey(RegimenFiscal,on_delete=models.RESTRICT, blank=True,null=True)
     campo_libre_str = models.CharField(max_length=50,blank=True,default="")
     campo_libre_num = models.FloatField(null=True,default=0, blank=True) 

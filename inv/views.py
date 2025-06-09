@@ -512,7 +512,18 @@ def obtener_precio_producto(request):
     producto_id = request.GET.get('producto_id')
     try:
         producto = Producto.objects.get(pk=producto_id)
-        return JsonResponse({'precio1': str(producto.precio1)})
+        aplica_iva = 0
+        aplica_ieps = 0
+        if producto.aplica_iva:
+            aplica_iva = 1
+        if producto.aplica_ieps:
+            aplica_ieps = 1
+        return JsonResponse({
+            'precio1': str(producto.precio1),
+            'aplica_iva': aplica_iva,
+            'aplica_ieps': aplica_ieps,
+            'clave_prod_serv': producto.clave_sat,
+            })
     except Producto.DoesNotExist:
         return JsonResponse({'error': 'Producto no encontrado'}, status=404)
 

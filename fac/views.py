@@ -8,6 +8,7 @@ from django.contrib import messages
 from core.models import Empresa
 from fac.models import Factura, DetalleFactura, TipoComprobante, Exportacion
 from inv.models import Producto, Moneda, ClaveMovimiento
+from cxc.models import Cliente
 from fac.forms import FacturaForm, DetalleFacturaFormSet, DetalleFacturaForm
 from django.utils.timezone import now, localtime
 from django.db import transaction
@@ -17,12 +18,15 @@ from django.views.generic import ListView, CreateView, UpdateView, DeleteView, D
 from django.views.generic.edit import CreateView, UpdateView
 
 from django.forms import modelformset_factory
+from django.views.decorators.http import require_GET
 
 # CRUD FACTURAS ==================
 from decimal import Decimal
 class FacturaBaseView:
     def procesar_formset(self, formset, factura):
-        detalles_dict = {}
+        # Limpia detalles previos
+        factura.detalles.all().delete()
+
         subtotal_total = Decimal('0')
         descuento_total = Decimal('0')
         iva_total = Decimal('0')
@@ -34,88 +38,47 @@ class FacturaBaseView:
         empresa = getattr(self.request.user, 'empresa', None)
 
         for detalle_form in formset:
-            if detalle_form.cleaned_data and not detalle_form.cleaned_data.get('DELETE', False):
-                producto = detalle_form.cleaned_data['producto']
-                clave_prod_serv = detalle_form.cleaned_data['clave_prod_serv']
-                cantidad = detalle_form.cleaned_data['cantidad']
-                valor_unitario = detalle_form.cleaned_data['valor_unitario']
-                descuento = detalle_form.cleaned_data.get('descuento') or Decimal('0')
+            if not detalle_form.cleaned_data or detalle_form.cleaned_data.get('DELETE', False):
+                continue
 
-                subtotal = (cantidad * valor_unitario) - descuento
+            # Extrae campos básicos
+            producto        = detalle_form.cleaned_data['producto']
+            clave_prod_serv = detalle_form.cleaned_data['clave_prod_serv']
+            cantidad        = detalle_form.cleaned_data['cantidad']
+            valor_unitario  = detalle_form.cleaned_data['valor_unitario']
+            descuento       = detalle_form.cleaned_data.get('descuento') or Decimal('0')
 
-                if producto in detalles_dict:
-                    detalles_dict[producto]['cantidad'] += cantidad
-                    detalles_dict[producto]['descuento'] += descuento
-                    detalles_dict[producto]['subtotal'] += subtotal
-                else:
-                    detalles_dict[producto] = {
-                        'producto': producto,
-                        'clave_prod_serv': clave_prod_serv,
-                        'clave_unidad': producto.unidad_medida.unidad_medida,
-                        'descripcion': producto.nombre,
-                        'cantidad': cantidad,
-                        'valor_unitario': valor_unitario,
-                        'descuento': descuento,
-                        'subtotal': subtotal,
-                    }
-
-        factura.detalles.all().delete()
-
-        for detalle in detalles_dict.values():
-            producto = detalle['producto']
-            cantidad = detalle['cantidad']
-            valor_unitario = detalle['valor_unitario']
-            descuento = detalle['descuento']
-            subtotal = detalle['subtotal']
-
-            subtotal_total += subtotal
-            descuento_total += descuento
-
-            # tasa por producto
-            tasa_iva = empresa.iva if producto.iva else Decimal('0')
-            tasa_ieps = empresa.ieps if producto.ieps else Decimal('0')
-
-            iva = subtotal * tasa_iva / Decimal('100')
-            ieps = subtotal * tasa_ieps / Decimal('100')
-
-            iva_total += iva
-            ieps_total += ieps
-
-            # Retenciones por producto, en caso de que el campo cliente.retencion_iva sea True
-            retencion_iva = subtotal * empresa.retencion_iva / Decimal('100') if cliente.retencion_iva else Decimal('0')
-            retencion_isr = subtotal * empresa.retencion_isr / Decimal('100') if cliente.retencion_isr else Decimal('0')
-
-            retencion_iva_total += retencion_iva
-            retencion_isr_total += retencion_isr
-
-            # Crear detalle con los campos calculados
-            DetalleFactura.objects.create(
-                factura=factura,
-                producto=producto,
-                clave_prod_serv=detalle['clave_prod_serv'],
-                clave_unidad=detalle['clave_unidad'],
-                descripcion=detalle['descripcion'],
-                cantidad=cantidad,
-                valor_unitario=valor_unitario,
-                importe=subtotal + descuento,
-                descuento=descuento,
-                tasa_iva=tasa_iva,
-                iva=iva,
-                tasa_ieps=tasa_ieps,
-                ieps=ieps,
-                retencion_iva=retencion_iva,
-                retencion_isr=retencion_isr,
-                objeto_imp='02',
+            # Inicializa instancia sin guardar aún
+            detalle = DetalleFactura(
+                factura        = factura,
+                producto       = producto,
+                clave_prod_serv= clave_prod_serv,
+                clave_unidad   = producto.unidad_medida.unidad_medida,
+                descripcion    = producto.nombre,
+                cantidad       = cantidad,
+                valor_unitario = valor_unitario,
+                descuento      = descuento,
+                # (tasa_iva, iva, ieps, retenciones se calculan en  el metodo grabar)
+                objeto_imp     = '02',
             )
+            detalle.grabar()
 
-        total = subtotal_total + iva_total + ieps_total - retencion_iva_total - retencion_isr_total
-        
-        factura.subtotal = subtotal_total
-        factura.descuento = descuento_total
-        factura.impuestos_trasladados = iva_total + ieps_total
-        factura.impuestos_retenidos = retencion_iva_total + retencion_isr_total
-        factura.total = total
-        factura.fecha_creacion = localtime(now()).date()
+            # Acumula en totales
+            subtotal_total         += detalle.importe
+            descuento_total        += detalle.descuento
+            iva_total              += detalle.iva_producto
+            ieps_total             += detalle.ieps_producto
+            retencion_iva_total    += detalle.retencion_iva
+            retencion_isr_total    += detalle.retencion_isr
+
+        # Actualiza campos de la factura
+        factura.subtotal             = subtotal_total
+        factura.descuento            = descuento_total
+        factura.impuestos_trasladados= iva_total + ieps_total
+        factura.impuestos_retenidos  = retencion_iva_total + retencion_isr_total
+        factura.total                = subtotal_total + iva_total + ieps_total \
+                                        - retencion_iva_total - retencion_isr_total
+        factura.fecha_creacion       = localtime(now()).date()
         factura.save()
 
 class FacturaListView(ListView):
@@ -244,58 +207,46 @@ class FacturaCreateView(FacturaBaseView, CreateView):
 
         return render(self.request, self.template_name, {'form': form, 'formset': formset})
     
-# NUEVA VERSION
+from django.shortcuts import render, redirect
+from django.views.generic import UpdateView
+from django.db import transaction
+from .models import Factura, DetalleFactura
+from .forms import FacturaForm, DetalleFacturaFormSet
+
 class FacturaUpdateView(FacturaBaseView, UpdateView):
     model = Factura
     form_class = FacturaForm
     template_name = 'fac/factura_form.html'
-    success_url = reverse_lazy('fac:factura_list')
 
-    def dispatch(self, request, *args, **kwargs):
+    def get(self, request, *args, **kwargs):
         self.object = self.get_object()
+        form = self.get_form()
+        formset = DetalleFacturaFormSet(instance=self.object, prefix='detalles')
+        return render(request, self.template_name, {'form': form, 'formset': formset})
 
-        if self.object.estatus in ['TIMBRADA', 'CANCELADA']:
-            messages.warning(request, "Esta factura no puede ser modificada porque ya está timbrada o cancelada.")
-            return redirect('fac:factura_detail', pk=self.object.pk)
+    def post(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        form = self.get_form()
+        formset = DetalleFacturaFormSet(request.POST, instance=self.object, prefix='detalles')
+        if form.is_valid() and formset.is_valid():
+            return self.form_valid(form, formset)
+        return self.form_invalid(form, formset)
 
-        return super().dispatch(request, *args, **kwargs)
+    @transaction.atomic
+    def form_valid(self, form, formset):
+        # Guarda la factura principal
+        factura = form.save(commit=False)
+        factura.save()
 
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        DetalleFormSet = modelformset_factory(
-            DetalleFactura,
-            form=DetalleFacturaForm,
-            extra=1,
-            can_delete=True
-        )
-        if self.request.POST:
-            context['formset'] = DetalleFormSet(self.request.POST, queryset=self.object.detalles.all())
-        else:
-            context['formset'] = DetalleFormSet(queryset=self.object.detalles.all())
-        return context
+        # Recalcula y graba los detalles usando tu lógica centralizada
+        self.procesar_formset(formset, factura)
 
-    def form_valid(self, form):
-        context = self.get_context_data()
-        formset = context['formset']
+        return redirect('fac:factura_list')
 
-        if formset.is_valid():
-            factura = form.save(commit=False)
-            factura.usuario = self.request.user
-            factura.empresa = getattr(self.request.user, 'empresa', None)
-            factura.save()
-
-            self.procesar_formset(formset, factura)
-
-            messages.success(self.request, "Factura actualizada correctamente.")
-            return redirect('fac:factura_list')
-
-        return self.form_invalid(form)
-
-    def form_invalid(self, form):
-        context = self.get_context_data()
-        context['form'] = form
-        return self.render_to_response(context)
-
+    def form_invalid(self, form, formset):
+        # Puedes reutilizar tu método de manejo de errores
+        messages.error(self.request, "Hay errores en el formulario. Por favor revísalos.")
+        return render(self.request, self.template_name, {'form': form, 'formset': formset})
 
 # VER FACTURA CUANDO YA ESTA TIMBRADA 
 class FacturaDetailView(DetailView):
@@ -342,7 +293,7 @@ def verificar_factura(request):
     except Factura.DoesNotExist:
         return JsonResponse({'existe': False})
 
-def obtener_clave_prod_serv(request):
+def obtener_clave_prod_serv2(request):
     producto_id = request.GET.get('producto_id')
     try:
         producto = Producto.objects.get(pk=producto_id)
@@ -358,6 +309,45 @@ def obtener_ultimo_numero_factura(request):
         siguiente = "0000001"
     
     return JsonResponse({'numero_factura': siguiente})
+
+# ESTA FUNCION SE UTILIZA EN GENERAR CFDI
+@require_GET
+def obtener_tasa_empresa(request):
+    cliente_id = request.GET.get('cliente_id')
+    # 1) Validar que se recibió cliente_id
+    if not cliente_id or not cliente_id.isdigit():
+        return JsonResponse({'error': 'Parámetro cliente_id inválido'}, status=400)
+
+    # 2) Obtener la empresa asociada al usuario
+    empresa = getattr(request.user, 'empresa', None)
+    if not empresa:
+        return JsonResponse({'error': 'Usuario sin empresa asignada'}, status=403)
+
+    # 3) Extraer tasas de la empresa
+    tasa_iva      = float(empresa.tasa_iva)
+    tasa_ieps     = float(empresa.tasa_ieps)
+    ret_iva       = float(empresa.tasa_retencion_iva)
+    ret_isr       = float(empresa.tasa_retencion_isr)
+
+    # 4) Ajustar según configuración del cliente
+    try:
+        cliente = Cliente.objects.get(pk=cliente_id)
+    except Cliente.DoesNotExist:
+        return JsonResponse({'error': 'Cliente no encontrado'}, status=404)
+
+    if not cliente.aplica_retencion_iva:
+        ret_iva = 0.0
+    if not cliente.aplica_retencion_isr:
+        ret_isr = 0.0
+
+    # 5) Devolver JSON con números (no Decimal) para que JS reciba Number
+    return JsonResponse({
+        'tasa_iva_empresa': tasa_iva,
+        'tasa_ieps_empresa': tasa_ieps,
+        'tasa_retencion_iva_empresa': ret_iva,
+        'tasa_retencion_isr_empresa': ret_isr,
+    })
+
 
 # TIMBRADO DE CFDI
 import json

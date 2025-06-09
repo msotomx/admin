@@ -88,6 +88,7 @@ class Factura(models.Model):
     def __str__(self):
         return f'{self.numero_factura or ""} - {self.cliente.nombre}'
 
+from decimal import Decimal, ROUND_HALF_UP
 class DetalleFactura(models.Model):
     factura = models.ForeignKey(Factura, related_name='detalles', on_delete=models.CASCADE)
     producto = models.ForeignKey(Producto, on_delete=models.RESTRICT)
@@ -97,20 +98,20 @@ class DetalleFactura(models.Model):
     cantidad = models.DecimalField(max_digits=10, decimal_places=2)
     valor_unitario = models.DecimalField(max_digits=12, decimal_places=4)
     importe = models.DecimalField(max_digits=12, decimal_places=2)
-    descuento = models.DecimalField(max_digits=12, decimal_places=2, default=0)
-
-    # impuestos
+    descuento = models.DecimalField(max_digits=12, decimal_places=2, default=Decimal('0'))
+    # impuestos,iva
     tasa_iva = models.DecimalField(max_digits=5, decimal_places=2, default=Decimal('0'))  # ej. 16.00
-    iva = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal('0'))
+    iva_producto = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal('0'))
 
-    descuento = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal('0'))
-
-    # Impuestos trasladados por concepto
+    # Ieps por producto
 
     tasa_ieps = models.DecimalField(max_digits=5, decimal_places=2, default=Decimal('0'))
-    ieps = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal('0'))
+    ieps_producto = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal('0'))
 
-    # Retenciones por concepto (si aplican)
+    # Retenciones por concepto
+    tasa_retencion_iva = models.DecimalField(max_digits=5, decimal_places=2, default=Decimal('0'))
+    tasa_retencion_isr = models.DecimalField(max_digits=5, decimal_places=2, default=Decimal('0'))
+
     retencion_iva = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal('0'))
     retencion_isr = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal('0'))
 
@@ -118,13 +119,50 @@ class DetalleFactura(models.Model):
     objeto_imp = models.CharField(max_length=3, default='02')  # Obligatorio desde CFDI 4.0
 
     def calcular_importes(self):
-        self.importe = self.cantidad * self.valor_unitario
-        tasa = Decimal(self.tasa_iva) / Decimal(100)
-        self.iva = (self.importe - self.descuento) * tasa
+        # importe neto:
+        neto = (self.cantidad * self.valor_unitario) - self.descuento
+        self.importe = neto.quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
 
-    def save(self, *args, **kwargs):
+        # tasas de: iva, ieps, retencion de iva, retencion de isr
+        tasa_iva  = Decimal('0.0')
+        tasa_ieps = Decimal('0.0')
+        if self.producto.aplica_iva:
+             tasa_iva = (self.factura.empresa.tasa_iva) / Decimal('100')
+        if self.producto.aplica_ieps:
+             tasa_ieps = (self.factura.empresa.tasa_ieps) / Decimal('100')
+        self.tasa_iva  = tasa_iva
+        self.tasa_ieps = tasa_ieps
+
+        tasa_retencion_iva = Decimal('0.0')
+        tasa_retencion_isr = Decimal('0.0')
+        if self.factura.cliente.aplica_retencion_iva:
+            tasa_retencion_iva = (self.factura.empresa.tasa_retencion_iva) / Decimal('100')
+        if self.factura.cliente.aplica_retencion_isr:
+            tasa_retencion_isr = (self.factura.empresa.tasa_retencion_isr) / Decimal('100')
+        
+        self.tasa_retencion_iva = tasa_retencion_iva
+        self.tasa_retencion_isr = tasa_retencion_isr
+
+        # Calculo de iva
+        iva = self.importe * tasa_iva
+        self.iva_producto = iva.quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
+        # ieps
+        ieps = self.importe * tasa_ieps
+        self.ieps_producto = ieps.quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
+        # retencion_iva
+        retencion_iva = iva * tasa_retencion_iva
+        self.retencion_iva = retencion_iva.quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
+        # retencion_isr
+        retencion_isr = self.importe * tasa_retencion_isr
+        self.retencion_isr = retencion_isr.quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
+
+    def grabar(self):
+        """
+        Método único de mantenimiento:  
+        calcula impuestos y luego hace save().
+        """
         self.calcular_importes()
-        super().save(*args, **kwargs)
+        super().save()
 
     def __str__(self):
         return f'{self.descripcion} ({self.cantidad})'

@@ -75,8 +75,8 @@ class Producto(models.Model):
     unidad_medida = models.ForeignKey(UnidadMedida,on_delete=models.RESTRICT)
     precio_promocion = models.DecimalField(default=0, decimal_places=2, max_digits=10)
     costo_reposicion = models.DecimalField(default=0, decimal_places=2, max_digits=10)
-    iva = models.BooleanField(blank=True)   # False - No se aplica, True - Se aplica al facturar
-    ieps = models.BooleanField(blank=True)   # False - No se aplica, True - Se aplica al facturar
+    aplica_iva = models.BooleanField(blank=True)   # False - No se aplica, True - Se aplica al facturar
+    aplica_ieps = models.BooleanField(blank=True)   # False - No se aplica, True - Se aplica al facturar
     campo_libre_str = models.CharField(max_length=50,blank=True,default='')
     campo_libre_num = models.DecimalField(max_digits=10,decimal_places=4, default=0, null=True, blank=True)
 
