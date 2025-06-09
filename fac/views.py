@@ -38,9 +38,14 @@ class FacturaBaseView:
         empresa = getattr(self.request.user, 'empresa', None)
 
         for detalle_form in formset:
-            if not detalle_form.cleaned_data or detalle_form.cleaned_data.get('DELETE', False):
+            cleaned = getattr(detalle_form, 'cleaned_data', {})
+            # 1) Saltar si el form vino marcado para borrado
+            if cleaned.get('DELETE', False):
                 continue
-
+            # 2) Saltar si no tiene un producto (sub-form vacío)
+            producto = cleaned.get('producto')
+            if not producto:
+                continue
             # Extrae campos básicos
             producto        = detalle_form.cleaned_data['producto']
             clave_prod_serv = detalle_form.cleaned_data['clave_prod_serv']
@@ -74,6 +79,10 @@ class FacturaBaseView:
         # Actualiza campos de la factura
         factura.subtotal             = subtotal_total
         factura.descuento            = descuento_total
+        factura.iva_factura          = iva_total
+        factura.ieps_factura         = ieps_total
+        factura.retencion_iva_factura= retencion_iva_total
+        factura.retencion_isr_factura= retencion_isr_total
         factura.impuestos_trasladados= iva_total + ieps_total
         factura.impuestos_retenidos  = retencion_iva_total + retencion_isr_total
         factura.total                = subtotal_total + iva_total + ieps_total \
@@ -160,6 +169,7 @@ class FacturaCreateView(FacturaBaseView, CreateView):
         # Asignaciones obligatorias
         factura.usuario = self.request.user
         factura.empresa = getattr(self.request.user, 'empresa', None)
+        print("factura.empresa:", factura.empresa)
 
         # Asignar moneda MXN si no viene del formulario
         if not factura.moneda:
@@ -189,6 +199,10 @@ class FacturaCreateView(FacturaBaseView, CreateView):
         factura.subtotal = factura.subtotal or Decimal('0.00')
         factura.descuento = factura.descuento or Decimal('0.00')
         factura.total = factura.total or Decimal('0.00')
+        factura.iva_factura = factura.iva_factura or Decimal('0.00')
+        factura.ieps_factura = factura.ieps_factura or Decimal('0.00')
+        factura.retencion_iva_factura = factura.retencion_iva_factura or Decimal('0.00')
+        factura.retencion_isr_factura = factura.retencion_isr_factura or Decimal('0.00')
 
         factura.save()
         # procesar detalles
@@ -220,14 +234,20 @@ class FacturaUpdateView(FacturaBaseView, UpdateView):
 
     def get(self, request, *args, **kwargs):
         self.object = self.get_object()
-        form = self.get_form()
+        form    = self.get_form()
         formset = DetalleFacturaFormSet(instance=self.object, prefix='detalles')
         return render(request, self.template_name, {'form': form, 'formset': formset})
 
     def post(self, request, *args, **kwargs):
         self.object = self.get_object()
-        form = self.get_form()
+        form    = self.get_form()
         formset = DetalleFacturaFormSet(request.POST, instance=self.object, prefix='detalles')
+
+        print("→ POST recibido. form.is_valid():", form.is_valid())
+        print("→ Errores form:", form.errors)
+        print("→ formset.is_valid():", formset.is_valid())
+        print("→ Errores formset:", formset.errors)
+
         if form.is_valid() and formset.is_valid():
             return self.form_valid(form, formset)
         return self.form_invalid(form, formset)
@@ -236,6 +256,9 @@ class FacturaUpdateView(FacturaBaseView, UpdateView):
     def form_valid(self, form, formset):
         # Guarda la factura principal
         factura = form.save(commit=False)
+        factura.empresa = self.request.user.empresa
+        print("factura.empresa:", factura.empresa)
+
         factura.save()
 
         # Recalcula y graba los detalles usando tu lógica centralizada
@@ -246,6 +269,12 @@ class FacturaUpdateView(FacturaBaseView, UpdateView):
     def form_invalid(self, form, formset):
         # Puedes reutilizar tu método de manejo de errores
         messages.error(self.request, "Hay errores en el formulario. Por favor revísalos.")
+        print("Errores del form principal:", form.errors)
+        print("Errores del formset:")
+        for i, f in enumerate(formset):
+            if f.errors:
+                print(f"Errores en el formulario #{i}:", f.errors.as_data())
+
         return render(self.request, self.template_name, {'form': form, 'formset': formset})
 
 # VER FACTURA CUANDO YA ESTA TIMBRADA 

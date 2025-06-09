@@ -2,6 +2,7 @@ from django.db import models
 from django.contrib.auth.models import User
 from cxc.models import Cliente
 from inv.models import Moneda, Producto, ClaveMovimiento
+from core.models import Empresa
 from decimal import Decimal
 
 # Create your models here.
@@ -49,6 +50,7 @@ class Factura(models.Model):
         ('ERROR','Error') 
             )
     usuario = models.ForeignKey(User,on_delete=models.RESTRICT)
+    empresa = models.ForeignKey(Empresa,on_delete=models.RESTRICT)
     cliente = models.ForeignKey(Cliente,on_delete=models.RESTRICT)
     clave_remision = models.ForeignKey(ClaveMovimiento,on_delete=models.RESTRICT, blank=True)
     numero_remision = models.CharField(max_length=7,blank=False,default="")
@@ -61,6 +63,10 @@ class Factura(models.Model):
     subtotal = models.DecimalField(max_digits=12, decimal_places=2)
     descuento = models.DecimalField(max_digits=12, decimal_places=2, default=0)
     total = models.DecimalField(max_digits=12, decimal_places=2)
+    iva_factura = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    ieps_factura = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    retencion_iva_factura = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    retencion_isr_factura = models.DecimalField(max_digits=12, decimal_places=2, default=0)
     impuestos_trasladados = models.DecimalField(max_digits=12, decimal_places=2, default=0)
     impuestos_retenidos = models.DecimalField(max_digits=12, decimal_places=2, default=0)
     serie_emisor = models.CharField(max_length=50,blank=False,default="")
@@ -124,6 +130,9 @@ class DetalleFactura(models.Model):
         self.importe = neto.quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
 
         # tasas de: iva, ieps, retencion de iva, retencion de isr
+        if not self.factura.empresa:
+            raise ValueError("No hay empresa asignada a la factura de este detalle")
+
         tasa_iva  = Decimal('0.0')
         tasa_ieps = Decimal('0.0')
         if self.producto.aplica_iva:

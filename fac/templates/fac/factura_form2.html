@@ -70,23 +70,13 @@
             </div>  <!--  |floatformat:2|intcomma -->
             <div class="col-md-2 mb-2">
                 <label class="form-label small">IVA</label>
-                <input type="text" id="iva_factura" class="form-control form-control-sm text-end bg-light" readonly disabled>
-                <input type="hidden" name="iva_factura" id="iva_factura_hidden">
+                <input type="text" id="impuestos_trasladados" class="form-control form-control-sm text-end bg-light" readonly disabled>
+                <input type="hidden" name="impuestos_trasladados" id="impuestos_trasladados_hidden">
             </div>
             <div class="col-md-2 mb-2">
-                <label class="form-label small">IEPS</label>
-                <input type="text" id="ieps_factura" class="form-control form-control-sm text-end bg-light" readonly disabled>
-                <input type="hidden" name="ieps_factura" id="ieps_factura_hidden">
-            </div>
-            <div class="col-md-2 mb-2">
-                <label class="form-label small text-end">Retención de IVA</label>
-                <input type="text" id="retencion_iva_factura" class="form-control form-control-sm text-end bg-light" readonly disabled>
-                <input type="hidden" name="retencion_iva_factura" id="retencion_iva_factura_hidden">
-            </div> 
-            <div class="col-md-2 mb-2">
-                <label class="form-label small text-end">Retención de ISR</label>
-                <input type="text" id="retencion_isr_factura" class="form-control form-control-sm text-end bg-light" readonly disabled>
-                <input type="hidden" name="retencion_isr_factura" id="retencion_isr_factura_hidden">
+                <label class="form-label small text-end">Retención</label>
+                <input type="text" id="impuestos_retenidos" class="form-control form-control-sm text-end bg-light" readonly disabled>
+                <input type="hidden" name="impuestos_retenidos" id="impuestos_retenidos_hidden">
             </div> 
             <div class="col-md-2 mb-2">
                 <label class="form-label small">Total General</label>
@@ -94,11 +84,9 @@
                 <input type="hidden" name="total" id="total_hidden">
             </div>
             <input type="hidden" name="moneda" id="moneda" value="{{ form.moneda.value|default:'' }}">
-            <input type="hidden" name="tipo_comprobante" id="tipo_comprobante" value="{{ form.tipo_comprobante.value|default:'' }}">
-            <input type="hidden" name="exportacion" id="exportacion" value="{{ form.exportacion.value|default:'' }}">
-            <input type="hidden" name="condiciones_pago" id="condiciones_pago" value="{{ form.condiciones_pago.value|default:'' }}">
-            <input type="hidden" name="impuestos_trasladados" id="impuestos_trasladados" value="{{ form.impuestos_trasladados.value|default:'' }}">
-            <input type="hidden" name="impuestos_retenidos" id="impuestos_retenidos" value="{{ form.impuestos_retenidos.value|default:'' }}">
+            <input type="hidden" name="tipo_comprobante" id="moneda" value="{{ form.tipo_comprobante.value|default:'' }}">
+            <input type="hidden" name="exportacion" id="moneda" value="{{ form.exportacion.value|default:'' }}">
+            <input type="hidden" name="condiciones_pago" id="moneda" value="{{ form.condiciones_pago.value|default:'' }}">
         </div>
         
         <div class="card">
@@ -483,23 +471,15 @@ document.addEventListener('DOMContentLoaded', function () {
 
         // Mostrar en campos visibles
         document.getElementById('subtotal').value = subtotal.toFixed(2);
-
-        document.getElementById('iva_factura').value = iva_total.toFixed(2);
-        document.getElementById('ieps_factura').value = ieps_total.toFixed(2);
-        document.getElementById('retencion_iva_factura').value = retencion_iva_total.toFixed(2);
-        document.getElementById('retencion_isr_factura').value = retencion_isr_total.toFixed(2);
-        
+        document.getElementById('impuestos_trasladados').value = trasladados.toFixed(2);
+        document.getElementById('impuestos_retenidos').value = retenidos.toFixed(2);
         document.getElementById('total').value = total.toFixed(2);
 
         // Asignar a campos ocultos
         document.getElementById('subtotal_hidden').value = subtotal.toFixed(2);
-        document.getElementById('impuestos_trasladados').value = trasladados.toFixed(2);
-        document.getElementById('impuestos_retenidos').value = retenidos.toFixed(2);
+        document.getElementById('impuestos_trasladados_hidden').value = trasladados.toFixed(2);
+        document.getElementById('impuestos_retenidos_hidden').value = retenidos.toFixed(2);
         document.getElementById('total_hidden').value = total.toFixed(2);
-        document.getElementById('iva_factura_hidden').value = iva_total.toFixed(2);
-        document.getElementById('ieps_factura_hidden').value = ieps_total.toFixed(2);
-        document.getElementById('retencion_iva_factura_hidden').value = retencion_iva_total.toFixed(2);
-        document.getElementById('retencion_isr_factura_hidden').value = retencion_isr_total.toFixed(2);
 
 
     };

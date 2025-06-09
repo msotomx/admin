@@ -5,6 +5,37 @@ from inv.models import Moneda
 from django.forms import inlineformset_factory
 from django.utils.timezone import now, localtime
 
+from django.forms.models import BaseInlineFormSet
+
+from django.forms.models import BaseInlineFormSet
+
+from django.forms.models import BaseInlineFormSet
+
+class BaseDetalleFacturaFormSet(BaseInlineFormSet):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # opcional, pero no estrictamente necesario si usamos _should_delete_form
+        for form in self.forms:
+            if not self.data.get(form.add_prefix('producto')):
+                form.empty_permitted = True
+
+    def _should_delete_form(self, form):
+        """
+        Si el form no trae 'producto' (es un extra sin completar),
+        forzamos que se trate como borrado antes de validar.
+        """
+        # Nombre exacto del campo producto en este subform
+        producto_name = form.add_prefix('producto')
+        # Si no vino ningún valor para producto → lo borramos
+        if not self.data.get(producto_name):
+            return True
+        # Si el usuario marcó DELETE, también borrarlo
+        # (se asume que usas can_delete=True)
+        delete_name = form.add_prefix('DELETE')
+        if self.data.get(delete_name):
+            return True
+        return False
+
 class FacturaForm(forms.ModelForm):
     class Meta:
         model = Factura
@@ -105,6 +136,7 @@ DetalleFacturaFormSet = inlineformset_factory(
     Factura,
     DetalleFactura,
     form=DetalleFacturaForm,
+    formset=BaseDetalleFacturaFormSet,
     extra=1,
     can_delete=True
 )
