@@ -5,17 +5,28 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth import login, authenticate
 from django.contrib.auth.forms import AuthenticationForm
 
-from .models import Empresa
+from .models import Empresa, PerfilUsuario
 
 # Create your views here.
+
+from django.shortcuts import render
+from .models import PerfilUsuario
+
 @login_required
 def inicio(request):
     try:
-        empresa = Empresa.objects.get(empresa=request.user)
-    except Empresa.DoesNotExist:
-        return redirect(request, 'core:inicio.html')
+        perfil = request.user.perfilusuario
+        empresa = perfil.empresa
+    except PerfilUsuario.DoesNotExist:
+        empresa = None
 
-    return render(request, 'core/inicio.html', {'empresa': empresa})    
+    if not empresa:
+        return render(request, 'core/sin_empresa.html')
+
+    if not empresa.activa:
+        return render(request, 'core/empresa_inactiva.html', {'empresa': empresa})
+    print("Empresa:",empresa.nombre_comercial)
+    return render(request, 'core/inicio.html', {'empresa': empresa})
 
 def logoutUsuario(request):
     logout(request)
@@ -27,6 +38,16 @@ def login_view(request):
         if form.is_valid():
             user = form.get_user()
             login(request, user)
+
+            try:
+                empresa = user.perfilusuario.empresa
+                if not empresa.activa:
+                    logout(request)
+                    return render(request, 'core/empresa_inactiva.html', {'empresa': empresa})
+            except:
+                logout(request)
+                return render(request, 'core/sin_empresa.html')
+
             next_url = request.GET.get('next', '/')
             return redirect(next_url)
     else:
@@ -34,16 +55,16 @@ def login_view(request):
 
     return render(request, 'core/login.html', {'form': form})
 
-
 @login_required
 def empresa_detail(request):
     try:
-        empresa = Empresa.objects.get(empresa=request.user)
-    except Empresa.DoesNotExist:
-        return render(request, 'core/sin_empresa.html')  # Crea un template para este caso
-    
+        empresa = request.user.perfilusuario.empresa
+    except PerfilUsuario.DoesNotExist:
+        return render(request, 'core/sin_empresa.html')
+
     if not empresa.activa:
         return render(request, 'core/empresa_inactiva.html', {'empresa': empresa})
+
     return render(request, 'core/empresa_detail.html', {'empresa': empresa})
 
 def empresa_inactiva(request):

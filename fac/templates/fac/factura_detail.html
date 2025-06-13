@@ -10,15 +10,15 @@
         <strong>Cliente:</strong> {{ factura.cliente }}<br>
         <strong>Clave Remision:</strong> {{ factura.clave_remision }}<br>
         <strong>Remision Número:</strong> {{ factura.numero_remision }}<br>
-        <strong>Forma de Pago:</strong> {{ factura.forma_pago" }}<br>
+        <strong>Forma de Pago:</strong> {{ factura.forma_pago }}<br>
         <strong>Método de Pago:</strong> {{ factura.metodo_pago }}<br>
         <strong>Uso de CFDI:</strong> {{ factura.uso_cfdi }}<br>
         <strong>Serie Emisor:</strong> {{ factura.serie_emisor }}<br>
         <strong>Serie SAT:</strong> {{ factura.serie_sat }}<br>
         <strong>Fecha Certificacion:</strong> {{ factura.fecha_hora_certificacion|date:"d/m/Y" }}<br>
         <strong>Tipo de Comprobante:</strong> {{ factura.tipo_comprobante }}<br>
-        <strong>Importe Total:</strong> {{ factura.monto_total }}<br>
-        <strong>Status:</strong> {{ factura.status }}<br>
+        <strong>Importe Total:</strong> {{ factura.total }}<br>
+        <strong>Status:</strong> {{ factura.estatus }}<br>
         <strong>Usuario:</strong> {{ factura.usuario }}
     </div>
 
@@ -40,9 +40,9 @@
                     <td>{{ detalle.producto }}</td>
                     <td>{{ detalle.clave_prod_serv }}</td>   <!-- clave SAT -->
                     <td>{{ detalle.cantidad }}</td>
-                    <td>${{ detalle.precio }}</td>
+                    <td>${{ detalle.valor_unitario }}</td>
                     <td>${{ detalle.descuento }}</td>
-                    <td>${{ detalle.subtotal }}</td>
+                    <td>${{ detalle.importe }}</td>
                 </tr>
             {% empty %}
                 <tr>
@@ -52,6 +52,101 @@
         </tbody>
     </table>
 
-    <a href="{% url 'inv:factura_list' %}" class="btn btn-secondary btn-sm">Regresar</a>
+    <a href="{% url 'fac:factura_list' %}" class="btn btn-secondary btn-sm">Regresar</a>
+    {% if factura.pk  %}
+        <button id="btn-timbrar" data-url="{% url 'fac:timbrar_factura' factura.pk %}">
+            Timbrar
+        </button>
+    {% endif %}
+
 </div>
+
+<!-- Modal para mostrar el PDF -->
+<div class="modal fade" id="modalPdfFactura" tabindex="-1" aria-labelledby="pdfModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-xl" style="max-width: 90%;">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="pdfModalLabel">Factura PDF</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+      </div>
+      <div class="modal-body" style="height: 80vh;">
+        <iframe id="iframePdf" src="" style="width: 100%; height: 100%;" frameborder="0"></iframe>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  function cerrarModal() {
+    document.getElementById('modalPdfFactura').style.display = 'none';
+    document.getElementById('iframePdf').src = '';
+  }
+</script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const btn = document.getElementById('btn-timbrar');
+  if (!btn) return;  // si no existe - salimos
+    btn.addEventListener('click', async function() {
+    const url = this.dataset.url;
+    try {
+        const resp = await fetch(url, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': getCookie('csrftoken'),
+            'Accept': 'application/json',
+        },
+        credentials: 'same-origin'
+        });
+
+        // Lee cuerpo una sola vez
+        const texto = await resp.text();
+        let data = null;
+        try {
+        data = JSON.parse(texto);
+        } catch(e) {
+        console.error("No JSON en la respuesta:", texto);
+        }
+
+        if (!resp.ok) {
+        console.error("Error al TIMBRAR:", resp.status, data || texto);
+        alert('Timbrado exitoso. UUID: ' + data.data?.timbre_fiscal?.uuid);
+        return;
+        }
+        // Éxito
+        console.log("Timbrado exitoso:", data);
+        alert('Timbrado exitoso. UUID: ' + data.uuid);
+
+        // 👉 Mostrar el PDF en un modal
+        const facturaId = url.split('/').filter(Boolean).slice(-2, -1)[0];
+        const iframe = document.getElementById('iframePdf');
+        iframe.src = `/fac/factura/${facturaId}/descargar/pdf/`;
+
+        const modal = new bootstrap.Modal(document.getElementById('modalPdfFactura'));
+        modal.show();
+
+    } catch(err) {
+        console.error("Error en fetch timbrar:", err);
+        alert('Falla en la petición de timbrado: ' + err.message);
+    }
+    });
+    
+
+    // Función para obtener cookie CSRF
+    function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+        const cookie = cookies[i].trim();
+        if (cookie.startsWith(name + '=')) {
+            cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+            break;
+        }
+        }
+    }
+    return cookieValue;
+    }
+})
+
+</script>
 {% endblock %}

@@ -47,11 +47,15 @@
                     <label class="form-label small">Forma de Pago</label>
                     {{ form.forma_pago|add_bootstrap_class }}
                 </div>
-                <div class="col-md-3 mb-2">
+                <div class="col-md-2 mb-2">
                     <label class="form-label small">Uso CFDI</label>
                     {{ form.uso_cfdi|add_bootstrap_class }}
                 </div>
                 <div class="col-md-2 mb-2">
+                    <label class="form-label small">Condiciones Pago</label>
+                    {{ form.condiciones_pago|add_bootstrap_class }}
+                </div>    
+                <div class="col-md-1 mb-2">
                     <label class="form-label small">Status</label>
                     {{ form.estatus|add_bootstrap_class }}
                 </div>
@@ -96,7 +100,6 @@
             <input type="hidden" name="moneda" id="moneda" value="{{ form.moneda.value|default:'' }}">
             <input type="hidden" name="tipo_comprobante" id="tipo_comprobante" value="{{ form.tipo_comprobante.value|default:'' }}">
             <input type="hidden" name="exportacion" id="exportacion" value="{{ form.exportacion.value|default:'' }}">
-            <input type="hidden" name="condiciones_pago" id="condiciones_pago" value="{{ form.condiciones_pago.value|default:'' }}">
             <input type="hidden" name="impuestos_trasladados" id="impuestos_trasladados" value="{{ form.impuestos_trasladados.value|default:'' }}">
             <input type="hidden" name="impuestos_retenidos" id="impuestos_retenidos" value="{{ form.impuestos_retenidos.value|default:'' }}">
         </div>
@@ -172,6 +175,11 @@
                 
             </div>
         </div>
+        {% if factura.pk %}
+            <button id="btn-timbrar" data-url="{% url 'fac:timbrar_factura' factura.pk %}">
+                Timbrar
+            </button>
+        {% endif %}
 
         <div class="mt-3 text-end">
             <button type="submit" class="btn btn-success">Guardar Factura</button>
@@ -504,6 +512,29 @@ document.addEventListener('DOMContentLoaded', function () {
 
     };
     actualizarTotal(); 
+
+    document.getElementById('btn-timbrar').addEventListener('click', async function() {
+        const url = this.dataset.url;
+        try {
+            const resp = await fetch(url, { method: 'POST', headers: {
+            'X-CSRFToken': getCookie('csrftoken'),
+            'Accept': 'application/json'
+            }});
+            const data = await resp.json();
+            if (data.success) {
+            alert('Timbrado exitoso. UUID: ' + data.uuid);
+            // opcional: recargar la página o actualizar UI para mostrar PDF/XML
+            location.reload();
+            } else {
+            alert('Error al timbrar: ' + JSON.stringify(data.error));
+            }
+        } catch (err) {
+            console.error(err);
+            alert('Falla en la petición de timbrado.');
+        }
+    });
+
+
 });    
     
 </script>

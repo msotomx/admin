@@ -15,9 +15,8 @@
                     <th>Fecha</th>
                     <th>Factura</th>
                     <th>Cliente</th>
-                    <th>Remision</th>
-                    <th>Status</th>
                     <th>Total</th>
+                    <th>Status</th>
                     <th>Usuario</th>
                     <th class="text-center">Acciones</th>
                 </tr>
@@ -28,14 +27,15 @@
                         <td>{{ factura.fecha_emision|date:"d/m/Y" }}</td>
                         <td>{{ factura.numero_factura }}</td>
                         <td>{{ factura.cliente }}</td>
-                        <td>{{ factura.numero_remision }}</td>
-                        <td>{{ factura.status }}</td>
                         <td>{{ factura.total }}</td>
+                        <td>{{ factura.estatus }}</td>
                         <td>{{ factura.usuario }}</td>
                         <td class="text-center">
                             <a href="{% url 'fac:factura_detail' factura.pk %}" class="btn btn-sm btn-outline-info">Ver</a>
                             <a href="{% url 'fac:factura_update' factura.pk %}" class="btn btn-sm btn-outline-warning">Editar</a>
                             <a href="{% url 'fac:factura_delete' factura.pk %}" class="btn btn-sm btn-outline-danger">Eliminar</a>
+                            <a href="{% url 'fac:descargar_factura' factura.id 'pdf' %}" target="_blank" class="btn btn-outline-danger btn-sm">Descargar PDF</a>
+
                         </td>
                     </tr>
                 {% empty %}

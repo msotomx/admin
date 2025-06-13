@@ -44,9 +44,6 @@ class ClienteCreateView(CreateView):
 
     def form_valid(self, form):
         cliente = form.cleaned_data['cliente']
-        print("retencion_iva:",form.instance.retencion_iva)
-        print("retencion_isr:",form.instance.retencion_isr)
-        print("ieps:",form.instance.ieps)
 
         form.instance.cliente = str(cliente).zfill(6)
         return super().form_valid(form)

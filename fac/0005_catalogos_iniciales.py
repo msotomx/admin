@@ -13,6 +13,7 @@ def cargar_catalogos(apps, schema_editor):
     TipoComprobante = apps.get_model('fac', 'TipoComprobante')
     Exportacion = apps.get_model('fac', 'Exportacion')
     Moneda = apps.get_model('inv', 'Moneda')
+    Almacen = apps.get_model('inv', 'Almacen')
         
     formas_pago = [
         ('01', 'Efectivo'),
@@ -102,6 +103,7 @@ def cargar_catalogos(apps, schema_editor):
 
     compras = [
         ('CO', 'COMPRAS','E'),
+        ('R1', 'REMISIONES','S'),
     ]
     
     tipos_cliente = [
@@ -109,7 +111,7 @@ def cargar_catalogos(apps, schema_editor):
     ]
 
     exportaciones = [
-        ('01','SI'),
+        ('01','NO APLICA'),
     ]
 
     tipos_comprobante = [
@@ -120,6 +122,9 @@ def cargar_catalogos(apps, schema_editor):
 
     monedas = [
         ('MXN','PESO MEXICANO','$', True, 1),
+    ]
+    almacenes = [
+        ('01','ALMACEN 01','$', True, 1),
     ]
 
     for clave, nombre in formas_pago:
@@ -142,14 +147,16 @@ def cargar_catalogos(apps, schema_editor):
         Exportacion.objects.get_or_create(exportacion=clave, nombre=nombre)
     for clave, nombre, simbolo, activa, paridad in monedas:
         Moneda.objects.get_or_create(clave=clave, nombre=nombre, simbolo=simbolo, activa=activa, paridad=paridad)
+    for clave, nombre in almacenes:
+        Almacen.objects.get_or_create(almacen=clave, nombre=nombre)
 
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('fac', '0004_remove_factura_status_alter_factura_estatus'),  # ultimo archivo en fac/migrations
-        ('cxc', '0003_alter_regimenfiscal_nombre'),  # ultimo archivo en cxc/migrations
-        ('inv', '0003_rename_unidad_de_medida_producto_unidad_medida'),  # ultimo archivo en inv/migrations
-    ]
+        ('fac', '0001_initial'),  # ultimo archivo en fac/migrations
+        ('cxc', '0002_initial'),  # ultimo archivo en cxc/migrations
+        ('inv', '0001_initial'),  # ultimo archivo en inv/migrations
+        ]
 
     operations = [
         migrations.RunPython(cargar_catalogos),

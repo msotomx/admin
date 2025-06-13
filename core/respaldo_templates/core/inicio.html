@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+
+{% block title %}Inicio{% endblock %}
+
+{% block content %}
+    <div class="container mt-5 p-4 rounded " style="background-color: azure">  <!-- bg-light-->
+    
+        <div class="text-center mt-4">
+            <h1>Bienvenido a  <strong>One•Bit</strong></h1>
+            <p>Vigencia de tu Licencia: {{ empresa.fecha_renovacion }}</p>
+            <p>Recomienda Bit•Soluciones a tus amigos y conocidos y obten un 50% de descuento en tu renovación</p>
+            <p>Solo comparte este enlace: bitsistemas.com.mx/{{empresa.id_empresa}}</p>
+        </div>
+    </div>
+{% endblock %}

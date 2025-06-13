@@ -1,6 +1,7 @@
 from django.urls import path
 from fac.views import FacturaListView, FacturaCreateView, FacturaUpdateView, FacturaDeleteView, FacturaDetailView
 from fac.views import verificar_factura, obtener_clave_prod_serv2, obtener_ultimo_numero_factura, obtener_tasa_empresa
+from fac.views import timbrar_factura, descargar_factura
 
 app_name = 'fac'
 
@@ -14,4 +15,8 @@ urlpatterns = [
     path('obtener_clave_prod_serv/', obtener_clave_prod_serv2, name='obtener_clave_prod_serv'),
     path('ajax/numero-factura/', obtener_ultimo_numero_factura, name='ajax_numero_factura'), 
     path('obtener_tasa_empresa/', obtener_tasa_empresa, name='obtener_tasa_empresa'),
+    path('factura/<int:factura_id>/timbrar/', timbrar_factura, name='timbrar_factura'),
+    # PATH para cfdi
+    path('factura/<int:factura_id>/descargar/<str:tipo>/', descargar_factura, name='descargar_factura'),
 ]
+

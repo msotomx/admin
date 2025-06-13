@@ -64,7 +64,7 @@ class FacturaBaseView:
                 valor_unitario = valor_unitario,
                 descuento      = descuento,
                 # (tasa_iva, iva, ieps, retenciones se calculan en  el metodo grabar)
-                objeto_imp     = '02',
+                objeto_impuesto= '02',
             )
             detalle.grabar()
 
@@ -87,7 +87,7 @@ class FacturaBaseView:
         factura.impuestos_retenidos  = retencion_iva_total + retencion_isr_total
         factura.total                = subtotal_total + iva_total + ieps_total \
                                         - retencion_iva_total - retencion_isr_total
-        factura.fecha_creacion       = localtime(now()).date()
+        factura.fecha_creacion       = localtime(now()).date() 
         factura.save()
 
 class FacturaListView(ListView):
@@ -105,7 +105,10 @@ class FacturaCreateView(FacturaBaseView, CreateView):
 
     def get_initial(self):
         initial = super().get_initial()
-        empresa = getattr(self.request.user, 'empresa', None)
+        perfil = getattr(self.request.user, 'perfilusuario', None)
+        empresa = getattr(perfil, 'empresa', None)
+        if empresa:
+            initial['empresa'] = empresa
         
         if empresa.clave_remision:
             try:
@@ -119,11 +122,10 @@ class FacturaCreateView(FacturaBaseView, CreateView):
         initial['fecha_emision'] = localtime(now()).date()
         initial['fecha_creacion'] = localtime(now()).date()
         
-        initial['serie_emisor'] = ''  
+        initial['serie_emisor'] = 'A'  
 
         initial['serie_sat'] = ''
-        initial['fecha_hora_certificacion'] = ''
-        initial['lugar_expedicion'] = ''
+        initial['lugar_expedicion'] = empresa.codigo_postal_expedicion
         initial['tipo_cambio'] = 1
         moneda_mxn = Moneda.objects.filter(clave="MXN").first()
         if moneda_mxn:
@@ -132,15 +134,17 @@ class FacturaCreateView(FacturaBaseView, CreateView):
         tipo_comprobante = TipoComprobante.objects.filter(tipo_comprobante='I').first()
         initial['tipo_comprobante'] = tipo_comprobante.id
         initial['exportacion'] = Exportacion.objects.filter(exportacion='01').first()
-        initial['condiciones_pago'] = '1'
+        initial['condiciones_pago'] = ' '
         initial['xml'] = ''
         initial['pdf'] = ''
 
         # Información de timbrado
         initial['uuid'] = ''
         initial['fecha_timbrado'] = ''
-        initial['sello_cfdi'] = ''
-        initial['no_certificado_sat'] = ''
+        initial['sello'] = ''
+        initial['sello_sat'] = ''
+        initial['num_certificado'] = ''
+        initial['rfc_certifico'] = ''
         initial['estatus'] = 'BORRADOR' # BORRADOR TIMBRADO CANCELADO
         initial['subtotal'] = 0
         initial['descuento'] = 0
@@ -167,9 +171,12 @@ class FacturaCreateView(FacturaBaseView, CreateView):
         factura = form.save(commit=False)
 
         # Asignaciones obligatorias
-        factura.usuario = self.request.user
-        factura.empresa = getattr(self.request.user, 'empresa', None)
-        print("factura.empresa:", factura.empresa)
+        perfil = getattr(self.request.user, 'perfilusuario', None)
+        empresa = getattr(perfil, 'empresa', None)
+
+        factura.usuario = perfil.user
+        factura.empresa = empresa
+        print("empresa.codigo_postal_expedicion", empresa.codigo_postal_expedicion)
 
         # Asignar moneda MXN si no viene del formulario
         if not factura.moneda:
@@ -183,18 +190,17 @@ class FacturaCreateView(FacturaBaseView, CreateView):
         if not factura.tipo_comprobante:
             tipo_comp = TipoComprobante.objects.filter(tipo_comprobante='I').first()
             if not tipo_comp:
-                form.add_error(None, "No se encontró el tipo de comprobante 'I'.")
+                form.add_error(None, "No se encontró el tipo de comprobante 'I'")
                 return self.form_invalid(form, formset)
-            factura.tipo_comprobante = tipo_comp
+            factura.tipo_comprobante = str(tipo_comp)[:1]
 
         # Defaults si están vacíos
-        factura.serie_emisor = factura.serie_emisor or '000'
+        factura.serie_emisor = factura.serie_emisor or 'A'
         factura.serie_sat = factura.serie_sat or '000'
-        factura.fecha_hora_certificacion = factura.fecha_hora_certificacion or now()
-        factura.lugar_expedicion = factura.lugar_expedicion or '00000'
+        factura.lugar_expedicion = empresa.codigo_postal_expedicion or '00000'
         factura.tipo_cambio = factura.tipo_cambio or Decimal('1.00')
         factura.exportacion = factura.exportacion or Exportacion.objects.filter(exportacion='01').first()
-        factura.condiciones_pago = factura.condiciones_pago or '1'
+        factura.condiciones_pago = factura.condiciones_pago or 'CONTADO'
         factura.estatus = factura.estatus or 'BORRADOR'
         factura.subtotal = factura.subtotal or Decimal('0.00')
         factura.descuento = factura.descuento or Decimal('0.00')
@@ -256,7 +262,11 @@ class FacturaUpdateView(FacturaBaseView, UpdateView):
     def form_valid(self, form, formset):
         # Guarda la factura principal
         factura = form.save(commit=False)
-        factura.empresa = self.request.user.empresa
+        
+        perfil = getattr(self.request.user, 'perfilusuario', None)
+        empresa = getattr(perfil, 'empresa', None)
+
+        factura.empresa = empresa
         print("factura.empresa:", factura.empresa)
 
         factura.save()
@@ -267,7 +277,6 @@ class FacturaUpdateView(FacturaBaseView, UpdateView):
         return redirect('fac:factura_list')
 
     def form_invalid(self, form, formset):
-        # Puedes reutilizar tu método de manejo de errores
         messages.error(self.request, "Hay errores en el formulario. Por favor revísalos.")
         print("Errores del form principal:", form.errors)
         print("Errores del formset:")
@@ -285,7 +294,7 @@ class FacturaDetailView(DetailView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['detalles'] = DetalleFactura.objects.filter(numero_remision=self.object)
+        context['detalles'] = DetalleFactura.objects.filter(factura=self.object)
         return context
 
 from django.views.generic import DeleteView
@@ -346,9 +355,11 @@ def obtener_tasa_empresa(request):
     # 1) Validar que se recibió cliente_id
     if not cliente_id or not cliente_id.isdigit():
         return JsonResponse({'error': 'Parámetro cliente_id inválido'}, status=400)
-
+ 
     # 2) Obtener la empresa asociada al usuario
-    empresa = getattr(request.user, 'empresa', None)
+    perfil = getattr(request.user, 'perfilusuario', None)
+    empresa = getattr(perfil, 'empresa', None)
+
     if not empresa:
         return JsonResponse({'error': 'Usuario sin empresa asignada'}, status=403)
 
@@ -385,120 +396,287 @@ from decimal import Decimal
 from django.core.serializers.json import DjangoJSONEncoder
 
 # Esta función toma el objeto Factura y construye el JSON que se enviará al PAC para timbrar.
+from decimal import Decimal
+from django.utils.timezone import localtime, now
+
 def generar_json_cfdi(factura):
     cliente = factura.cliente
+    emisor = factura.empresa
     detalles = factura.detalles.all()
 
     conceptos = []
+    # Para acumular totales y agrupar traslados/retenciones
+    # Usamos dicts: {(impuesto, tasa_o_cuota): {'base': Decimal, 'importe': Decimal}}
+    traslados_agrup = {}
+    retenciones_agrup = {}
+
     for detalle in detalles:
-        conceptos.append({
+        # Determinar importe neto y descuento
+        # Asumimos que det.importe ya es neto = (cantidad * valor_unitario) - descuento
+
+        base = detalle.importe  # es neto, ya incluye descuento
+        descuento = detalle.descuento or Decimal('0')
+
+        # Tasas como proporción: ej. detalle.tasa_iva = Decimal('0.16') si aplica
+        tasa_iva = getattr(detalle, 'tasa_iva', Decimal('0')) or Decimal('0')
+        tasa_ieps = getattr(detalle, 'tasa_ieps', Decimal('0')) or Decimal('0')
+
+        # Importes de impuesto en detalle (ya calculados en el modelo):
+        iva_detalle = getattr(detalle, 'iva_producto', None)
+        if iva_detalle is None:
+            iva_detalle = (base * tasa_iva).quantize(Decimal('0.01'))
+        ieps_detalle = getattr(detalle, 'ieps_producto', None)
+        if ieps_detalle is None:
+            ieps_detalle = (base * tasa_ieps).quantize(Decimal('0.01'))
+
+        # Retenciones en detalle:
+        # supongamos det.retencion_iva y det.retencion_isr ya calculados
+        retencion_iva_detalle = getattr(detalle, 'retencion_iva', Decimal('0')) or Decimal('0')
+        retencion_isr_detalle = getattr(detalle, 'retencion_isr', Decimal('0')) or Decimal('0')
+        tasa_retencion_iva    = getattr(detalle, 'tasa_retencion_iva', Decimal('0')) or Decimal('0')
+        tasa_retencion_isr    = getattr(detalle, 'tasa_retencion_isr', Decimal('0')) or Decimal('0')
+
+        # Agrupar traslados: IVA
+        if iva_detalle and tasa_iva > 0:
+            key = ("002", float(tasa_iva))
+            entry = traslados_agrup.setdefault(key, {'base': Decimal('0'), 'importe': Decimal('0')})
+            entry['base'] += base
+            entry['importe'] += Decimal(str(iva_detalle))
+        # Agrupar traslados: IEPS 
+        if ieps_detalle and tasa_ieps > 0:
+            key = ("003", float(tasa_ieps))
+            entry = traslados_agrup.setdefault(key, {'base': Decimal('0'), 'importe': Decimal('0')})
+            entry['base'] += base
+            entry['importe'] += Decimal(str(ieps_detalle))
+
+        # Agrupar retenciones: ISR retención (código "001" o "002")
+        if retencion_isr_detalle and retencion_isr_detalle > 0:
+            key = ("001", None)
+            entry = retenciones_agrup.setdefault(key, {'importe': Decimal('0')})
+            entry['importe'] += Decimal(str(retencion_isr_detalle))
+        # Agrupar retenciones: IVA retención
+        if retencion_iva_detalle and retencion_iva_detalle > 0:
+            key = ("002", None) 
+            entry = retenciones_agrup.setdefault(key, {'importe': Decimal('0')})
+            entry['importe'] += Decimal(str(retencion_iva_detalle))
+
+        # Construir el concepto
+        concepto = {
             "clave_prod_serv": detalle.clave_prod_serv,
-            "cantidad": float(detalle.cantidad),
-            "clave_unidad": detalle.clave_unidad,
-            "unidad": detalle.producto.unidad_medida.nombre,
             "descripcion": detalle.descripcion,
+            "clave_unidad": detalle.clave_unidad,
+            "unidad": detalle.producto.unidad_medida.descripcion if hasattr(detalle.producto.unidad_medida, 'descripcion') 
+                       else detalle.clave_unidad,
             "valor_unitario": float(detalle.valor_unitario),
-            "importe": float(detalle.importe),
-            "descuento": float(detalle.descuento),
-            "objeto_imp": detalle.objeto_imp,
-            "impuestos": {
-                "traslados": [
-                    {
-                        "base": float(detalle.importe - detalle.descuento),
-                        "impuesto": "002",  # IVA
-                        "tipo_factor": "Tasa",
-                        "tasa_o_cuota": float(detalle.tasa_iva) / 100,
-                        "importe": float(detalle.iva),
-                    }
-                ]
-            }
+            "cantidad": float(detalle.cantidad),
+            "importe": float(detalle.importe) + float(descuento),
+            "subtotal": float(base),       # neto
+            "descuento": float(descuento),
+            "numero_idetificacion": detalle.producto.sku  if hasattr(detalle.producto.sku, 'sku') else "", 
+            "objeto_impuesto": detalle.objeto_impuesto,
+            "impuestos": {"traslados": [], "retenciones": []}
+        }
+        # Detalle traslados
+        if iva_detalle and tasa_iva > 0:
+            tasa_str = "{:.6f}".format(float(tasa_iva))  # tasa con 6 decimales
+            concepto["impuestos"]["traslados"].append({
+                "base": float(base),
+                "impuesto": "002",
+                "tipo_factor": "Tasa",
+                "tasa_cuota": tasa_str,
+                "importe": float(iva_detalle)
+            })
+        if ieps_detalle and tasa_ieps > 0:
+            tasa_str = "{:.6f}".format(float(tasa_ieps))  # tasa con 6 decimales
+            concepto["impuestos"]["traslados"].append({
+                "base": float(base),
+                "impuesto": "003",
+                "tipo_factor": "Tasa",
+                "tasa_cuota": tasa_str,
+                "importe": float(ieps_detalle)
+            })
+        # Detalle retenciones
+        if retencion_isr_detalle and retencion_isr_detalle > 0:
+            tasa_str = "{:.6f}".format(float(tasa_retencion_isr))  # tasa con 6 decimales
+            concepto["impuestos"]["retenciones"].append({
+                "base": float(base),
+                "impuesto": "001",
+                "tipo_factor": "Tasa",
+                "tasa_cuota": tasa_str,
+                "importe": float(retencion_isr_detalle)
+            })
+        if retencion_iva_detalle and retencion_iva_detalle > 0:
+            tasa_str = "{:.6f}".format(float(tasa_retencion_iva))  # tasa con 6 decimales
+            concepto["impuestos"]["retenciones"].append({
+                "base": float(iva_detalle),
+                "impuesto": "002",
+                "tipo_factor": "Tasa",
+                "tasa_cuota": tasa_str,
+                "importe": float(retencion_iva_detalle)
+            })
+
+        conceptos.append(concepto)
+
+    # Construir lista de traslados a nivel factura
+    traslados = []
+    total_traslado = Decimal('0')
+    for (impuesto, tasa), vals in traslados_agrup.items():
+        tasa_str = "{:.6f}".format(float(tasa))  # tasa con 6 decimales
+        base = vals['base']
+        importe = vals['importe']
+        total_traslado += importe
+        traslados.append({
+            "base": float(base),
+            "impuesto": impuesto,
+            "tipo_factor": "Tasa",
+            "tasa_cuota": tasa_str,
+            "importe": float(importe)
         })
 
+    # Construir lista de retenciones a nivel factura
+    retenciones = []
+    total_retencion = Decimal('0')
+    for (impuesto, _), vals in retenciones_agrup.items():
+        importe = vals['importe']
+        total_retencion += importe
+        # No se envía tasa_o_cuota en retenciones 
+        retenciones.append({
+            "impuesto": impuesto,
+            "importe": float(importe)
+        })
+
+    # Montar el objeto impuestos para PAC
+    impuestos = {}
+    # Solo agregar impuestos trasladados si hay al menos una
+    if traslados:
+        impuestos["total_impuestos_trasladados"] = float(total_traslado)
+        impuestos["traslados"] = traslados
+
+    # Solo agregar retenciones si hay al menos una
+    if retenciones:
+        impuestos["total_impuestos_retenidos"] = float(total_retencion)
+        impuestos["retenciones"] = retenciones
+
+
+    # Información global: si no aplicas facturación global, déjalo vacío o elimínalo
+    informacion_global = {}
+    # Si no aplicas global, algunos PAC requieren omitir la clave:
+    # No incluir "informacion_global" si no aplica:
+    # json_cfdi.pop("informacion_global", None)
+
+    # Fecha_emision: según spec, puede requerir hora. Ejemplo:
+    fecha = localtime(now()).strftime("%Y-%m-%d %H:%M:%S")
+
+    # "numero_cuenta": "6789",
+    # "nombre_banco": "BBVA",
+    receptor = {
+        "rfc": cliente.rfc,
+        "razon_social": cliente.nombre,
+        "uso_cfdi": factura.uso_cfdi.uso_cfdi,
+        "regimen_fiscal": cliente.regimen_fiscal.regimen_fiscal if cliente.regimen_fiscal else None,
+        "codigo_postal": cliente.codigo_postal or "",
+    }
     json_cfdi = {
-        "receptor": {
-            "rfc": cliente.rfc,
-            "nombre": cliente.nombre,
-            "domicilio": {
-                "calle": cliente.calle,
-                "no_exterior": cliente.numero_exterior,
-                "no_interior": cliente.numero_interior,
-                "colonia": cliente.colonia,
-                "municipio": cliente.municipio,
-                "estado": cliente.estado,
-                "pais": "México",
-                "codigo_postal": cliente.codigo_postal
-            },
-            "residencia_fiscal": "MX",
-            "uso_cfdi": factura.uso_cfdi.clave,
-            "regimen_fiscal_receptor": cliente.regimen_fiscal.clave if cliente.regimen_fiscal else "",
-        },
-        "informacion_global": {},
-        "tipo_comprobante": factura.tipo_comprobante.clave,
-        "exportacion": factura.exportacion.clave,
-        "forma_pago": factura.forma_pago.clave,
-        "metodo_pago": factura.metodo_pago.clave,
+        "fecha_emision": fecha,
+        "serie": factura.serie_emisor,
+        "folio": int(factura.numero_factura),
+        "forma_pago": factura.forma_pago.forma_pago,
+        "metodo_pago": factura.metodo_pago.metodo_pago,
+        "condiciones_pago": getattr(factura, 'condiciones_pago', None) or "",
+        "tipo_comprobante": str(factura.tipo_comprobante.tipo_comprobante)[:1],
         "moneda": factura.moneda.clave,
         "tipo_cambio": float(factura.tipo_cambio),
-        "lugar_expedicion": factura.lugar_expedicion,
-        "subtotal": float(factura.subtotal),
+        "subtotal": float(factura.subtotal) + float(factura.descuento),
         "descuento": float(factura.descuento),
         "total": float(factura.total),
+        "lugar_expedicion": factura.lugar_expedicion,
+        "exportacion": factura.exportacion.exportacion,
+        "respuesta_compatibilidad_terceros": False,
+        # Emisor
+        "emisor": {
+            "rfc": emisor.rfc,
+            "razon_social": emisor.nombre_fiscal,
+            "regimen_fiscal": emisor.regimen_fiscal.regimen_fiscal,
+            "codigo_postal": emisor.codigo_postal_expedicion,
+        },
+        # Receptor
+        "receptor": receptor,
+        # Conceptos e impuestos
         "conceptos": conceptos,
-        "impuestos": {
-            "traslados": [
-                {
-                    "impuesto": "002",
-                    "tipo_factor": "Tasa",
-                    "tasa_o_cuota": 0.16,
-                    "importe": float(factura.impuestos_trasladados)
-                }
-            ]
-        }
+        "impuestos": impuestos,
+        # Solo incluir si aplica:
+        # "informacion_global": informacion_global,
     }
 
     return json_cfdi
 
+from django.core.exceptions import ObjectDoesNotExist
 # Esta función obtiene la factura y llama a la función generar_json_cfdi
 def generar_json_timbrado(factura_id):
     from .models import Factura  # Importación interna para evitar problemas circulares
-
-    factura = Factura.objects.select_related(
-        'cliente', 'forma_pago', 'moneda', 'metodo_pago',
-        'uso_cfdi', 'tipo_comprobante', 'exportacion',
-        'cliente__regimen_fiscal'
-    ).prefetch_related('detalles__producto', 'detalles')
-
-    factura = factura.get(pk=factura_id)
+    try:
+        factura = (Factura.objects
+            .select_related(
+                'empresa', 'cliente__regimen_fiscal',
+                'forma_pago', 'moneda', 'metodo_pago',
+                'uso_cfdi', 'tipo_comprobante', 'exportacion'
+            )
+            .prefetch_related('detalles__producto__unidad_medida')
+            .get(pk=factura_id))
+    except Factura.DoesNotExist:
+        raise ValueError(f"Factura con id {factura_id} no encontrada")
+    
+    if factura.estatus not in ['BORRADOR', 'ERROR']:
+        raise ValueError(f"Estatus '{factura.estatus}' no válido para timbrar factura {factura_id}")
 
     return generar_json_cfdi(factura)
 
 import os
 from django.core.files.base import ContentFile
 
-def guardar_archivos_factura(factura, xml_bytes, pdf_bytes, uuid=None):
+import logging
+logger = logging.getLogger(__name__)
+def guardar_archivos_factura(factura, uuid=None, sello=None, sello_sat=None, 
+                             num_certificado=None, rfc_certifico=None, 
+                             fecha_timbrado=None, estatus=None):
     """
-    Guarda los archivos XML y PDF en la factura y actualiza el estatus y fecha de timbrado.
+    Guarda la factura ya timbrada
+    Parámetros:
+        - factura: instancia de Factura ya existente.
+        - xml y pdf en otra funcion 
+        - uuid, sello... 
     """
-    # Nombres únicos para los archivos
-    base_filename = f"{factura.numero_factura}_{factura.cliente.rfc}_{now().strftime('%Y%m%d%H%M%S')}"
-    
-    xml_filename = f"{base_filename}.xml"
-    pdf_filename = f"{base_filename}.pdf"
-
-    # Guardar archivos usando ContentFile
-    factura.xml.save(xml_filename, ContentFile(xml_bytes), save=False)
-    factura.pdf.save(pdf_filename, ContentFile(pdf_bytes), save=False)
+    if not factura.pk:
+        raise ValueError("La factura debe existir antes de guardar archivos")
 
     # Timbrado exitoso
-    factura.estatus = "TIMBRADA"
-    factura.fecha_timbrado = localtime(now())
+    factura.estatus = estatus
+
+    factura.fecha_timbrado = fecha_timbrado
 
     # Guardar UUID si viene del PAC
     if uuid:
         factura.uuid = uuid
+    if sello:
+        factura.sello = sello
+    if sello_sat:
+        factura.sello_sat = sello_sat
+    if num_certificado:
+        factura.num_certificado = num_certificado
+    if rfc_certifico:
+        factura.rfc_certifico = rfc_certifico
 
     # Guardar cambios
-    factura.save()
+    try:
+        factura.save(update_fields=['estatus', 'fecha_timbrado', 'uuid',
+                                    'sello','sello_sat','num_certificado','rfc_certifico'])
+        success, mensaje = consultar_y_guardar_archivos(factura)
+        if not success:
+                return JsonResponse({'success': False, 'error': mensaje}, status=500)
+
+    except Exception as e:
+            logger.error(f"Error guardando factura tras timbrado {factura.pk}: {e}")
+            raise
 
 # Vamos a integrar la lógica completa para generar y enviar un CFDI al PAC en una función (timbrar_factura) que:
 #1) Reciba un factura_id.
@@ -515,58 +693,228 @@ from django.core.files.base import ContentFile
 from django.conf import settings
  
 # UTILIZA generar_json_cfdi  --> Esta función construye el JSON a partir de la factura
+from django.views.decorators.http import require_POST
+from django.http import JsonResponse
+from django.shortcuts import get_object_or_404
+from django.contrib.auth.decorators import login_required
+import base64
 
-def timbrar_factura(factura_id):
+@login_required
+@require_POST
+def timbrar_factura(request,factura_id):
+    factura = get_object_or_404(Factura, pk=factura_id, usuario=request.user)
+    
+    # 1) Verificar estatus de la factura
+    if factura.estatus not in ['BORRADOR', 'ERROR']:
+        return JsonResponse(
+            {'success': False, 'error': 'Estatus no válido para timbrar'},
+            status=400
+        )
+    if not factura.serie_emisor or not factura.numero_factura.isdigit():
+        return JsonResponse({'success': False, 'error': 'Serie o folio inválido'}, status=400)
+
+    # 2) Generar JSON CFDI
     try:
-        factura = Factura.objects.get(pk=factura_id)
-
-        # 1. Generar JSON CFDI
+        # Genera el JSON del CFDI
         json_cfdi = generar_json_cfdi(factura)
+        
+        # Validación
+        if validar_cfdi(json_cfdi):
+            # Aquí iría el código para enviar al PAC
+            print("CFDI validado correctamente, listo para enviarse.")
+    except ValueError as e:
+        print(f"Error de validación: {e}")
+        return JsonResponse({'success': False, 'error': f'Error al generar JSON CFDI: {e}'}, status=500)
 
-        # 2. Preparar headers y endpoint del PAC
-        url = "https://api.demo.pac.com.mx/v1/cfdi40/generar"  # Ajusta según tu PAC real
-        headers = {
-            "Authorization": f"Bearer {settings.PAC_TOKEN}",  # variable en settings
-            "Content-Type": "application/json"
-        }
+    # 3) Preparar llamada al PAC
+    url = settings.PAC_URL
+    if not url:
+        return JsonResponse({'success': False, 'error': 'No está configurada la URL del PAC'}, status=500)
+    
+    headers = {
+        "Authorization": f"Bearer {settings.PAC_API_TOKEN}",
+        "X-CLIENT-ID": settings.PAC_CLIENT_ID,
+        "Content-Type": "application/json",
+        "Accept": "application/json",
+    }
+    
+    # 4) Enviar al PAC
+    try:
+        resp = requests.post(url, json=json_cfdi, headers=headers, timeout=30)
+    except requests.RequestException as e:
+        # Error de red, timeout, etc.
+        factura.estatus = "ERROR"
+        factura.save(update_fields=['estatus'])
+        return JsonResponse({'success': False, 'error': f'Error al conectar con PAC: {e}'}, status=502)
+    
+    # 5) Procesar respuesta
+    # Intentar parsear JSON
+    try:
+        data = resp.json()
+    except ValueError:
+        data = None
+    
+    uuid = None
+    if data and isinstance(data, dict):
+        uuid = data.get("data", {}).get("timbre_fiscal", {}).get("uuid")
+    
+    if 200 <= resp.status_code < 300 and uuid:
+        try:
+            timbre = data["data"].get("timbre_fiscal", {})
+            guardar_archivos_factura(
+                factura,
+                uuid            = timbre.get("uuid"),
+                sello           = timbre.get("sello"),
+                sello_sat       = timbre.get("sello_sat"),
+                num_certificado = timbre.get("num_certificado_sat"),
+                rfc_certifico   = timbre.get("rfc_certifico"),
+                fecha_timbrado  = data["data"].get("fecha_timbrado"),
+                estatus         = data["data"].get("estado"),
+            )
+        except Exception as e:
+            return JsonResponse({'success': False, 'error': f'Error al guardar archivos: {e}'}, status=500)
 
-        # 3. Enviar al PAC
-        response = requests.post(url, json=json_cfdi, headers=headers)
+        return JsonResponse({'success': True, 'uuid': factura.uuid})
 
-        # 4. Procesar respuesta
-        if response.status_code == 200:
-            data = response.json()
-
-            factura.uuid = data.get("uuid")
-            factura.sello_cfdi = data.get("selloCFDI", "")
-            factura.no_certificado_sat = data.get("noCertificadoSAT", "")
-            factura.fecha_timbrado = localtime(now())
-            factura.estatus = "TIMBRADA"
-
-            # Guardar XML
-            xml_content = data.get("cfdiXml")
-            if xml_content:
-                factura.xml.save(f'{factura.numero_factura}.xml', ContentFile(xml_content.encode('utf-8')), save=False)
-
-            # Guardar PDF (si lo envía el PAC)
-            pdf_base64 = data.get("pdf")
-            if pdf_base64:
-                import base64
-                pdf_data = base64.b64decode(pdf_base64)
-                factura.pdf.save(f'{factura.numero_factura}.pdf', ContentFile(pdf_data), save=False)
-
-            factura.save()
-            return {"success": True, "uuid": factura.uuid}
-
+    else:
+        # En caso de fallo del PAC: marcar ERROR y devolver detalle
+        factura.estatus = "ERROR"
+        factura.save(update_fields=['estatus'])
+        # Obtener mensaje de error del PAC si viene en JSON
+        err_msg = None
+        if data and data.get("error"):
+            err_msg = data.get("error")
         else:
-            factura.estatus = "ERROR"
-            factura.save()
-            return {"success": False, "error": response.text}
+            err_msg = resp.text
+        return JsonResponse({'success': False, 'error': err_msg}, status=resp.status_code or 500)
+    
+def validar_cfdi(json_cfdi):
 
-    except Factura.DoesNotExist:
-        return {"success": False, "error": "Factura no encontrada"}
+    return True  # Si todo está validado correctamente
+
+def validar_cfdi2(json_cfdi):
+    # Validar emisor
+    emisor = json_cfdi.get('emisor', {})
+    if not emisor.get('rfc'):
+        raise ValueError("Falta el RFC del emisor.")
+    if not emisor.get('razon_social'):
+        raise ValueError("Falta la razón social del emisor.")
+    if not emisor.get('regimen_fiscal'):
+        raise ValueError("Falta el régimen fiscal del emisor.")
+
+    # Validar receptor
+    receptor = json_cfdi.get('receptor', {})
+    if not receptor.get('rfc'):
+        raise ValueError("Falta el RFC del receptor.")
+    if not receptor.get('razon_social'):
+        raise ValueError("Falta la razón social del receptor.")
+    if not receptor.get('regimen_fiscal'):
+        raise ValueError("Falta el régimen fiscal del receptor.")
+
+    # Validar conceptos
+    conceptos = json_cfdi.get('conceptos', [])
+    if not conceptos:
+        raise ValueError("Faltan los conceptos en el CFDI.")
+    for i, concepto in enumerate(conceptos):
+        if not concepto.get('clave_prod_serv'):
+            raise ValueError(f"Falta la clave del producto o servicio en el concepto {i + 1}.")
+        if not concepto.get('cantidad'):
+            raise ValueError(f"Falta la cantidad en el concepto {i + 1}.")
+        if not concepto.get('valor_unitario'):
+            raise ValueError(f"Falta el valor unitario en el concepto {i + 1}.")
+
+    # Validar impuestos (traslados y retenciones)
+#    impuestos = json_cfdi.get('impuestos', {})
+#    if not impuestos.get('total_impuestos_trasladados') == 0.0 and not impuestos.get('traslados'):
+#        raise ValueError("Faltan traslados en los impuestos.")
+#    if not impuestos.get('total_impuestos_retenidos') == 0.0 and not impuestos.get('retenciones'):
+#        raise ValueError("Faltan retenciones en los impuestos.")
+#
+    # Validar totals
+#    if not json_cfdi.get('total'):
+#        raise ValueError("Falta el total del CFDI.")
+#    if not json_cfdi.get('subtotal'):
+#        raise ValueError("Falta el subtotal del CFDI.")
+#    if not json_cfdi.get('descuento') is not None:
+#        raise ValueError("Falta el descuento del CFDI.")
+
+    # Validación de fechas
+    if not json_cfdi.get('fecha_emision'):
+        raise ValueError("Falta la fecha de emisión del CFDI.")
+
+    return True  # Si todo está validado correctamente
+
+#
+# FUNCION PARA GUARDAR EL XML y PDF Y LO GUARDA EN FACTURA
+#
+import requests
+import base64
+
+def consultar_y_guardar_archivos(factura):
+    uuid = factura.uuid
+    if not uuid:
+        return False, "UUID no disponible"
+
+    base_url = "https://dev.techbythree.com/api/v1/facturacion/descargar"
+    headers = {
+        "Authorization": f"Bearer {settings.PAC_API_TOKEN}",
+        "Accept": "application/json",
+        "X-CLIENT-ID": settings.PAC_CLIENT_ID,
+    }
+
+    try:
+        # 1. Descargar XML
+        xml_url = f"{base_url}/{uuid}/xml"
+        xml_resp = requests.get(xml_url, headers=headers)
+        if xml_resp.status_code != 200:
+            return False, f"Error consultando XML: {xml_resp.text}"
+        xml_data = xml_resp.json()
+        xml_str = xml_data.get("archivo")  # 🔄 clave corregida
+
+        # 2. Descargar PDF
+        pdf_url = f"{base_url}/{uuid}/pdf"
+        pdf_resp = requests.get(pdf_url, headers=headers)
+        if pdf_resp.status_code != 200:
+            return False, f"Error consultando PDF: {pdf_resp.text}"
+        pdf_data = pdf_resp.json()
+        pdf_b64 = pdf_data.get("archivo") 
+
+        if not xml_str or not pdf_b64:
+            return False, "XML o PDF no disponibles en la respuesta"
+
+        # Guardar en el modelo
+        factura.xml.save(f"{uuid}.xml", ContentFile(xml_str.encode('utf-8')), save=False)
+        factura.pdf.save(f"{uuid}.pdf", ContentFile(base64.b64decode(pdf_b64)), save=False)
+        factura.save(update_fields=["xml", "pdf"])
+
+        return True, "Archivos descargados y guardados correctamente"
 
     except Exception as e:
-        factura.estatus = "ERROR"
-        factura.save()
-        return {"success": False, "error": str(e)}
+        return False, f"Error inesperado: {str(e)}"
+
+import os
+from django.http import HttpResponse, Http404
+from django.shortcuts import get_object_or_404
+from django.views.decorators.clickjacking import xframe_options_exempt
+# DESCARGA EL PDF
+
+@xframe_options_exempt
+def descargar_factura(request, factura_id, tipo):
+    factura = get_object_or_404(Factura, id=factura_id)
+    if tipo == 'xml':
+        archivo = factura.xml
+        content_type = 'application/xml'
+        nombre = f"{factura.uuid}.xml"
+    elif tipo == 'pdf':
+        archivo = factura.pdf
+        content_type = 'application/pdf'
+        nombre = f"{factura.uuid}.pdf"
+    else:
+        raise Http404("Tipo de archivo no válido")
+
+    if not archivo:
+            return HttpResponse(status=204)  # No Content, sin error visible    
+    
+    response = HttpResponse(archivo, content_type=content_type)
+    response['Content-Disposition'] = f'inline; filename="{nombre}"'  # Para abrir en navegador
+    return response

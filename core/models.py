@@ -1,11 +1,10 @@
 from django.db import models
 from django.contrib.auth.models import User
 from datetime import date
+from cxc.models import RegimenFiscal
 
 # Create your models here.
-
 class Empresa(models.Model):
-    empresa = models.OneToOneField(User,on_delete=models.RESTRICT)
     nombre_comercial = models.CharField(max_length=50, blank=True)
     num_empresa = models.CharField(max_length=8,blank=False, unique=True)   # es el ID en la BD del Servidor
     activa = models.BooleanField(default=False)
@@ -19,7 +18,7 @@ class Empresa(models.Model):
     cuenta_iva = models.CharField(max_length=24,blank=True)  #cuenta iva contabilidad
     clave_compras = models.CharField(max_length=2,blank=False,default='CO')
     clave_traspasos = models.CharField(max_length=2,blank=False,default='TR')
-    clave_remision = models.CharField(max_length=2,blank=False,default='RE')
+    clave_remision = models.CharField(max_length=2,blank=False,default='R1')
     tasa_iva = models.DecimalField(max_digits=9,decimal_places=2)   # tasa de iva en facturas
     tasa_ieps = models.DecimalField(max_digits=9,decimal_places=5)  # Tasa de IEPS
     tasa_retencion_iva = models.DecimalField(max_digits=9,decimal_places=5)  #Tasa de Retencion 16% = 16, 8% = 8 se usa al facturar
@@ -31,7 +30,7 @@ class Empresa(models.Model):
     nombre_fiscal = models.CharField(max_length=80, blank=True)
     rfc = models.CharField(max_length=13,blank=True)
     regimen_de_sociedad = models.CharField(max_length=25, blank=True)
-    regimen_fiscal = models.CharField(max_length=25, blank=True)
+    regimen_fiscal = models.ForeignKey(RegimenFiscal,on_delete=models.RESTRICT, default='1',blank=True,null=True)
     representante = models.CharField(max_length=50, blank=True)
     telefono = models.CharField(max_length=12, blank=True)
     email = models.EmailField(blank=True,default="")
@@ -59,6 +58,13 @@ class Empresa(models.Model):
 
     def __str__(self):
         return self.nombre_comercial
+
+class PerfilUsuario(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    empresa = models.ForeignKey(Empresa, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return f'{self.user.username} - {self.empresa.nombre_comercial}'
 
 class CertificadoCSD(models.Model):
     empresa = models.OneToOneField(User, on_delete=models.CASCADE)

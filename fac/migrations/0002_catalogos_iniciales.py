@@ -11,6 +11,7 @@ def cargar_catalogos(apps, schema_editor):
     ClaveMovimiento = apps.get_model('inv', 'ClaveMovimiento')
     TipoCliente = apps.get_model('cxc', 'TipoCliente')
     TipoComprobante = apps.get_model('fac', 'TipoComprobante')
+    Exportacion = apps.get_model('fac', 'Exportacion')
     Moneda = apps.get_model('inv', 'Moneda')
         
     formas_pago = [
@@ -44,6 +45,9 @@ def cargar_catalogos(apps, schema_editor):
     ]
     
     usos_cfdi = [
+        ('G01', 'Adquisición de mercancías'),
+        ('G02', 'Devoluciones, descuentos o bonificaciones.'),
+        ('G03', 'Gastos en general'),
         ('D01', 'Honorarios médicos, dentales y gastos hospitalarios'),
         ('D02', 'Gastos médicos por incapacidad o discapacidad'),
         ('D03', 'Gastos funerales'),
@@ -54,9 +58,6 @@ def cargar_catalogos(apps, schema_editor):
         ('D08', 'Gastos de transportación escolar obligatoria'),
         ('D09', 'Depósitos en cuentas para el ahorro, primas que tengan como base planes de pensiones'),
         ('D10', 'Pagos por servicios educativos (colegiaturas)'),
-        ('G01', 'Adquisición de mercancías'),
-        ('G02', 'Devoluciones, descuentos o bonificaciones.'),
-        ('G03', 'Gastos en general'),
         ('I01', 'Construcciones'),
         ('I02', 'Mobiliario y equipo de oficina por inversiones'),
         ('I03', 'Equipo de transporte'),
@@ -103,17 +104,21 @@ def cargar_catalogos(apps, schema_editor):
         ('CO', 'COMPRAS','E'),
     ]
     
-    tipos_cliente [
+    tipos_cliente = [
         ('01','CONTADO'),
     ]
 
-    tipos_comprobante [
+    exportaciones = [
+        ('01','NO APLICA'),
+    ]
+
+    tipos_comprobante = [
         ('I','INGRESO'),
         ('E','EGRESO'),
         ('T','TRASLADO'),
     ]
 
-    monedas [
+    monedas = [
         ('MXN','PESO MEXICANO','$', True, 1),
     ]
 
@@ -133,16 +138,18 @@ def cargar_catalogos(apps, schema_editor):
         TipoCliente.objects.get_or_create(tipo_cliente=clave, nombre=nombre)
     for clave, nombre in tipos_comprobante:
         TipoComprobante.objects.get_or_create(tipo_comprobante=clave, nombre=nombre)
+    for clave, nombre in exportaciones:
+        Exportacion.objects.get_or_create(exportacion=clave, nombre=nombre)
     for clave, nombre, simbolo, activa, paridad in monedas:
         Moneda.objects.get_or_create(clave=clave, nombre=nombre, simbolo=simbolo, activa=activa, paridad=paridad)
 
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('fac', '0002_auto_carga_20250529_'),  # ultimo archivo en fac/migrations
-        ('cxc', '0003_alter_regimenfiscal_nombre'),  # ultimo archivo en cxc/migrations
-        ('inv', '0002_alter_unidadmedida_unidad_medida'),  # ultimo archivo en inv/migrations
-    ]
+        ('fac', '0001_initial'),  # ultimo archivo en fac/migrations
+        ('cxc', '0002_initial'),  # ultimo archivo en cxc/migrations
+        ('inv', '0001_initial'),  # ultimo archivo en inv/migrations
+        ]
 
     operations = [
         migrations.RunPython(cargar_catalogos),

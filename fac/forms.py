@@ -40,7 +40,7 @@ class FacturaForm(forms.ModelForm):
     class Meta:
         model = Factura
         fields = '__all__'
-        exclude = ['serie_emisor', 'serie_sat', 'fecha_hora_certificacion', 
+        exclude = ['serie_emisor', 'serie_sat',
                    'lugar_expedicion', 'tipo_cambio',  
                    'descuento', 'xml', 'pdf', 'uuid', 'fecha_timbrado',
                    'sello_cfdi', 'no_certificado_sat', 'empresa']
@@ -83,14 +83,13 @@ class FacturaForm(forms.ModelForm):
             self.fields['exportacion'].initial = Exportacion.objects.filter(exportacion='01').first()
             self.fields['exportacion'].widget = forms.HiddenInput()  # el campo no es visible en el formulario
             self.fields['estatus'].initial = "BORRADOR"
-            self.fields['condiciones_pago'].initial = "1"
-            self.fields['condiciones_pago'].widget = forms.HiddenInput()  # el campo no es visible en el formulario
-                                        
+            self.fields['condiciones_pago'].initial = "CONTADO"
+                                                    
 class DetalleFacturaForm(forms.ModelForm):
     class Meta:
         model = DetalleFactura
         fields = ['producto', 'clave_prod_serv', 'clave_unidad', 'descripcion',
-                  'cantidad', 'valor_unitario', 'descuento', 'importe', 'objeto_imp',
+                  'cantidad', 'valor_unitario', 'descuento', 'importe', 'objeto_impuesto',
                   'tasa_iva', 'iva_producto', 'tasa_ieps', 'ieps_producto', 'retencion_iva', 'retencion_isr',
                   'tasa_retencion_iva', 'tasa_retencion_isr'
                 ]
@@ -100,14 +99,14 @@ class DetalleFacturaForm(forms.ModelForm):
 
         self.fields['clave_unidad'].required = False
         self.fields['descripcion'].required = False
-        self.fields['objeto_imp'].required = False
+        self.fields['objeto_impuesto'].required = False
         
         # Bootstrap para todos los campos
         for field in self.fields.values():
             field.widget.attrs['class'] = 'form-control form-control-sm'
 
-        self.fields['objeto_imp'].initial = '02'  # Por defecto, objeto de impuesto
-        self.fields['objeto_imp'].widget = forms.HiddenInput()
+        self.fields['objeto_impuesto'].initial = '02'  # Por defecto, objeto de impuesto
+        self.fields['objeto_impuesto'].widget = forms.HiddenInput()
         # Impuestos ocultos
         for tax_field in ['tasa_iva', 'iva_producto', 'tasa_ieps', 'ieps_producto', 
                           'tasa_retencion_iva', 'tasa_retencion_isr', 'retencion_iva', 'retencion_isr']:

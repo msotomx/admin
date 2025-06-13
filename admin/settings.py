@@ -157,3 +157,4 @@ EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
 PAC_CLIENT_ID = '0ed04e34-760b-41ef-b778-68c35891d7f1'
 PAC_API_TOKEN = 'CyJdHuv41rlHtTGfH1Y9bvwxFH24c4SGbP35WP1M5cc8743a'
+PAC_URL = 'https://dev.techbythree.com/api/v1/facturacion/timbrar'

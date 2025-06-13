@@ -1,6 +1,9 @@
 from django.shortcuts import redirect
 from django.urls import reverse
-from .models import Empresa
+from core.models import Empresa
+from core.models import PerfilUsuario
+from django.utils.deprecation import MiddlewareMixin
+
 
 EXEMPT_PATHS = [
     '/admin/',  # evita interferir con el admin
@@ -26,14 +29,13 @@ class EmpresaActivaMiddleware:
         # Solo continuar si el usuario está autenticado
         if request.user.is_authenticated:
             try:
-                empresa = Empresa.objects.get(empresa=request.user)
-                if not empresa.activa:
-                    # Si el usuario ya está en la página de empresa inactiva, no redirigir
-                    if request.path != reverse('core:empresa_inactiva'):
-                        return redirect('core:empresa_inactiva')
-            except Empresa.DoesNotExist:
-                # Si el usuario ya está en la página de sin_empresa, no redirigir
-                if request.path != reverse('core:sin_empresa'):
-                    return redirect('core:sin_empresa')
+                perfil = request.user.perfilusuario
+                empresa = perfil.empresa
+            except PerfilUsuario.DoesNotExist:
+                return render(request, 'core/sin_empresa.html')
+
+            if not empresa or not empresa.activa:
+                return render(request, 'core/empresa_inactiva.html', {'empresa': empresa})
 
         return self.get_response(request)
+

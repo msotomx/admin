@@ -45,7 +45,7 @@ class Exportacion(models.Model):
 class Factura(models.Model):
     ESTATUS_CHOICES = (
         ('BORRADOR','Borrador'),  
-        ('TIMBRADA','Timbrado'),      
+        ('VIGENTE','Vigente'),      
         ('CANCELADA','Cancelado'), 
         ('ERROR','Error') 
             )
@@ -68,15 +68,14 @@ class Factura(models.Model):
     retencion_iva_factura = models.DecimalField(max_digits=12, decimal_places=2, default=0)
     retencion_isr_factura = models.DecimalField(max_digits=12, decimal_places=2, default=0)
     impuestos_trasladados = models.DecimalField(max_digits=12, decimal_places=2, default=0)
-    impuestos_retenidos = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    impuestos_retenidos   = models.DecimalField(max_digits=12, decimal_places=2, default=0)
     serie_emisor = models.CharField(max_length=50,blank=False,default="")
-    serie_sat = models.CharField(max_length=50,blank=False,default="")
-    fecha_hora_certificacion = models.DateField(blank=False)
+    serie_sat    = models.CharField(max_length=50,blank=False,default="")
     lugar_expedicion = models.CharField(max_length=5,blank=False,default="")
-    tipo_cambio = models.DecimalField(max_digits=10, decimal_places=4, default=1)
+    tipo_cambio      = models.DecimalField(max_digits=10, decimal_places=4, default=1)
     tipo_comprobante = models.ForeignKey(TipoComprobante,on_delete=models.RESTRICT)
-    exportacion = models.ForeignKey(Exportacion,on_delete=models.RESTRICT)
-    condiciones_pago = models.CharField(max_length=1,default="1") # 1- CONTADO 2-CREDITO
+    exportacion      = models.ForeignKey(Exportacion,on_delete=models.RESTRICT)
+    condiciones_pago = models.CharField(max_length=30, default="1") # CONTADO, 30 DIAS, ETC
 
     # Archivos generados
     xml = models.FileField(upload_to='cfdi/xml/', null=True, blank=True)
@@ -85,11 +84,13 @@ class Factura(models.Model):
     # Información de timbrado
     uuid = models.CharField(max_length=40, blank=True)
     fecha_timbrado = models.DateTimeField(null=True, blank=True)
-    sello_cfdi = models.TextField(blank=True)
-    no_certificado_sat = models.CharField(max_length=21, blank=True)
-    estatus = models.CharField(max_length=10, choices=ESTATUS_CHOICES, default='BORRADOR')  # o 'TIMBRADA', 'CANCELADA' 'ERROR'
+    
+    sello     = models.TextField(blank=True)
+    sello_sat = models.TextField(blank=True)
+    num_certificado=models.CharField(max_length=21, blank=True)
+    rfc_certifico  =models.CharField(max_length=13, blank=True)
 
-    fecha_creacion = models.DateTimeField(auto_now_add=True)
+    estatus = models.CharField(max_length=10, choices=ESTATUS_CHOICES, default='BORRADOR')  # o 'TIMBRADA', 'CANCELADA' 'ERROR'
 
     def __str__(self):
         return f'{self.numero_factura or ""} - {self.cliente.nombre}'
@@ -122,7 +123,7 @@ class DetalleFactura(models.Model):
     retencion_isr = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal('0'))
 
     # información adicional
-    objeto_imp = models.CharField(max_length=3, default='02')  # Obligatorio desde CFDI 4.0
+    objeto_impuesto = models.CharField(max_length=3, default='02')  # Obligatorio desde CFDI 4.0
 
     def calcular_importes(self):
         # importe neto:
