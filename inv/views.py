@@ -12,7 +12,7 @@ from django.urls import reverse_lazy
 from django.views.generic import ListView, CreateView, UpdateView, DeleteView, DetailView
 from django.views.generic.edit import CreateView, UpdateView
 
-from .models import Moneda, Categoria, UnidadMedida, Almacen, ClaveMovimiento, Proveedor
+from .models import Moneda, Categoria, UnidadMedida, Almacen, ClaveMovimiento, Proveedor, Vendedor
 from .models import Producto, Movimiento, DetalleMovimiento, Remision, DetalleRemision
 from .models import Compra, DetalleCompra
 from .models import SaldoInicial
@@ -22,6 +22,7 @@ from core.models import Empresa
 from core.models import CertificadoCSD
 from .forms import MonedaForm, CategoriaForm, UnidadMedidaForm, AlmacenForm, ClaveMovimientoForm
 from .forms import ProveedorForm, ProductoForm, MovimientoForm,  DetalleMovimientoFormSet
+from .forms import VendedorForm
 from .forms import RemisionForm,  DetalleRemisionFormSet
 from .forms import CompraForm,  DetalleCompraFormSet
 from .forms import EmpresaForm, EmpresaLugarForm
@@ -128,6 +129,7 @@ class ClavesMovListView(ListView):
     model = ClaveMovimiento
     template_name = 'inv/clavemovimiento_list.html'
     context_object_name = 'clavesmovimiento'
+    ordering = ['nombre'] 
 
 class ClavesMovCreateView(CreateView):
     model = ClaveMovimiento
@@ -145,6 +147,41 @@ class ClavesMovDeleteView(DeleteView):
     model = ClaveMovimiento
     template_name = 'inv/clavemovimiento_confirm_delete.html'
     success_url = reverse_lazy('inv:clavemovimiento_list')
+
+# CRUD VENDEDOR
+class VendedorListView(ListView):
+    model = Vendedor
+    template_name = 'inv/vendedor_list.html'
+    context_object_name = 'vendedores'
+
+class VendedorCreateView(CreateView):
+    model = Vendedor
+    form_class = VendedorForm
+    template_name = 'inv/vendedor_form.html'
+    success_url = reverse_lazy('inv:vendedor_list')
+
+    def get_initial(self):
+        initial = super().get_initial()
+
+        initial['fecha_registro'] = date.today()
+        return initial
+
+    def form_valid(self, form):
+        vendedor = form.cleaned_data['vendedor']
+        print("vendedor:", vendedor)
+        form.instance.vendedor = str(vendedor).zfill(3)
+        return super().form_valid(form)
+
+class VendedorUpdateView(UpdateView):
+    model = Vendedor
+    form_class = VendedorForm
+    template_name = 'inv/vendedor_form.html'
+    success_url = reverse_lazy('inv:vendedor_list')
+
+class VendedorDeleteView(DeleteView):
+    model = Vendedor
+    template_name = 'inv/vendedor_confirm_delete.html'
+    success_url = reverse_lazy('inv:vendedor_list')
 
 # CRUD PROVEEDOR
 class ProveedorListView(ListView):
@@ -175,11 +212,43 @@ class ProductoListView(ListView):
     template_name = 'inv/producto_list.html'
     context_object_name = 'productos'
 
-class ProductoCreateView(CreateView):
+    def get_queryset(self):
+        query = self.request.GET.get('q', '').strip()
+        # Primero obtenemos todos los productos
+        productos = Producto.objects.all()
+
+        if query:
+            # Aplicamos filtros si hay búsqueda
+            productos = productos.filter(
+                Q(nombre__icontains=query) |
+                Q(sku__icontains=query)
+            )
+        
+        # Finalmente, ordenamos en orden alfabetico por nombre
+        return productos.order_by('nombre')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['query'] = self.request.GET.get('q', '').strip()  # para que se mantenga en el input
+        return context
+
+class ProductoCreateView(CreateView):  
     model = Producto
     form_class = ProductoForm
     template_name = 'inv/producto_form.html'
     success_url = reverse_lazy('inv:producto_list')
+
+    def get_initial(self):
+        initial = super().get_initial()
+
+        initial['fecha_registro'] = date.today()
+        return initial
+
+    def form_valid(self, form):
+        sku = form.cleaned_data['sku']
+
+        form.instance.sku = str(sku).zfill(6)
+        return super().form_valid(form)
 
 class ProductoUpdateView(UpdateView):
     model = Producto
@@ -213,7 +282,8 @@ class MovimientoCreateView(CreateView):
 
     def get_initial(self):
         initial = super().get_initial()
-        empresa = getattr(self.request.user, 'empresa', None)
+        perfil = getattr(self.request.user, 'perfilusuario', None)
+        empresa = getattr(perfil, 'empresa', None)
         
         if empresa:
             # Verificar que el almacen_actual está asignado
@@ -345,46 +415,49 @@ def obtener_costo_producto(request):
     except Producto.DoesNotExist:
         return JsonResponse({'error': 'Producto no encontrado'}, status=404)
 
+def obtener_paridad_moneda(request):
+    moneda_id = request.GET.get('moneda_id')
+    try:
+        moneda = Moneda.objects.get(pk=moneda_id)
+        return JsonResponse({'paridad': str(moneda.paridad)})
+    except Moneda.DoesNotExist:
+        return JsonResponse({'error': 'Moneda no encontrada'}, status=404)
+
 # CRUD REMISIONES ==================
+from decimal import Decimal
+
 class RemisionBaseView:
     def procesar_formset(self, formset, remision):
-        detalles_dict = {}
         monto_total = 0
-
-        for detalle_form in formset:
-            if detalle_form.cleaned_data and not detalle_form.cleaned_data.get('DELETE', False):
-                producto = detalle_form.cleaned_data['producto']
-                cantidad = detalle_form.cleaned_data['cantidad']
-                precio = detalle_form.cleaned_data['precio']
-                descuento = detalle_form.cleaned_data.get('descuento', 0)
-
-                subtotal = (cantidad * precio) - descuento
-
-                if producto in detalles_dict:
-                    detalles_dict[producto]['cantidad'] += cantidad
-                    detalles_dict[producto]['descuento'] += descuento
-                    detalles_dict[producto]['subtotal'] += subtotal
-                else:
-                    detalles_dict[producto] = {
-                        'producto': producto,
-                        'cantidad': cantidad,
-                        'precio': precio,
-                        'descuento': descuento,
-                        'subtotal': subtotal,
-                    }
 
         remision.detalles.all().delete()
 
-        for detalle in detalles_dict.values():
-            DetalleRemision.objects.create(
-                numero_remision=remision,
-                producto=detalle['producto'],
-                cantidad=detalle['cantidad'],
-                precio=detalle['precio'],
-                descuento=detalle['descuento'],
-                subtotal=detalle['subtotal'],
-            )
-            monto_total += detalle['subtotal']
+        for detalle_form in formset:
+            if detalle_form.cleaned_data and not detalle_form.cleaned_data.get('DELETE', False):
+                cd = detalle_form.cleaned_data
+                cantidad = cd['cantidad']
+                precio = cd['precio']
+                descuento = cd['descuento']
+                subtotal = (cantidad * precio) - descuento
+
+                DetalleRemision.objects.create(
+                    numero_remision=remision,
+                    producto=cd['producto'],
+                    cantidad=cantidad,
+                    precio=precio,
+                    descuento=descuento,
+                    subtotal=subtotal,
+                    tasa_iva=cd.get('tasa_iva', Decimal('0.00')),
+                    tasa_ieps=cd.get('tasa_ieps', Decimal('0.00')),
+                    iva_producto=cd.get('iva_producto', Decimal('0.00')),
+                    ieps_producto=cd.get('ieps_producto', Decimal('0.00')),
+                    tasa_retencion_iva=cd.get('tasa_retencion_iva', Decimal('0.00')),
+                    tasa_retencion_isr=cd.get('tasa_retencion_isr', Decimal('0.00')),
+                    retencion_iva=cd.get('retencion_iva', Decimal('0.00')),
+                    retencion_isr=cd.get('retencion_isr', Decimal('0.00')),
+                )
+
+                monto_total += subtotal
 
         remision.monto_total = monto_total
         remision.save()
@@ -404,7 +477,8 @@ class RemisionCreateView(RemisionBaseView, CreateView):
 
     def get_initial(self):
         initial = super().get_initial()
-        empresa = getattr(self.request.user, 'empresa', None)
+        perfil = getattr(self.request.user, 'perfilusuario', None)
+        empresa = getattr(perfil, 'empresa', None)
 
         if empresa and empresa.almacen_actual:
             try:
@@ -440,7 +514,8 @@ class RemisionCreateView(RemisionBaseView, CreateView):
             # Aquí se usa la lógica compartida
             self.procesar_formset(formset, self.object)
 
-            return redirect('inv:remision_list')
+            # return redirect('inv:remision_list')
+            return redirect('inv:remision_update', pk=self.object.pk)
 
         return self.form_invalid(form, formset)
 
@@ -501,9 +576,10 @@ class RemisionDeleteView(DeleteView):
 def verificar_remision(request):
     clave_movimiento_id = request.GET.get('clave_movimiento')
     numero_remision = request.GET.get('numero_remision')
-
+    print(" EN VERIFICAR REMISION")
     try:
         remision = Remision.objects.get(clave_movimiento_id=clave_movimiento_id, numero_remision=numero_remision)
+        print("REMISION SI EXISTE")
         return JsonResponse({'existe': True, 'id': remision.id})
     except Remision.DoesNotExist:
         return JsonResponse({'existe': False})
@@ -523,6 +599,8 @@ def obtener_precio_producto(request):
             'aplica_iva': aplica_iva,
             'aplica_ieps': aplica_ieps,
             'clave_prod_serv': producto.clave_sat,
+            'clave_unidad': producto.unidad_medida.unidad_medida,
+            'descripcion' : producto.nombre,
             })
     except Producto.DoesNotExist:
         return JsonResponse({'error': 'Producto no encontrado'}, status=404)
@@ -560,6 +638,16 @@ def obtener_ultima_compra(request):
             siguiente = "0000001"
         return JsonResponse({'referencia': siguiente})
     return JsonResponse({'referencia': '0000001'})
+
+def obtener_ultimo_vendedor(request):
+
+    ultimo = Vendedor.objects.all().order_by('-vendedor').first()
+    if ultimo:
+        siguiente = str(int(ultimo.vendedor) + 1).zfill(3)
+    else:
+        siguiente = "001"
+    return JsonResponse({'vendedor': siguiente})
+
 
 # CONSULTAS
 # REMISIONES POR FECHA
@@ -709,6 +797,7 @@ def buscar_remisiones_por_producto(request):
     return render(request, 'inv/reportes/remisiones_por_producto_buscar.html', contexto)
 
 # VISTAS PARA CONSULTA DE MOVIMIENTOS TOTALES POR PRODUCTO: MOVIMIENTOS Y REMISIONES
+# SE UTILIZA EN LA OPCION DE CONSULTAR "MOVIMIENTOS POR PRODUCTO"
 def buscar_movimientos_por_producto_totales(request):
     productos = Producto.objects.all()
     return render(request, 'inv/reportes/movimientos_por_producto_buscar.html', {
@@ -717,7 +806,7 @@ def buscar_movimientos_por_producto_totales(request):
 
 from django.db.models import F, Value, CharField
 from django.db.models.functions import Coalesce
-
+# OPCION CONSULTAR "MOVIMIENTOS POR PRODUCTO"
 def movimientos_por_producto_totales(request):
     producto_id = request.GET.get('producto')
     fecha_ini = request.GET.get('fecha_ini')
@@ -820,8 +909,8 @@ def movimientos_por_clave(request):
             clave_seleccionado = ClaveMovimiento.objects.get(id=clave_id)
         except ClaveMovimiento.DoesNotExist:
             clave_seleccionado = None
-
-    resultados = DetalleMovimiento.objects.filter(
+    print("movimientos")
+    movimientos = DetalleMovimiento.objects.filter(
         referencia__clave_movimiento_id=clave_id,
         referencia__fecha_movimiento__range=[fecha_ini, fecha_fin]
     ).select_related('referencia', 'producto').annotate(
@@ -832,8 +921,45 @@ def movimientos_por_clave(request):
         ref=F('referencia__referencia'),
         sku=F('producto__sku'),
         nombre_producto=F('producto__nombre'),
-    ).order_by('fecha', 'ref')
+        cant=F('cantidad'),
+    ).values('fecha', 'clave', 'nombre_mov', 'move_s', 'ref', 'sku', 'nombre_producto', 'cant')
 
+    print("compras")
+    # COMPRAS
+    compras = DetalleCompra.objects.filter(
+        referencia__clave_movimiento_id=clave_id,
+        referencia__fecha_compra__range=[fecha_ini, fecha_fin]
+    ).select_related('referencia', 'producto').annotate(
+        fecha=F('referencia__fecha_compra'),
+        clave=F('referencia__clave_movimiento__clave_movimiento'),
+        nombre_mov=F('referencia__clave_movimiento__nombre'),
+        move_s=F('referencia__clave_movimiento__tipo'),
+        ref=F('referencia__referencia'),
+        sku=F('producto__sku'),
+        nombre_producto=F('producto__nombre'),
+        cant=F('cantidad'),
+    ).values('fecha', 'clave', 'nombre_mov', 'move_s', 'ref', 'sku', 'nombre_producto', 'cant')
+
+    print("remisiones")
+    # REMISIONES
+    remisiones = DetalleRemision.objects.filter(
+        numero_remision__clave_movimiento_id=clave_id,
+        numero_remision__fecha_remision__range=[fecha_ini, fecha_fin]
+    ).select_related('numero_remision', 'producto').annotate(
+        fecha=F('numero_remision__fecha_remision'),
+        clave=F('numero_remision__clave_movimiento__clave_movimiento'),
+        nombre_mov=F('numero_remision__clave_movimiento__nombre'),
+        move_s=F('numero_remision__clave_movimiento__tipo'),
+        ref=F('numero_remision__numero_remision'),
+        sku=F('producto__sku'),
+        nombre_producto=F('producto__nombre'),
+        cant=F('cantidad'),
+    ).values('fecha', 'clave', 'nombre_mov', 'move_s', 'ref', 'sku', 'nombre_producto', 'cant')
+
+    resultados = movimientos.union(compras).union(remisiones).order_by('fecha')
+
+    # resultados = list(movimientos.union(compras).union(remisiones).order_by('fecha'))
+    print("despues de UNION")
     # pasa fechas de string a fecha
     fecha_ini = datetime.strptime(fecha_ini, '%Y-%m-%d').date() if fecha_ini else None
     fecha_fin = datetime.strptime(fecha_fin, '%Y-%m-%d').date() if fecha_fin else None
@@ -1070,8 +1196,9 @@ class CompraCreateView(CompraBaseView, CreateView):
 
     def get_initial(self):
         initial = super().get_initial()
-        empresa = getattr(self.request.user, 'empresa', None)
-        
+        perfil = getattr(self.request.user, 'perfilusuario', None)
+        empresa = getattr(perfil, 'empresa', None)
+                
         if empresa and empresa.almacen_actual:
             try:
                 almacen = Almacen.objects.get(id=empresa.almacen_actual)
@@ -1119,6 +1246,12 @@ class CompraCreateView(CompraBaseView, CreateView):
         return self.form_invalid(form, formset)
 
     def form_invalid(self, form, formset):
+        print("Errores del form principal:", form.errors)
+        print("Errores del formset:")
+        for i, f in enumerate(formset):
+            if f.errors:
+                print(f"Errores en el formulario #{i}:", f.errors.as_data())
+
         return render(self.request, self.template_name, {'form': form, 'formset': formset})
     
 class CompraUpdateView(CompraBaseView, UpdateView):
@@ -1448,3 +1581,51 @@ def registrar_csd_view(request):
         return redirect('inv:cfdi_registrar_emisor')
 
     return render(request, 'inv/cfdi_registrar_emisor.html')
+
+def obtener_ultimo_producto(request):
+
+    ultimo = Producto.objects.all().order_by('-sku').first()
+    if ultimo:
+        siguiente = str(int(ultimo.sku) + 1).zfill(6)
+    else:
+        siguiente = "000001"
+    return JsonResponse({'producto': siguiente})
+
+def imprimir_remision(request, pk):
+    remision = get_object_or_404(Remision, pk=pk)
+    detalles = remision.detalles.all()
+    total = 0
+    for det in detalles:
+        total = total + (det.cantidad * det.precio) - det.descuento
+
+    return render(request, 'inv/remision_print.html', {
+        'remision': remision,
+        'detalles': detalles,
+        'total': total,
+    })
+
+def imprimir_movimiento(request, pk):
+    movimiento = get_object_or_404(Movimiento, pk=pk)
+    detalles = movimiento.detalles.all()
+    total = 0
+    for det in detalles:
+        total = total + det.cantidad * det.costo_unit
+
+    return render(request, 'inv/movimiento_print.html', {
+        'movimiento': movimiento,
+        'detalles': detalles,
+        'total': total,
+    })
+
+def imprimir_compra(request, pk):
+    compra = get_object_or_404(Compra, pk=pk)
+    detalles = compra.detalles.all()
+    total = 0
+    for det in detalles:
+        total = total + (det.cantidad * det.costo_unit) - det.descuento
+
+    return render(request, 'inv/compra_print.html', {
+        'compra': compra,
+        'detalles': detalles,
+        'total': total,
+    })

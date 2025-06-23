@@ -5,7 +5,7 @@
         
         {% if resultados %}
             <div class="print-header">
-                <p>BIT•SISTEMAS</p>
+                <p>SWITCHH • SISTEMAS</p>
                 <p>COMPRAS POR DIA<span style="float:right">{{ fecha_actual }}</span></p>
                 <p>ALMACÉN: {{ almacen_seleccionado.nombre }}</p>
                 <p>DEL: {{ fecha_ini|date:"d/M/Y"|upper }} AL {{ fecha_fin|date:"d/M/Y"|upper }}</p>
@@ -33,7 +33,7 @@
                             <td style="font-size: 0.8em; letter-spacing: -0.5px;">{{ d.referencia.clave_movimiento.clave_movimiento }}</td>
                             <td style="font-size: 0.8em; letter-spacing: -0.5px;">{{ d.referencia.referencia }}</td>
                             <td style="font-size: 0.8em; letter-spacing: -0.5px;">{{ d.producto.sku }}</td>
-                            <td style="font-size: 0.8em; letter-spacing: -0.5px;">{{ d.producto.descripcion|truncatechars:30 }}</td>
+                            <td style="font-size: 0.8em; letter-spacing: -0.5px;">{{ d.producto.nombre|truncatechars:30 }}</td>
                             <td style="text-align:right; font-size: 0.8em; letter-spacing: -0.5px;">{{ d.cantidad|default_if_none:0|floatformat:2|intcomma }}</td>
                             <td style="text-align:right; font-size: 0.8em; letter-spacing: -0.5px;">{{ d.costo_unit|default_if_none:0|floatformat:2|intcomma }}</td>
                             <td style="text-align:right; font-size: 0.8em; letter-spacing: -0.5px;">{{ d.descuento|default_if_none:0|floatformat:2|intcomma }}</td>

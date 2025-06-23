@@ -16,7 +16,7 @@
         {% csrf_token %}
         {{ formset.management_form }}  
 
-        <div class="card mb-3">
+        <div class="card mb-2">
             <div class="card-header">Encabezado</div>
             <div class="row g-2">
                 <div class="col-md-2 mb-2">
@@ -66,7 +66,7 @@
                 </div>
             </div>
         </div>
-        <div class="row g-2 mt-1">
+        <div class="row g-2 mt-0">
             <div class="col-md-2 mb-2">
                 <label class="form-label small">Subtotal</label>
                 <input type="text" id="subtotal" class="form-control form-control-sm text-end bg-light" readonly disabled>
@@ -98,10 +98,12 @@
                 <input type="hidden" name="total" id="total_hidden">
             </div>
             <input type="hidden" name="moneda" id="moneda" value="{{ form.moneda.value|default:'' }}">
-            <input type="hidden" name="tipo_comprobante" id="tipo_comprobante" value="{{ form.tipo_comprobante.value|default:'' }}">
-            <input type="hidden" name="exportacion" id="exportacion" value="{{ form.exportacion.value|default:'' }}">
+            {{ form.tipo_comprobante }}
+            {{ form.exportacion }}
+            
             <input type="hidden" name="impuestos_trasladados" id="impuestos_trasladados" value="{{ form.impuestos_trasladados.value|default:'' }}">
             <input type="hidden" name="impuestos_retenidos" id="impuestos_retenidos" value="{{ form.impuestos_retenidos.value|default:'' }}">
+            <input type="hidden" name="descuento_factura" id="descuento_factura" value="{{ form.descuento_factura.value|default:'0' }}">
         </div>
         
         <div class="card">
@@ -120,6 +122,7 @@
                             <th>Descuento</th>
                             <th>Subtotal</th>
                             <th>Eliminar</th>
+                            <th>-</th>
                         </tr>
                     </thead>
                     
@@ -144,6 +147,8 @@
                                     {{ form.tasa_retencion_isr.as_hidden }}
                                     {{ form.retencion_iva.as_hidden }}
                                     {{ form.retencion_isr.as_hidden }}
+                                    {{ form.descripcion.as_hidden }}
+                                    {{ form.clave_unidad.as_hidden }}
                                 </td>
                             </tr>
                         {% endfor %}
@@ -169,24 +174,54 @@
                             {{ formset.empty_form.tasa_retencion_isr.as_hidden }}
                             {{ formset.empty_form.retencion_iva.as_hidden }}
                             {{ formset.empty_form.retencion_isr.as_hidden }}
+                            {{ formset.empty_form.descripcion.as_hidden }}
+                            {{ formset.empty_form.clave_unidad.as_hidden }}
                         </td> 
                     </tr>
                 </template>
                 
             </div>
-        </div>
-        {% if factura.pk %}
-            <button id="btn-timbrar" data-url="{% url 'fac:timbrar_factura' factura.pk %}">
-                Timbrar
-            </button>
-        {% endif %}
-
-        <div class="mt-3 text-end">
-            <button type="submit" class="btn btn-success">Guardar Factura</button>
-            <a href="{% url 'fac:factura_list' %}" class="btn btn-secondary">Cancelar</a>
+        <div class="mt-0 text-end">
+            {% if form.instance.estatus == "Borrador" or form.instance.estatus == "Error" %}
+                {% if form.instance.pk %}
+                    <button id="btn-timbrar" data-url="{% url 'fac:timbrar_factura' form.instance.pk %}" class="btn btn-warning" type="button">
+                        <i class="fas fa-certificate"></i> Timbrar Factura
+                    </button>
+                {% endif %}
+            {% endif %}
+            {% if form.instance.estatus != "Vigente" %}
+                {% if form.instance.estatus != "Cancelada" %}
+                    <button type="submit" class="btn btn-success">Guardar Factura</button>
+                {% endif %}    
+            {% endif %}
+            <a href="{% url 'fac:factura_list' %}" class="btn btn-secondary">Salir</a>
         </div>
     </form>
 </div>
+
+
+<!-- Modal para mostrar el PDF -->
+<div class="modal fade" id="modalPdfFactura" tabindex="-1" aria-labelledby="pdfModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-xl" style="max-width: 90%;">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="pdfModalLabel">Factura PDF</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+      </div>
+      <div class="modal-body" style="height: 80vh;">
+        <iframe id="iframePdf" src="" style="width: 100%; height: 100%;" frameborder="0"></iframe>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  function cerrarModal() {
+    document.getElementById('modalPdfFactura').style.display = 'none';
+    document.getElementById('iframePdf').src = '';
+  }
+</script>
+
 <script>
 document.addEventListener('DOMContentLoaded', function () {
     const addBtn = document.getElementById('add-linea');
@@ -212,15 +247,15 @@ document.addEventListener('DOMContentLoaded', function () {
             .catch(error => console.error('Error al obtener número de factura:', error));
     }
 
-    // 1. Ejecutar automáticamente al cargar la página
+    // 1. Ejecutar solo cuando se este creando la factura
     
-    if (numero_facturaInput) {
-        obtenerNumeroFactura();
-    }
-
-    // 2. También ejecutar si el usuario cambia la fecha
-    if (numero_facturaInput && fecha_emisionInput) {
-        fecha_emisionInput.addEventListener('change', obtenerNumeroFactura);
+    const esFacturaNueva = {% if form.instance.pk %}false{% else %}true{% endif %};
+    
+    if (esFacturaNueva) {
+        const numero_facturaInput = document.getElementById('id_numero_factura');
+        if (numero_facturaInput) {
+            obtenerNumeroFactura();
+        }
     }
 
     // valida si clave_remision y remision existe
@@ -238,6 +273,100 @@ document.addEventListener('DOMContentLoaded', function () {
             window.location.href = `/fac/factura/editar/${data.id}/`;
         }
     }
+
+    // Buscar Remision  
+    async function verificarRemision(clave,numero) {
+        if (!numero || numero === "0000000") return;
+
+        fetch(`/fac/ajax/cargar-remision/?numero_remision=${numero}&clave_movimiento=${clave}`)
+        .then(response => {
+            if (!response.ok) throw new Error("Remisión no encontrada");
+            return response.json();
+        })
+        .then(data => {
+            if (!data.detalles || data.detalles.length === 0) {
+                console.warn("No se recibieron detalles.");
+                return;
+            }
+
+            // Rellenar campos principales de la factura
+            document.getElementById('id_cliente').value = data.cliente_id;
+            document.getElementById('id_condiciones_pago').value = "CONTADO";
+            
+            // Borrar líneas actuales del formset
+            const totalForms = document.getElementById('id_detalles-TOTAL_FORMS');
+            const tbody = document.getElementById('formset-body');
+
+            tbody.innerHTML = '';  // Borra los existentes
+            let index = 0;
+
+            data.detalles.forEach(det => {
+                const fragment = document.querySelector('#empty-form-template').content.cloneNode(true);
+                const newRow = fragment.querySelector('tr');
+                // Asignar valores a los campos input y select
+                newRow.querySelectorAll('input, select').forEach(field => {
+                    if (field.name.includes('__prefix__')) {
+                        field.name = field.name.replace('__prefix__', index);
+                        field.id = field.id.replace('__prefix__', index);
+                    }
+                });
+                // Insertar en el DOM
+                tbody.appendChild(newRow);
+
+                // Recuperar fila insertada
+                const row = tbody.lastElementChild;
+
+                // Asignar valores a los campos visibles
+                const cantidadInput = row.querySelector("input[name$='-cantidad']");
+                const valorUnitarioInput = row.querySelector("input[name$='-valor_unitario']");
+                const descuentoInput = row.querySelector("input[name$='-descuento']");
+                const importeInput = row.querySelector("input[name$='-importe']");
+                const productoSelect = row.querySelector("select[name$='-producto']");
+
+                if (productoSelect) productoSelect.value = det.producto_id;
+                if (cantidadInput) cantidadInput.value = det.cantidad;
+                if (valorUnitarioInput) valorUnitarioInput.value = det.precio;
+                if (descuentoInput) descuentoInput.value = det.descuento;
+                if (importeInput) importeInput.value = det.importe;
+
+                // Asignar valores a los campos ocultos
+                const clave_prod_servInput = row.querySelector("input[name$='-clave_prod_serv']");
+                const tasa_ivaInput = row.querySelector("input[name$='-tasa_iva']");
+                const tasa_iepsInput = row.querySelector("input[name$='-tasa_ieps']");
+                const tasa_retencion_ivaInput = row.querySelector("input[name$='-tasa_retencion_iva']");
+                const tasa_retencion_isrInput = row.querySelector("input[name$='-tasa_retencion_isr']");
+                const iva_productoInput = row.querySelector("input[name$='-iva_producto']");
+                const ieps_productoInput = row.querySelector("input[name$='-ieps_producto']");
+                const retencion_ivaInput = row.querySelector("input[name$='-retencion_iva']");
+                const retencion_isrInput = row.querySelector("input[name$='-retencion_isr']");
+                const clave_unidadInput = row.querySelector("input[name$='-clave_unidad']");
+                const descripcionInput = row.querySelector("input[name$='-descripcion']");
+                                
+                if (clave_prod_servInput) clave_prod_servInput.value = det.clave_prod_serv;
+                if (tasa_ivaInput) tasa_ivaInput.value = det.tasa_iva ?? 0;
+                if (tasa_iepsInput) tasa_iepsInput.value = det.tasa_ieps ?? 0;
+                if (tasa_retencion_ivaInput) tasa_retencion_ivaInput.value = det.tasa_retencion_iva ?? 0;
+                if (tasa_retencion_isrInput) tasa_retencion_isrInput.value = det.tasa_retencion_isr ?? 0;
+                if (iva_productoInput) iva_productoInput.value = det.iva_producto ?? 0;
+                if (ieps_productoInput) ieps_productoInput.value = det.ieps_producto ?? 0;
+                if (retencion_ivaInput) retencion_ivaInput.value = det.retencion_iva ?? 0;
+                if (retencion_isrInput) retencion_isrInput.value = det.retencion_isr ?? 0;
+                if (clave_unidadInput) clave_unidadInput.value = det.clave_unidad;
+                if (descripcionInput) descripcionInput.value = det.nombre_producto;
+                
+                tbody.appendChild(newRow);
+                index++;
+                actualizarTotal();
+            });
+
+            document.getElementById('id_detalles-TOTAL_FORMS').value = index;
+        })
+        .catch(error => {
+            alert(error.message);
+        });
+    };    
+
+    // Fin de Buscar Remision
 
     if (numero_remisionInput && claveMovInput) {
         numero_remisionInput.addEventListener('blur', function () {
@@ -359,6 +488,10 @@ document.addEventListener('DOMContentLoaded', function () {
                         const precio      = parseFloat(data.precio1);      // convierte a numerico
                         const aplica_iva  = parseFloat(data.aplica_iva);   // convierte a numerico 1 o 0
                         const aplica_ieps = parseFloat(data.aplica_ieps);  // convierte a numerico 1 o 0
+                        const clave_unidad = data.clave_unidad;
+                        const descripcion  = data.descripcion;
+                        console.log("EN A, clave_Unidad:", clave_unidad)
+                        console.log("EN A, descripcion :", descripcion)
                         
                         // pasa clave_prod_serv al campo en el formulario
                         const clave_prod_servInput = row.querySelector("input[name$='-clave_prod_serv']");
@@ -370,30 +503,37 @@ document.addEventListener('DOMContentLoaded', function () {
                             valor_unitarioInput.value = precio.toFixed(2);
                         }
 
+                        const clave_unidadInput  = row.querySelector("input[name$='-clave_unidad']");
+                        const descripcionInput  = row.querySelector("input[name$='-descripcion']");    
                         const tasa_ivaInput  = row.querySelector("input[name$='-tasa_iva']");
                         const tasa_iepsInput = row.querySelector("input[name$='-tasa_ieps']");
                         const tasa_retencion_ivaInput = row.querySelector("input[name$='-tasa_retencion_iva']");
                         const tasa_retencion_isrInput = row.querySelector("input[name$='-tasa_retencion_isr']");
 
-                        const tasaIva_producto  = (window.tasasEmpresa.tasa_iva / 100) * aplica_iva;
-                        const tasaIeps_producto = (window.tasasEmpresa.tasa_ieps / 100) * aplica_ieps;
+                        const tasa_iva_producto  = (window.tasasEmpresa.tasa_iva / 100) * aplica_iva;
+                        const tasa_ieps_producto = (window.tasasEmpresa.tasa_ieps / 100) * aplica_ieps;
                         const tasa_retencion_iva = (window.tasasEmpresa.tasa_retencion_iva / 100);
                         const tasa_retencion_isr = (window.tasasEmpresa.tasa_retencion_isr / 100);
 
                         // pasa los valores a los campos del formulario 
                         if (tasa_ivaInput) {
-                            tasa_ivaInput.value = tasaIva_producto.toFixed(2);   // convierte a string
+                            tasa_ivaInput.value = tasa_iva_producto.toFixed(6);   // convierte a string
                         }
                         if (tasa_iepsInput) {
-                            tasa_iepsInput.value = tasaIeps_producto.toFixed(2);
+                            tasa_iepsInput.value = tasa_ieps_producto.toFixed(6);
                         }
                         if (tasa_retencion_ivaInput) {
-                            tasa_retencion_ivaInput.value = tasa_retencion_iva.toFixed(2);
+                            tasa_retencion_ivaInput.value = tasa_retencion_iva.toFixed(6);
                         }
                         if (tasa_retencion_isrInput) {
-                            tasa_retencion_isrInput.value = tasa_retencion_isr.toFixed(2);
+                            tasa_retencion_isrInput.value = tasa_retencion_isr.toFixed(6);
                         }
-
+                        if (clave_unidadInput) {
+                            clave_unidadInput.value = clave_unidad;
+                        }
+                        if (descripcionInput) {
+                            descripcionInput.value = descripcion;   
+                        }
                         actualizarTotal();                                             
                     } catch (err) {
                         console.error('Error al obtener datos del producto:', err);
@@ -498,7 +638,7 @@ document.addEventListener('DOMContentLoaded', function () {
         document.getElementById('retencion_isr_factura').value = retencion_isr_total.toFixed(2);
         
         document.getElementById('total').value = total.toFixed(2);
-
+        
         // Asignar a campos ocultos
         document.getElementById('subtotal_hidden').value = subtotal.toFixed(2);
         document.getElementById('impuestos_trasladados').value = trasladados.toFixed(2);
@@ -508,33 +648,96 @@ document.addEventListener('DOMContentLoaded', function () {
         document.getElementById('ieps_factura_hidden').value = ieps_total.toFixed(2);
         document.getElementById('retencion_iva_factura_hidden').value = retencion_iva_total.toFixed(2);
         document.getElementById('retencion_isr_factura_hidden').value = retencion_isr_total.toFixed(2);
-
-
     };
     actualizarTotal(); 
 
-    document.getElementById('btn-timbrar').addEventListener('click', async function() {
+
+    const btn = document.getElementById('btn-timbrar');
+    if (!btn) {
+        console.log("Botón Timbrar no encontrado");
+        return;
+    }
+
+    // Click en Boton Timbrar
+    btn.addEventListener('click', async function() {
+        const facturaId = "{{ form.instance.pk }}";
+        if (!facturaId) return;
+
+        btn.disabled = true;
+        btn.textContent = "Timbrando...";
+
         const url = this.dataset.url;
         try {
-            const resp = await fetch(url, { method: 'POST', headers: {
-            'X-CSRFToken': getCookie('csrftoken'),
-            'Accept': 'application/json'
-            }});
-            const data = await resp.json();
-            if (data.success) {
-            alert('Timbrado exitoso. UUID: ' + data.uuid);
-            // opcional: recargar la página o actualizar UI para mostrar PDF/XML
-            location.reload();
-            } else {
-            alert('Error al timbrar: ' + JSON.stringify(data.error));
+            const resp = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': getCookie('csrftoken'),
+                    'Accept': 'application/json',
+                },
+                credentials: 'same-origin'
+            });
+
+            // Lee cuerpo una sola vez
+            const texto = await resp.text();
+            let data = null;
+            try {
+            data = JSON.parse(texto);
+            } catch(e) {
+            console.error("No JSON en la respuesta:", texto);
             }
-        } catch (err) {
-            console.error(err);
-            alert('Falla en la petición de timbrado.');
+
+            if (!resp.ok || (data && data.success === false)) {
+                console.error("Error al TIMBRAR:", resp.status, data || texto);
+                alert(data?.error || "Ocurrió un error al timbrar.");
+                btn.disabled = false;
+                btn.textContent = "Intentar de nuevo";
+                return;
+            }
+            // if (!resp.ok) {
+            //    console.error("Error al TIMBRAR:", resp.status, data || texto);
+
+            //    return;
+            // }
+            // Éxito
+            alert('Timbrado exitoso. UUID: ' + data.uuid);
+            
+            // 👉 Mostrar el PDF en un modal
+            // const facturaId = url.split('/').filter(Boolean).slice(-2, -1)[0];
+            const facturaId = "{{ form.instance.pk }}";
+            const iframe = document.getElementById('iframePdf');
+            iframe.src = `/fac/factura/${facturaId}/descargar/pdf/`;
+            
+            const modal = new bootstrap.Modal(document.getElementById('modalPdfFactura'));
+            modal.show();
+            // Cambiar botón a 'Timbrada'
+            btn.classList.remove('btn-warning');
+            btn.classList.add('btn-success');
+            btn.textContent = "Timbrada";
+            btn.disabled = true;
+
+        } catch(err) {
+            console.error("Error en fetch timbrar:", err);
+            alert('Falla en la petición de timbrado: ' + err.message);
         }
     });
+        
 
-
+    // Función para obtener cookie CSRF
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.startsWith(name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+    
 });    
     
 </script>

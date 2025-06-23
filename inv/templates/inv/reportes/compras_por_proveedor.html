@@ -44,7 +44,7 @@
     <div class="container mt-3" id="print-area">
 
         <div class="print-header">
-            <p>BIT•SISTEMAS</p>
+            <p>SWITCHH • SISTEMAS</p>
             <p>COMPRAS POR PROVEEDOR<span style="float:right">{{ fecha_actual }}</span></p>
         
             <p>PROVEEDOR: {{ proveedor.nombre }}</p>
@@ -73,7 +73,7 @@
                     <td style="font-size: 0.8em; letter-spacing: -0.5px;">{{ detalle.referencia.clave_movimiento.clave_movimiento }}</td>
                     <td style="font-size: 0.8em; letter-spacing: -0.5px;">{{ detalle.referencia.referencia }}</td>
                     <td style="font-size: 0.8em; letter-spacing: -0.5px;">{{ detalle.producto.sku }}</td>
-                    <td style="font-size: 0.8em; letter-spacing: -0.5px;">{{ detalle.producto.descripcion|truncatechars:25 }}</td>
+                    <td style="font-size: 0.8em; letter-spacing: -0.5px;">{{ detalle.producto.nombre|truncatechars:25 }}</td>
                     <td style="text-align:right; font-size: 0.8em; letter-spacing: -0.5px;">{{ detalle.cantidad|default_if_none:0|floatformat:2|intcomma }}</td>
                     <td style="text-align:right; font-size: 0.8em; letter-spacing: -0.5px;">{{ detalle.costo_unit|default_if_none:0|floatformat:2|intcomma }}</td>
                     <td style="text-align:right; font-size: 0.8em; letter-spacing: -0.5px;">{{ detalle.descuento|default_if_none:0|floatformat:2|intcomma }}</td>

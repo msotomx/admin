@@ -21,7 +21,7 @@
                     <th>Fecha_Vencimiento</th>
                     <th>Importe</th>
                     <th>Usuario</th>
-                    <th class="text-center">Acciones</th>
+                    <th class="text-center"> </th>
                 </tr>
             </thead>
             <tbody class="small">
@@ -36,7 +36,7 @@
                         <td>{{ compra.monto_total }}</td>
                         <td>{{ compra.usuario }}</td>
                         <td class="text-center">
-                            <a href="{% url 'inv:compra_detail' compra.pk %}" class="btn btn-sm btn-outline-info">Ver</a>
+                            <a href="{% url 'inv:imprimir_compra' compra.pk %}" target="_blank" class="btn btn-sm btn-outline-info">Ver</a>
                             <a href="{% url 'inv:compra_update' compra.pk %}" class="btn btn-sm btn-outline-warning">Editar</a>
                             <a href="{% url 'inv:compra_delete' compra.pk %}" class="btn btn-sm btn-outline-danger">Eliminar</a>
                         </td>

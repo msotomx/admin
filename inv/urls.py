@@ -6,6 +6,7 @@ from .views import UnidadMedidaListView, UnidadMedidaCreateView, UnidadMedidaUpd
 from .views import AlmacenListView, AlmacenCreateView, AlmacenUpdateView, AlmacenDeleteView
 from .views import ClavesMovListView, ClavesMovCreateView, ClavesMovUpdateView, ClavesMovDeleteView
 from .views import ProveedorListView, ProveedorCreateView, ProveedorUpdateView, ProveedorDeleteView
+from .views import VendedorListView, VendedorCreateView, VendedorUpdateView, VendedorDeleteView
 from .views import ProductoListView, ProductoCreateView, ProductoUpdateView, ProductoDeleteView
 from .views import MovimientoListView, MovimientoCreateView, MovimientoUpdateView, MovimientoDeleteView, MovimientoDetailView
 from .views import RemisionListView, RemisionCreateView, RemisionUpdateView, RemisionDeleteView, RemisionDetailView
@@ -14,8 +15,9 @@ from .views import EmpresaListView, EmpresaCreateView, EmpresaUpdateView
 from .views import EmpresaLugarListView, EmpresaLugarUpdateView
 from .views import verificar_movimiento, obtener_costo_producto
 from .views import verificar_remision, obtener_precio_producto
-from .views import verificar_compra, obtener_dias_plazo
+from .views import verificar_compra, obtener_dias_plazo, obtener_paridad_moneda
 from .views import obtener_ultimo_numero_remision, obtener_ultimo_movimiento, obtener_ultima_compra
+from .views import obtener_ultimo_vendedor
 from .views import remisiones_por_dia, buscar_remisiones_por_dia
 from .views import remisiones_por_cliente, buscar_remisiones_por_cliente
 from .views import remisiones_por_producto, buscar_remisiones_por_producto
@@ -27,6 +29,8 @@ from .views import compras_por_dia, buscar_compras_por_dia
 from .views import compras_por_producto, buscar_compras_por_producto
 from .views import compras_por_proveedor, buscar_compras_por_proveedor
 from .views import registrar_emisor_view, registrar_csd_view
+from .views import obtener_ultimo_producto
+from .views import imprimir_remision, imprimir_movimiento, imprimir_compra
 
 app_name = 'inv'
 
@@ -55,10 +59,19 @@ urlpatterns = [
     path('proveedores/nuevo/', ProveedorCreateView.as_view(), name='proveedor_create'),
     path('proveedores/editar/<int:pk>/', ProveedorUpdateView.as_view(), name='proveedor_update'),
     path('proveedores/eliminar/<int:pk>/', ProveedorDeleteView.as_view(), name='proveedor_delete'),
+    path('vendedores/', VendedorListView.as_view(), name='vendedor_list'),
+    path('vendedores/nuevo/', VendedorCreateView.as_view(), name='vendedor_create'),
+    path('vendedores/editar/<int:pk>/', VendedorUpdateView.as_view(), name='vendedor_update'),
+    path('vendedores/eliminar/<int:pk>/', VendedorDeleteView.as_view(), name='vendedor_delete'),
+    path('ajax/ultimo_vendedor/', obtener_ultimo_vendedor, name='ajax_ultimo_vendedor'),
+         
     path('producto/', ProductoListView.as_view(), name='producto_list'),
     path('producto/nuevo/', ProductoCreateView.as_view(), name='producto_create'),
     path('producto/editar/<int:pk>/', ProductoUpdateView.as_view(), name='producto_update'),
     path('producto/eliminar/<int:pk>/', ProductoDeleteView.as_view(), name='producto_delete'),
+    path('ajax/ultimo_producto/', obtener_ultimo_producto, name='ajax_ultimo_producto'),
+    path('productos/', ProductoListView.as_view(), name='producto_list'),
+
     path('movimiento/', MovimientoListView.as_view(), name='movimiento_list'),
     path('movimiento/nuevo/', MovimientoCreateView.as_view(), name='movimiento_create'),
     path('movimiento/editar/<int:pk>/', MovimientoUpdateView.as_view(), name='movimiento_update'),
@@ -84,6 +97,7 @@ urlpatterns = [
     path('verificar_compra/', verificar_compra, name='verificar_compra'),
     path('ajax/ultima_compra/', obtener_ultima_compra, name='ajax_ultima_compra'),
     path('obtener_dias_plazo/', obtener_dias_plazo, name='obtener_dias_plazo'),
+    path('obtener_paridad_moneda/', obtener_paridad_moneda, name='obtener_paridad_moneda'),
     #Consultas y Reportes
     path('reportes/remisiones_por_dia/', remisiones_por_dia, name='remisiones_por_dia'),
     path('reportes/buscar_remisiones_dia/', buscar_remisiones_por_dia, name='buscar_remisiones_dia'),
@@ -116,4 +130,7 @@ urlpatterns = [
 
     path('cfdi_registrar_emisor/', registrar_emisor_view, name='cfdi_registrar_emisor'),
     path('cfdi_registrar_csd/', registrar_csd_view, name='cfdi_registrar_csd'),
+    path('remision/<int:pk>/imprimir/', imprimir_remision, name='imprimir_remision'),
+    path('movimiento/<int:pk>/imprimir/', imprimir_movimiento, name='imprimir_movimiento'),
+    path('compra/<int:pk>/imprimir/', imprimir_compra, name='imprimir_compra'),
 ]

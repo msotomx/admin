@@ -44,10 +44,10 @@ class Exportacion(models.Model):
 
 class Factura(models.Model):
     ESTATUS_CHOICES = (
-        ('BORRADOR','Borrador'),  
-        ('VIGENTE','Vigente'),      
-        ('CANCELADA','Cancelado'), 
-        ('ERROR','Error') 
+        ('Borrador','Borrador'),  
+        ('Vigente','Vigente'),      
+        ('Cancelada','Cancelado'), 
+        ('Error','Error') 
             )
     usuario = models.ForeignKey(User,on_delete=models.RESTRICT)
     empresa = models.ForeignKey(Empresa,on_delete=models.RESTRICT)
@@ -61,7 +61,7 @@ class Factura(models.Model):
     moneda = models.ForeignKey(Moneda,on_delete=models.RESTRICT)
     uso_cfdi = models.ForeignKey(UsoCfdi,on_delete=models.RESTRICT)
     subtotal = models.DecimalField(max_digits=12, decimal_places=2)
-    descuento = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    descuento_factura = models.DecimalField(max_digits=12, decimal_places=2, default=0)
     total = models.DecimalField(max_digits=12, decimal_places=2)
     iva_factura = models.DecimalField(max_digits=12, decimal_places=2, default=0)
     ieps_factura = models.DecimalField(max_digits=12, decimal_places=2, default=0)
@@ -70,7 +70,6 @@ class Factura(models.Model):
     impuestos_trasladados = models.DecimalField(max_digits=12, decimal_places=2, default=0)
     impuestos_retenidos   = models.DecimalField(max_digits=12, decimal_places=2, default=0)
     serie_emisor = models.CharField(max_length=50,blank=False,default="")
-    serie_sat    = models.CharField(max_length=50,blank=False,default="")
     lugar_expedicion = models.CharField(max_length=5,blank=False,default="")
     tipo_cambio      = models.DecimalField(max_digits=10, decimal_places=4, default=1)
     tipo_comprobante = models.ForeignKey(TipoComprobante,on_delete=models.RESTRICT)
@@ -84,13 +83,14 @@ class Factura(models.Model):
     # Información de timbrado
     uuid = models.CharField(max_length=40, blank=True)
     fecha_timbrado = models.DateTimeField(null=True, blank=True)
+    fecha_cancelacion = models.DateTimeField(null=True, blank=True)
     
     sello     = models.TextField(blank=True)
     sello_sat = models.TextField(blank=True)
     num_certificado=models.CharField(max_length=21, blank=True)
     rfc_certifico  =models.CharField(max_length=13, blank=True)
 
-    estatus = models.CharField(max_length=10, choices=ESTATUS_CHOICES, default='BORRADOR')  # o 'TIMBRADA', 'CANCELADA' 'ERROR'
+    estatus = models.CharField(max_length=10, choices=ESTATUS_CHOICES, default="Borrador")  # o 'TIMBRADA', 'CANCELADA' 'ERROR'
 
     def __str__(self):
         return f'{self.numero_factura or ""} - {self.cliente.nombre}'
@@ -107,17 +107,17 @@ class DetalleFactura(models.Model):
     importe = models.DecimalField(max_digits=12, decimal_places=2)
     descuento = models.DecimalField(max_digits=12, decimal_places=2, default=Decimal('0'))
     # impuestos,iva
-    tasa_iva = models.DecimalField(max_digits=5, decimal_places=2, default=Decimal('0'))  # ej. 16.00
+    tasa_iva = models.DecimalField(max_digits=9, decimal_places=6, default=Decimal('0'))  # ej. 16.00
     iva_producto = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal('0'))
 
     # Ieps por producto
 
-    tasa_ieps = models.DecimalField(max_digits=5, decimal_places=2, default=Decimal('0'))
+    tasa_ieps = models.DecimalField(max_digits=9, decimal_places=6, default=Decimal('0'))
     ieps_producto = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal('0'))
 
     # Retenciones por concepto
-    tasa_retencion_iva = models.DecimalField(max_digits=5, decimal_places=2, default=Decimal('0'))
-    tasa_retencion_isr = models.DecimalField(max_digits=5, decimal_places=2, default=Decimal('0'))
+    tasa_retencion_iva = models.DecimalField(max_digits=9, decimal_places=6, default=Decimal('0'))
+    tasa_retencion_isr = models.DecimalField(max_digits=9, decimal_places=6, default=Decimal('0'))
 
     retencion_iva = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal('0'))
     retencion_isr = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal('0'))

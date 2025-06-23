@@ -1,0 +1,48 @@
+    // Buscar Remision
+    const campoRemision = document.getElementById('id_numero_remision');
+    const clavemovInput = document.getElementById('id_clave_movimiento');
+
+    campoRemision.addEventListener('blur', function() {
+        const numero = campoRemision.value;
+        const clave  = clavemovInput.value; 
+        console.log("remision:", numero)
+        console.log("clave_movimiento:", clave)
+        if (!numero || numero === "0000000") return;
+
+        fetch(`/fac/ajax/cargar-remision/?numero_remision=${numero}&clave_movimiento=${clave}`)
+        .then(response => {
+            if (!response.ok) throw new Error("Remisión no encontrada");
+            return response.json();
+        })
+        .then(data => {
+            // Rellenar campos principales de la factura
+            document.getElementById('id_cliente').value = data.cliente_id;
+            document.getElementById('id_condiciones_pago').value = "CONTADO"
+
+            // Borrar líneas actuales del formset
+            const totalForms = document.getElementById('id_detallefactura_set-TOTAL_FORMS');
+            const tbody = document.querySelector('#formset tbody');
+            tbody.innerHTML = '';
+            let index = 0;
+
+            data.detalles.forEach(det => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td><input type="hidden" name="detallefactura_set-${index}-id"><input type="hidden" name="detallefactura_set-${index}-producto" value="${det.producto_id}">${det.producto_id}</td>
+                    <td><input type="number" name="detallefactura_set-${index}-cantidad" value="${det.cantidad}" class="form-control form-control-sm"></td>
+                    <td><input type="number" name="detallefactura_set-${index}-precio" value="${det.valor_unitario}" class="form-control form-control-sm"></td>
+                    <td><input type="number" name="detallefactura_set-${index}-descuento" value="${det.descuento}" class="form-control form-control-sm"></td>
+                    <td><input type="number" name="detallefactura_set-${index}-subtotal" value="${det.subtotal}" class="form-control form-control-sm" readonly></td>
+                `;
+                tbody.appendChild(row);
+                index++;
+            });
+
+            totalForms.value = index;
+        })
+        .catch(error => {
+            alert(error.message);
+        });
+    });    
+
+    // Fin de Buscar Remision

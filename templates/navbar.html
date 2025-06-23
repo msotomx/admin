@@ -5,7 +5,7 @@
      <a class="navbar-brand" href="#">
       {% if user.is_authenticated %}
         {% if user.perfilusuario.empresa %}
-          {{ user.perfilusuario.empresa.nombre_comercial }}
+          {{ user.perfilusuario.empresa.nombre_comercial|truncatechars:30 }}
         {% else %}
           Empresa no asignada
         {% endif %}
@@ -32,6 +32,7 @@
             <li><a class="dropdown-item" href="{% url 'inv:almacen_list' %}">Almacenes</a></li>
             <li><a class="dropdown-item" href="{% url 'inv:clavemovimiento_list' %}">Claves de Movimiento Inventario</a></li>
             <li><a class="dropdown-item" href="{% url 'cxc:tipocliente_list' %}">Tipos de Cliente</a></li>
+            <li><a class="dropdown-item" href="{% url 'inv:vendedor_list' %}">Vendedores</a></li>
             <li><a class="dropdown-item" href="{% url 'cxc:cliente_list' %}">Clientes</a></li>
             <li><a class="dropdown-item" href="{% url 'inv:proveedor_list' %}">Proveedores</a></li>
             <li><a class="dropdown-item" href="{% url 'inv:producto_list' %}">Productos</a></li>
@@ -44,7 +45,10 @@
           <ul class="dropdown-menu">
             <li><a class="dropdown-item" href="{% url 'inv:movimiento_list' %}">Movimientos Inventario</a></li>
             <li><a class="dropdown-item" href="{% url 'inv:remision_list' %}">Remisiones</a></li>
+            <!-- 
             <li><a class="dropdown-item" href="#">Traspasos</a></li>
+            <li><a class="dropdown-item" href="#">---------------------------</a></li>
+            <li><a class="dropdown-item" href="#">Cotizaciones</a></li>  -->
           </ul>
         </li>
 
@@ -74,10 +78,10 @@
 
         <!-- Generar CFDI's -->
         <li class="nav-item dropdown">
-          <a class="nav-link dropdown-toggle" href="#" id="cfdiDropdown" role="button" data-bs-toggle="dropdown">Generar CFDI's</a>
+          <a class="nav-link dropdown-toggle" href="#" id="cfdiDropdown" role="button" data-bs-toggle="dropdown">Generar CFDI</a>
           <ul class="dropdown-menu">
-            <li><a class="dropdown-item" href="{% url 'inv:cfdi_registrar_emisor' %}">Registrar Emisor</a></li>
             <li><a class="dropdown-item" href="{% url 'fac:factura_list' %}">Generar CFDI</a></li>
+            <li><a class="dropdown-item" href="#">CFDI por Cliente</a></li>
           </ul>
         </li>
 
@@ -87,6 +91,7 @@
           <ul class="dropdown-menu">
             <li><a class="dropdown-item" href="{% url 'inv:empresa_list' %}">General</a></li>
             <li><a class="dropdown-item" href="{% url 'inv:empresa_lugarexp_list' %}">Lugar Expedición-Facturas</a></li>
+            <li><a class="dropdown-item" href="{% url 'inv:cfdi_registrar_emisor' %}">Registrar Emisor</a></li>
           </ul>
         </li>
 

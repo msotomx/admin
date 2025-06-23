@@ -1,0 +1,109 @@
+# esta es la funcion del <script> en factura.html  
+
+async function verificarRemision(clave,numero) {
+        if (!numero || numero === "0000000") return;
+
+        fetch(`/fac/ajax/cargar-remision/?numero_remision=${numero}&clave_movimiento=${clave}`)
+        .then(response => {
+            if (!response.ok) throw new Error("Remisión no encontrada");
+            return response.json();
+        })
+        .then(data => {
+            if (!data.detalles || data.detalles.length === 0) {
+                console.warn("No se recibieron detalles.");
+                return;
+            }
+
+            // Rellenar campos principales de la factura
+            document.getElementById('id_cliente').value = data.cliente_id;
+            document.getElementById('id_condiciones_pago').value = "CONTADO";
+            
+            // Borrar líneas actuales del formset
+            const totalForms = document.getElementById('id_detallefactura_set-TOTAL_FORMS');
+            const tbody = document.getElementById('formset-body');
+
+            tbody.innerHTML = '';  // Borra los existentes
+            let index = 0;
+
+            data.detalles.forEach(det => {
+                const newRow = document.querySelector('#empty-form-template').content.cloneNode(true);
+                // Asignar valores al campo producto y a todos los campos select
+                newRow.querySelectorAll('select').forEach(select => {
+                    if (select.name.includes('__prefix__')) {
+                        select.name = select.name.replace('__prefix__', index);
+                        select.id = select.id.replace('__prefix__', index);
+                    }
+
+                    if (select.name.endsWith('-producto')) {
+                        select.value = det.producto_id;
+                    }
+                });
+                // Asignar valores a los demas campos input
+                newRow.querySelectorAll('input').forEach(input => {
+                    if (input.name.includes('__prefix__')) {
+                        input.name = input.name.replace('__prefix__', index);
+                        input.id = input.id.replace('__prefix__', index);
+                    }
+                    const tasa_ivaInput  = newRow.querySelector("input[name$='-tasa_iva']");
+                    const tasa_iepsInput = newRow.querySelector("input[name$='-tasa_ieps']");
+                    const tasa_retencion_ivaInput = newRow.querySelector("input[name$='-tasa_retencion_iva']");
+                    const tasa_retencion_isrInput = newRow.querySelector("input[name$='-tasa_retencion_isr']");
+                    const clave_prod_servInput = newRow.querySelector("input[name$='-clave_prod_serv']");
+                    const clave_unidadInput = newRow.querySelector("input[name$='-clave_unidad']");
+                    const descripcionInput = newRow.querySelector("input[name$='-descripcion']");
+
+                    if (input.name.endsWith('-cantidad')) {
+                        input.value = det.cantidad;
+                    } else if (input.name.endsWith('-valor_unitario')) {
+                        input.value = det.precio;
+                    } else if (input.name.endsWith('-descuento')) {
+                        input.value = det.descuento;
+                    } else if (input.name.endsWith('-importe')) {
+                        input.value = det.subtotal;
+                    }
+                    if (input.name.endsWith('-tasa_iva')) {
+                        input.value = det.tasa_iva;
+                    }
+                    if (input.name.endsWith('-tasa_ieps')) {
+                        input.value = det.tasa_ieps;
+                    }
+                    if (input.name.endsWith('-tasa_retencion_iva')) {
+                        input.value = det.tasa_retencion_iva;
+                    }
+                    if (input.name.endsWith('-tasa_retencion_isr')) {
+                        input.value = det.tasa_retencion_isr;
+                    }
+
+
+                    if (!clave_prod_servInput) {
+                        console.log("clave_prod_serv no encontrado");
+                    }
+                    if (!clave_unidadInput) {
+                        console.log("clave_unidad no encontrado");
+                    }
+                    if (!descripcionInput) {
+                        console.log("descripcion no encontrado");
+                    }
+                    
+
+                    if (input.name.endsWith('-clave_prod_serv')) {
+                        input.value = det.clave_prod_serv;
+                    }
+                    if (input.name.endsWith('-clave_unidad')) {
+                        input.value = det.clave_unidad;
+                    }
+                    if (input.name.endsWith('-descripcion')) {
+                        input.value = det.nombre_producto;
+                    }
+                });
+                console.log("ANTES DEL appendChild");
+                tbody.appendChild(newRow);
+                index++;
+            });
+
+            document.getElementById('id_detallefactura_set-TOTAL_FORMS').value = index;
+        })
+        .catch(error => {
+            alert(error.message);
+        });
+    };    

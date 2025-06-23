@@ -1,6 +1,7 @@
 from django.urls import path
 from .views import TipoClienteListView, TipoClienteCreateView, TipoClienteUpdateView, TipoClienteDeleteView
 from .views import ClienteListView, ClienteCreateView, ClienteUpdateView, ClienteDeleteView
+from .views import obtener_ultimo_cliente
 
 app_name = 'cxc'
 
@@ -13,4 +14,6 @@ urlpatterns = [
     path('cliente/nuevo/', ClienteCreateView.as_view(), name='cliente_create'),
     path('cliente/editar/<int:pk>/', ClienteUpdateView.as_view(), name='cliente_update'),
     path('cliente/eliminar/<int:pk>/', ClienteDeleteView.as_view(), name='cliente_delete'),
+    path('ajax/ultimo_cliente/', obtener_ultimo_cliente, name='ajax_ultimo_cliente'),
+    path('clientes/', ClienteListView.as_view(), name='cliente_list'),
 ]

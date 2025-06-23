@@ -1,0 +1,340 @@
+{% extends 'base.html' %}
+{% load form_tags %}
+
+{% block content %}
+<div class="container mt-4">
+    <style>
+        input[readonly] {
+            background-color: #f0f0f0;  /* Gris muy claro */
+            pointer-events: none;       /* Evita que intente editarlo */
+            border-color: #ccc;         /* Borde más tenue */
+        }
+    </style>
+    <h4>{% if form.instance.pk %}Editar{% else %}Nueva{% endif %} Remision</h4>
+    <form method="post">
+        {% csrf_token %}
+        {{ formset.management_form }}  
+
+        <div class="card mb-3">
+            <div class="card-header">Encabezado</div>
+            <div class="row g-2">
+                <div class="col-md-1 mb-2">
+                    <label class="form-label small">Almacén</label>
+                    {{ form.almacen|add_bootstrap_class }}
+                </div>
+                <div class="col-md-2 mb-2">
+                    <label class="form-label small">Clave Remisión</label>
+                    {{ form.clave_movimiento|add_bootstrap_class }}
+                </div>
+                <div class="col-md-1 mb-2">
+                    <label class="form-label small">Remisión</label>
+                    {{ form.numero_remision|add_bootstrap_class }}
+                </div>
+                <div class="col-md-2 mb-2">
+                    <label class="form-label small">Fecha Remision</label>
+                    {{ form.fecha_remision|add_bootstrap_class }}
+                </div>
+                <div class="col-md-4 mb-2">
+                    <label class="form-label small">Cliente</label>
+                    {{ form.cliente|add_bootstrap_class }}
+                </div>
+                <div class="col-md-2 mb-2">
+                    <label class="form-label small">Vendedor</label>
+                    {{ form.vendedor|add_bootstrap_class }}
+                </div>
+
+            </div>
+        </div>
+        <div class="row g-2 mt-1">
+            <div class="col-md-3 mb-2">
+                <label class="form-label small">Factura</label>
+                <input type="text" class="form-control form-control-sm" value="{{ form.instance.numero_factura }}" readonly disabled>
+            </div>
+            <div class="col-md-3 mb-2">
+                <label class="form-label small">Status</label>
+                <input type="text" class="form-control form-control-sm" 
+                    value="{% if form.instance.status == 'R' %}R - REMISIÓN
+                            {% elif form.instance.status == 'F' %}F - FACTURADO
+                            {% elif form.instance.status == 'P' %}P - PEDIDO
+                            {% else %}{{ form.instance.status }}{% endif %}" readonly disabled>
+
+            </div>
+            <div class="col-md-3 mb-2">
+                <label class="form-label small">Usuario</label>
+                <input type="text" class="form-control form-control-sm" value="{{ form.instance.usuario }}" readonly disabled>
+            </div>
+            <div class="col-md-3 mb-2">
+                <label class="form-label small">Total General</label>
+                <input type="text" id="total-general" class="form-control form-control-sm text-end" readonly disabled>
+            </div>
+
+        </div>
+        
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span>Detalle</span>
+                <button type="button" class="btn btn-sm btn-primary" id="add-linea">+ Agregar línea</button>
+            </div>
+            <div class="card-body table-responsive">
+                <table class="table table-bordered table-sm">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Producto</th>
+                            <th>Existencia</th>
+                            <th>Cantidad</th>
+                            <th>Precio</th>
+                            <th>Descuento</th>
+                            <th>Subtotal</th>
+                            <th>Eliminar</th>
+                        </tr>
+                    </thead>
+                    
+                    <tbody id="formset-body">
+                        {% for form in formset %}
+                            <tr class="formset-form">
+                                {{ form.id }}
+                                <td>{{ form.producto }}</td>
+                                <td>
+                                    <input type="text" class="form-control form-control-sm existencia" readonly disabled>
+                                </td>
+                                <td>{{ form.cantidad }}</td>
+                                <td>{{ form.precio }}</td>
+                                <td>{{ form.descuento }}</td>
+                                <td>{{ form.subtotal }}</td>
+                                <td>{{ form.DELETE }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                <template id="empty-form-template">
+                    <tr class="formset-form">
+                        {{ formset.empty_form.id }}
+                        <td>{{ formset.empty_form.producto }}</td>
+                        <td>
+                            <input type="text" class="form-control form-control-sm existencia" readonly disabled>
+                        </td>
+                        <td>{{ formset.empty_form.cantidad }}</td>
+                        <td>{{ formset.empty_form.precio }}</td>
+                        <td>{{ formset.empty_form.descuento }}</td>
+                        <td>{{ formset.empty_form.subtotal }}</td>
+                        <td>{{ formset.empty_form.DELETE }}</td>
+                    </tr>
+                </template>
+                
+            </div>
+        </div>
+
+        <div class="mt-3 text-end">
+            <button type="submit" class="btn btn-success">Guardar Remision</button>
+            <a href="{% url 'inv:remision_list' %}" class="btn btn-secondary">Cancelar</a>
+        </div>
+    </form>
+</div>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const addBtn = document.getElementById('add-linea');
+    const formsetBody = document.getElementById('formset-body');
+    const totalFormsInput = document.getElementById('id_detalles-TOTAL_FORMS');
+    const totalGeneral = document.getElementById('total-general'); 
+    const claveMovimientoInput = document.getElementById('id_clave_movimiento');
+    const numero_remisionInput = document.getElementById('id_numero_remision');
+
+    if (claveMovimientoInput) {
+        claveMovimientoInput.focus();
+    }
+    // busca el ultimo numero para esa clave_movimiento
+    if (claveMovimientoInput && numero_remisionInput) {
+        claveMovimientoInput.addEventListener('change', function () {
+            const clave = this.value;
+            if (clave) {
+                fetch(`/inv/ajax/numero-remision/?clave=${clave}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        numero_remisionInput.value = data.numero_remision;
+                    });
+            }
+        });
+    }
+
+    // valida si clave_movimiento + Remision existe
+    // Si existe, se muestra en modo edicion
+    // Si no existe, continua con el proceso normal de Registro Nuevo
+    //  numero_remisionInput = document.getElementById('id_numero_remision');
+    const claveMovInput = document.getElementById('id_clave_movimiento');
+
+    async function verificarRemision(claveMovId, numero_remision) {
+        const response = await fetch(`/inv/verificar-remision/?clave_movimiento=${claveMovId}&numero_remision=${numero_remision}`);
+        const data = await response.json();
+        if (data.existe) {
+            // alert('Este movimiento ya existe. Se mostrará en modo edición.');
+            // Aquí podrías redirigir automáticamente, o cargar los datos con AJAX
+            window.location.href = `/inv/remision/editar/${data.id}/`;
+        }
+    }
+
+    if (numero_remisionInput && claveMovInput) {
+        numero_remisionInput.addEventListener('blur', function () {
+            let ref = numero_remisionInput.value.trim();
+            if (ref) {
+                ref = ref.padStart(7, '0');  // llena la referencia con ceros a la izquierda
+                numero_remisionInput.value = ref;
+                
+                const claveMovId = claveMovInput.value;
+                if (claveMovId) {
+                    verificarRemision(claveMovId, ref);
+                }
+            }
+        });
+        numero_remisionInput.addEventListener('keydown', function (e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();  // Previene el envío del formulario
+
+                let ref = numero_remisionInput.value.trim();
+                if (ref) {
+                    ref = ref.padStart(7, '0');
+                    numero_remisionInput.value = ref;
+
+                    const claveMovId = claveMovInput.value;
+                    if (claveMovId) {
+                        verificarRemision(claveMovId, ref);
+                    }
+
+                    // Disparar manualmente el evento blur
+                    numero_remisionInput.dispatchEvent(new Event('blur'));
+                }
+            }
+        });
+    }
+    
+    // termina verificar si existe movimiento  
+    
+    // boton agregar linea
+    addBtn.addEventListener('click', function () {
+        const totalForms = parseInt(totalFormsInput.value);
+        const template = document.querySelector('#empty-form-template');
+
+        if (!template) return;
+
+        const newRow = template.content.cloneNode(true);  // clona el contenido del template
+
+        // Reemplaza "__prefix__" por el nuevo número
+        newRow.querySelectorAll('*').forEach(function (el) {
+            if (el.name) el.name = el.name.replace(/__prefix__/, totalForms);
+            if (el.id) el.id = el.id.replace(/__prefix__/, totalForms);
+            if (el.getAttribute('for')) el.setAttribute('for', el.getAttribute('for').replace(/__prefix__/, totalForms));
+
+            // Limpia valores si es input
+            if (el.tagName === 'INPUT' || el.tagName === 'SELECT') {
+                if (el.type === 'checkbox') {
+                    el.checked = false;
+                } else {
+                    el.value = '';
+                }
+            }
+        });
+
+        formsetBody.appendChild(newRow);
+
+        totalFormsInput.value = totalForms + 1;
+        actualizarTotal();
+    });
+    
+    // al generarse el evento BLUR del campo producto, se asigna el valor
+    // del precio1 al campo precio y se calcula la existencia del producto
+    const fechaInput = document.querySelector('#id_fecha_remision');
+    const almacenInput = document.querySelector('#id_almacen');
+
+    if (formsetBody) {
+        ['focusout', 'change'].forEach(eventName => {
+            formsetBody.addEventListener('blur', async function (e) {
+                if (e.target && e.target.name.includes('-producto')) {
+                    const productoInput = e.target;
+                    const row = productoInput.closest('tr');  
+                    const productoId = productoInput.value;
+
+                    // Toma fecha y almacen del formulario 
+                    const fechaInput = document.querySelector('#id_fecha_remision');
+                    const almacenInput = document.querySelector('#id_almacen');
+
+                    const fecha = fechaInput ? fechaInput.value : null;
+                    const almacenId = almacenInput ? almacenInput.value : null;
+
+                    if (productoId && fecha && almacenId) {
+                        try {
+                            // 1. Obtener precio 
+                            const precioResp = await fetch(`/inv/obtener_precio_producto/?producto_id=${productoId}`);
+                            if (!precioResp.ok) throw new Error('Error al obtener precio');
+                            const precioData = await precioResp.json();
+                            const precioInput = row.querySelector("input[name$='-precio']");
+                            if (precioInput) {
+                                precioInput.value = precioData.precio1;
+                            }
+
+                            // 2. Obtener existencia del producto
+                            const existenciaResp = await fetch(`/inv/api/existencia_producto/?producto=${productoId}&almacen=${almacenId}&fecha=${fecha}`);
+                            if (!existenciaResp.ok) throw new Error('Error al obtener existencia');
+                            const existenciaData = await existenciaResp.json();
+
+                            // Aquí se selecciona el input con clase 'existencia' en la misma fila para desplegar la existencia en el formulario
+                            const existenciaInput = row.querySelector('input.existencia');
+                            if (existenciaInput) {
+                                existenciaInput.value = existenciaData.existencia;
+                            } else {
+                                console.log(`Existencia actual: ${existenciaData.existencia}`);
+                            }
+
+                        } catch (err) {
+                            console.error('Error al obtener datos del producto:', err);
+                        }
+                    }
+                }
+            }, true);
+        });
+    }
+    
+    // fin de blur producto
+
+    // Recalcular subtotal automáticamente
+    document.addEventListener('input', function (e) {
+        if (e.target.name.includes('cantidad') || e.target.name.includes('precio') || e.target.name.includes('descuento')) {
+
+            const row = e.target.closest('tr');
+            const cantidad = parseFloat(row.querySelector('input[name$="cantidad"]')?.value || 0);
+            const precio = parseFloat(row.querySelector('input[name$="precio"]')?.value || 0);
+            const descuento = parseFloat(row.querySelector('input[name$="descuento"]')?.value || 0);
+            const subtotal = (cantidad * precio) - descuento;
+            const subtotalField = row.querySelector('input[name$="subtotal"]');
+            if (subtotalField) subtotalField.value = subtotal.toFixed(2);
+            actualizarTotal(); // ← actualiza el total en cada cambio
+        }
+
+        if (e.target.name.includes('DELETE')) {
+            actualizarTotal(); // 👈 si marcan eliminar también recalcular
+        }
+    });
+
+    function actualizarTotal() {
+        let total = 0;
+        formsetBody.querySelectorAll('tr').forEach(function (row) {
+            const subtotalField = row.querySelector('input[name$="subtotal"]');
+            const deleteCheckbox = row.querySelector('input[type="checkbox"][name$="DELETE"]');
+            
+            // Solo sumar si no está marcado para eliminar
+            if (subtotalField && (!deleteCheckbox || !deleteCheckbox.checked)) {
+                const subtotal = parseFloat(subtotalField.value) || 0;
+                total += subtotal;
+            }
+        });
+        if (totalGeneral) {
+            totalGeneral.value = total.toFixed(2);  // <-- aquí usa `.value` porque es un input en el html
+        }
+
+    }
+
+    actualizarTotal(); // ojo
+});
+</script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js?ver=1.0"></script>
+
+{% endblock %}
+

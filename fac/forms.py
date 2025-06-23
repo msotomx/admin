@@ -1,14 +1,10 @@
 from django import forms
 from fac.models import Factura, DetalleFactura, TipoComprobante, Exportacion
-from inv.models import Moneda
+from inv.models import Moneda, Producto
+from cxc.models import Cliente
 
 from django.forms import inlineformset_factory
 from django.utils.timezone import now, localtime
-
-from django.forms.models import BaseInlineFormSet
-
-from django.forms.models import BaseInlineFormSet
-
 from django.forms.models import BaseInlineFormSet
 
 class BaseDetalleFacturaFormSet(BaseInlineFormSet):
@@ -40,51 +36,43 @@ class FacturaForm(forms.ModelForm):
     class Meta:
         model = Factura
         fields = '__all__'
-        exclude = ['serie_emisor', 'serie_sat',
+        exclude = ['serie_emisor',
                    'lugar_expedicion', 'tipo_cambio',  
-                   'descuento', 'xml', 'pdf', 'uuid', 'fecha_timbrado',
+                   'xml', 'pdf', 'uuid', 'fecha_timbrado',
                    'sello_cfdi', 'no_certificado_sat', 'empresa']
         widgets = {
             'fecha_emision': forms.DateInput(attrs={'type': 'date'}),
             'fecha_creacion': forms.DateInput(attrs={'type': 'date'}),
         }
         
-
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, **kwargs): 
         super().__init__(*args, **kwargs)
         
-        # Aplica clase Bootstrap a todos los campos
-        for field in self.fields.values():
-            self.fields['impuestos_trasladados'].widget.attrs.update({
-                'readonly': True,
-                'tabindex': '-1',
-                'class': 'form-control form-control-sm text-end bg-light'
-            })
-            self.fields['impuestos_retenidos'].widget.attrs.update({
-                'readonly': True,
-                'tabindex': '-1',
-                'class': 'form-control form-control-sm text-end bg-light'
-            })
-            self.fields['subtotal'].widget.attrs.update({
-                'readonly': True,
-                'tabindex': '-1',
-                'class': 'form-control form-control-sm text-end bg-light'
-            })
-            self.fields['estatus'].widget.attrs.update({
+        # Bootstrap y estilos para campos específicos
+        for name in ['impuestos_trasladados', 'impuestos_retenidos', 'subtotal', 'estatus']:
+            self.fields[name].widget.attrs.update({
                 'readonly': True,
                 'tabindex': '-1',
                 'class': 'form-control form-control-sm text-end bg-light'
             })
 
-            self.fields['moneda'].initial = Moneda.objects.filter(clave="MXN").first()
-            self.fields['moneda'].widget = forms.HiddenInput()  # el campo no es visible en el formulario
-            self.fields['tipo_comprobante'].initial = TipoComprobante.objects.filter(tipo_comprobante='I').first()
-            self.fields['tipo_comprobante'].widget = forms.HiddenInput()  # el campo no es visible en el formulario
-            self.fields['exportacion'].initial = Exportacion.objects.filter(exportacion='01').first()
-            self.fields['exportacion'].widget = forms.HiddenInput()  # el campo no es visible en el formulario
-            self.fields['estatus'].initial = "BORRADOR"
+        self.fields['cliente'].queryset = Cliente.objects.all().order_by('nombre')
+
+        # Ocultar campos
+        self.fields['descuento_factura'].widget = forms.HiddenInput()
+        self.fields['moneda'].widget = forms.HiddenInput()
+        self.fields['tipo_comprobante'].widget = forms.HiddenInput()
+        self.fields['exportacion'].widget = forms.HiddenInput()
+
+        # Inicializar valores por defecto al crear una nueva factura
+        if not self.instance.pk:
+            self.fields['estatus'].initial = "Borrador"
             self.fields['condiciones_pago'].initial = "CONTADO"
-                                                    
+            self.fields['descuento_factura'].initial = 0
+            self.fields['moneda'].initial = Moneda.objects.filter(clave="MXN").first()
+            self.fields['tipo_comprobante'].initial = TipoComprobante.objects.filter(tipo_comprobante='I').first()
+            self.fields['exportacion'].initial = Exportacion.objects.filter(exportacion='01').first()
+                                                                
 class DetalleFacturaForm(forms.ModelForm):
     class Meta:
         model = DetalleFactura
@@ -97,8 +85,7 @@ class DetalleFacturaForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        self.fields['clave_unidad'].required = False
-        self.fields['descripcion'].required = False
+        self.fields['producto'].queryset = Producto.objects.all().order_by('nombre')
         self.fields['objeto_impuesto'].required = False
         
         # Bootstrap para todos los campos
@@ -109,12 +96,18 @@ class DetalleFacturaForm(forms.ModelForm):
         self.fields['objeto_impuesto'].widget = forms.HiddenInput()
         # Impuestos ocultos
         for tax_field in ['tasa_iva', 'iva_producto', 'tasa_ieps', 'ieps_producto', 
-                          'tasa_retencion_iva', 'tasa_retencion_isr', 'retencion_iva', 'retencion_isr']:
+                          'tasa_retencion_iva', 'tasa_retencion_isr', 'retencion_iva', 'retencion_isr',
+                          'clave_unidad','descripcion']:
             self.fields[tax_field].initial = 0
             self.fields[tax_field].widget = forms.HiddenInput()
 
         # Clave SAT readonly
         self.fields['clave_prod_serv'].widget.attrs.update({
+            'readonly': True,
+            'tabindex': '-1',
+            'class': 'form-control form-control-sm bg-light'
+        })
+        self.fields['importe'].widget.attrs.update({
             'readonly': True,
             'tabindex': '-1',
             'class': 'form-control form-control-sm bg-light'
@@ -136,6 +129,11 @@ DetalleFacturaFormSet = inlineformset_factory(
     DetalleFactura,
     form=DetalleFacturaForm,
     formset=BaseDetalleFacturaFormSet,
+    fields=['producto', 'cantidad', 'valor_unitario', 'descuento', 'importe',
+            'tasa_iva', 'iva_producto', 'tasa_ieps', 'ieps_producto', 
+            'tasa_retencion_iva', 'tasa_retencion_isr', 'retencion_iva', 'retencion_isr',
+            'clave_unidad','descripcion', 'objeto_impuesto', 'clave_prod_serv', 'descripcion'
+            ],
     extra=1,
     can_delete=True
 )

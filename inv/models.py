@@ -1,10 +1,21 @@
 from django.db import models
 from django.contrib.auth.models import User
+from decimal import Decimal
 
 class Categoria(models.Model):
     categoria = models.IntegerField(null=False, unique=True)
     nombre = models.CharField(max_length=100)
     
+    def __str__(self):
+        return self.nombre 
+
+class Vendedor(models.Model):
+    vendedor = models.CharField(max_length=3, unique=True)
+    nombre = models.CharField(max_length=100)
+    telefono = models.CharField(max_length=20,blank=True)
+    email = models.EmailField(blank=True)
+    fecha_registro = models.DateField(blank=True)
+        
     def __str__(self):
         return self.nombre 
 
@@ -35,8 +46,10 @@ class Moneda(models.Model):
 # 'E' entrada, 'S' salida, 'C' compras
 class ClaveMovimiento(models.Model):   
     clave_movimiento = models.CharField(max_length=2,default='', blank=False, unique=True)
-    nombre = models.CharField(max_length=30,null=True)
-    tipo = models.CharField(max_length=1,default='',blank=False)  # E o S 
+    nombre      = models.CharField(max_length=30,null=True)
+    tipo        = models.CharField(max_length=1,default='',blank=False)  # E o S 
+    es_remision = models.BooleanField(blank=True)   # True - clave para remisiones
+    es_compra   = models.BooleanField(blank=True)   # True - clave para compras
     
     def __str__(self):
         return self.nombre 
@@ -104,18 +117,43 @@ class DetalleMovimiento(models.Model):
     def __str__(self):
         return self.referencia
 
+class Cotizacion(models.Model):
+    usuario = models.ForeignKey(User,on_delete=models.RESTRICT)
+    numero_cotizacion = models.CharField(max_length=7,blank=False,default="")
+    vendedor = models.ForeignKey(Vendedor,on_delete=models.RESTRICT)
+    fecha_cotizacion = models.DateField(blank=False)
+    cliente = models.ForeignKey('cxc.Cliente',on_delete=models.RESTRICT)
+    comentarios = models.TextField(blank=True)
+
+    def __str__(self):
+        return self.numero_cotizacion
+
+class DetalleCotizacion(models.Model):
+    numero_cotizacion = models.ForeignKey(Cotizacion,related_name='detalles',on_delete=models.CASCADE)
+    producto = models.ForeignKey(Producto,on_delete=models.RESTRICT)
+    cantidad = models.DecimalField(null=True, decimal_places=2, max_digits=10)
+    precio = models.DecimalField(null=True, decimal_places=2, max_digits=10)
+    descuento = models.DecimalField(null=True, decimal_places=2, max_digits=10, blank=True)
+    subtotal = models.DecimalField(max_digits=10,decimal_places=2,null=True)
+
+    def __str__(self):
+        return self.producto.nombre
+
+
 class Remision(models.Model):
     ESTADO_CHOICES = (
-        ('C','Cotizacion'),  # no genera movimiento de Salida
-        ('P','Pedido'),      # no genera movimiento de Salida
-        ('R','Remisionado'), # si genera movimiento de Salida
-        ('F','Facturado'),    # la remision se ha facturado
-        ('E','Eliminada')    # la remision se ha borrado
+        ('C','COTIZACION'),  # no genera movimiento de Salida
+        ('P','PEDIDO'),      # no genera movimiento de Salida
+        ('R','REMISION'), # si genera movimiento de Salida
+        ('F','FACTURADO'),    # la remision se ha facturado
+        ('E','ELIMINADA')    # la remision se ha borrado
     )
     almacen = models.ForeignKey(Almacen,on_delete=models.RESTRICT)
     usuario = models.ForeignKey(User,on_delete=models.RESTRICT)
+    vendedor = models.ForeignKey(Vendedor,on_delete=models.RESTRICT)
     clave_movimiento = models.ForeignKey(ClaveMovimiento,on_delete=models.RESTRICT)
     numero_remision = models.CharField(max_length=7,blank=False,default="")
+    numero_cotizacion = models.ForeignKey(Cotizacion,on_delete=models.RESTRICT, blank=True, null=True)
     fecha_remision = models.DateField(blank=False)
     numero_factura = models.CharField(max_length=20,blank=False,default="")
     cliente = models.ForeignKey('cxc.Cliente',on_delete=models.RESTRICT)
@@ -133,6 +171,22 @@ class DetalleRemision(models.Model):
     descuento = models.DecimalField(null=True, decimal_places=2, max_digits=10, blank=True)
     subtotal = models.DecimalField(max_digits=10,decimal_places=2,null=True)
 
+    # Iva por producto
+    tasa_iva = models.DecimalField(max_digits=9, decimal_places=6, default=Decimal('0'))  # ej. 16.00
+    iva_producto = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal('0'))
+
+    # Ieps por producto
+
+    tasa_ieps = models.DecimalField(max_digits=9, decimal_places=6, default=Decimal('0'))
+    ieps_producto = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal('0'))
+
+    # Retenciones por concepto
+    tasa_retencion_iva = models.DecimalField(max_digits=9, decimal_places=6, default=Decimal('0'))
+    tasa_retencion_isr = models.DecimalField(max_digits=9, decimal_places=6, default=Decimal('0'))
+
+    retencion_iva = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal('0'))
+    retencion_isr = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal('0'))
+
     def __str__(self):
         return self.producto.nombre
 
@@ -147,7 +201,7 @@ class Compra(models.Model):
     fecha_pagada = models.DateField(blank=False)
     proveedor = models.ForeignKey(Proveedor,on_delete=models.RESTRICT)
     moneda = models.ForeignKey(Moneda,on_delete=models.RESTRICT)
-    paridad = models.DecimalField(default=1,decimal_places=2, max_digits=10,null=False)
+    paridad = models.DecimalField(max_digits=10, decimal_places=4, null=False)
     flete = models.DecimalField(default=0,decimal_places=2, max_digits=10,null=True)
     descuento_pp = models.DecimalField(default=1,decimal_places=2, max_digits=10,null=False)
     monto_total = models.DecimalField(default=0,decimal_places=2, max_digits=10,null=True)

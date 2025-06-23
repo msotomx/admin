@@ -21,7 +21,7 @@
                     <th>Cliente</th>
                     <th>Estado</th>
                     <th>Usuario</th>
-                    <th class="text-center">Acciones</th>
+                    <th class="text-center"> </th>
                 </tr>
             </thead>
             <tbody class="small">
@@ -36,7 +36,8 @@
                         <td>{{ remision.status }}</td>
                         <td>{{ remision.usuario }}</td>
                         <td class="text-center">
-                            <a href="{% url 'inv:remision_detail' remision.pk %}" class="btn btn-sm btn-outline-info">Ver</a>
+                            <!-- <a href="{% url 'inv:remision_detail' remision.pk %}" class="btn btn-sm btn-outline-info">Ver</a>   -->
+                            <a href="{% url 'inv:imprimir_remision' remision.pk %}" target="_blank" class="btn btn-sm btn-outline-info">Ver</a>
                             <a href="{% url 'inv:remision_update' remision.pk %}" class="btn btn-sm btn-outline-warning">Editar</a>
                             <a href="{% url 'inv:remision_delete' remision.pk %}" class="btn btn-sm btn-outline-danger">Eliminar</a>
                         </td>

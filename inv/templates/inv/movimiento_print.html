@@ -1,0 +1,64 @@
+{% extends 'base.html' %}
+{% block content %}
+<style>
+    @media print {
+        header,
+        footer,
+        nav,
+        .d-print-none {
+            display: none !important;
+        }
+    }
+</style>
+<div class="container mt-4" id="print-area">
+    <h3 class="mb-2">Movimiento {{ movimiento.clave_movimiento.clave_movimiento }} - {{ movimiento.referencia }}</h3>
+
+    <div class="row small">
+        <div class="col-md-6">
+            <p><strong>Fecha:</strong> {{ movimiento.fecha_movimiento }}</p>
+                    <p><strong>Tipo:</strong>
+                {% if movimiento.move_s == "E" %}
+                    Entrada de Almacén
+                {% elif movimiento.move_s == "S" %}
+                    Salida de Almacén
+                {% else %}
+                    Otro
+                {% endif %}
+            </p>
+        </div>
+        <div class="col-md-6 text-end">
+            <p><strong>Almacén:</strong> {{ movimiento.almacen.nombre }}</p>
+        </div>
+    </div>
+
+    <table class="table table-bordered table-sm mt-4">
+        <thead class="table-light">
+            <tr>
+                <th>#</th>
+                <th>Producto</th>
+                <th class="text-end">Cantidad</th>
+                <th class="text-end">Precio</th>
+                <th class="text-end">Subtotal</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for d in detalles %}
+            <tr>
+                <td>{{ forloop.counter }}</td>
+                <td>{{ d.producto.nombre }}</td>
+                <td class="text-end">{{ d.cantidad|floatformat:2 }}</td>
+                <td class="text-end">${{ d.costo_unit|floatformat:2 }}</td>
+                <td class="text-end">${{ d.subtotal|floatformat:2 }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <h5 class="text-end mt-3">Total: ${{ total|floatformat:2 }}</h5>
+
+    <div class="mt-4 text-center d-print-none">
+        <button onclick="window.print()" class="btn btn-primary">Imprimir</button>
+        <a href="{% url 'inv:movimiento_list' %}" class="btn btn-secondary">Volver</a>
+    </div>
+</div>
+{% endblock %}

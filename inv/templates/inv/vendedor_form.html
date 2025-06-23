@@ -1,0 +1,77 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load form_tags %}
+
+{% block content %}
+<div class="container mt-4">
+    <div data-vendedor-es-nuevo="{% if view.object.pk %}false{% else %}true{% endif %}"></div>    
+    <h2>{{ view.object.pk|yesno:"Editar Vendedor,Nuevo Vendedor" }}</h2>
+    <form method="POST">
+        {% csrf_token %}
+        <div class="row g-2">
+            <div class="col-md-4 mb-2">
+                <label class="form-label small">Clave</label>
+                {{ form.vendedor|add_bootstrap_class }}
+            </div>
+
+            <div class="col-md-6 mb-2">
+                <label class="form-label small">Nombre</label>
+                {{ form.nombre|add_bootstrap_class }}
+            </div>
+        </div>
+        <div class="row g-2">
+            <div class="col-md-4 mb-2">
+                <label class="form-label small">Teléfono</label>
+                {{ form.telefono|add_bootstrap_class }}
+            </div>
+            <div class="col-md-6 mb-2">
+                <label class="form-label small">Email</label>
+                {{ form.email|add_bootstrap_class }}
+            </div>
+            <div class="col-md-3 mb-2">
+                <label class="form-label small">Fecha Registro (días)</label>
+                {{ form.fecha_registro|add_bootstrap_class }}
+            </div>
+            </div>
+        </div>
+        <div class="mt-4">
+            <button type="submit" class="btn btn-success">Guardar Vendedor</button>
+            <a href="{% url 'inv:vendedor_list' %}" class="btn btn-secondary">Cancelar</a>
+        </div>
+    </form>
+</div>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const vendedorInput = document.getElementById('id_vendedor');
+        const fechaInput = document.querySelector('#id_fecha_registro');
+        const esNuevo = document
+            .querySelector('div[data-vendedor-es-nuevo]')
+            .dataset.vendedorEsNuevo === 'true';
+        
+        if (vendedorInput) {
+            vendedorInput.focus();
+        }
+
+        vendedorInput.addEventListener('blur', function () {
+            let val = vendedorInput.value.trim();
+            if (val) {
+                vendedorInput.value = val.padStart(3, '0');
+            }
+        });
+
+            // busca el ultimo numero para esa clave_movimiento
+        if (vendedorInput && esNuevo) {
+            // Solo se ejecuta si es un nuevo registro
+            fetch('/inv/ajax/ultimo_vendedor/')
+                .then(response => response.json())
+                .then(data => {
+                    vendedorInput.value = data.vendedor;
+                })
+                .catch(error => {
+                    console.error('Error obteniendo clave de vendedor:', error);
+                });
+        }
+    });
+    </script>
+
+{% endblock %}

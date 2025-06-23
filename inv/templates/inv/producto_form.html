@@ -4,6 +4,7 @@
 
 {% block content %}
 <div class="container mt-4">
+    <div data-producto-es-nuevo="{% if view.object.pk %}false{% else %}true{% endif %}"></div>
     <h2>{{ view.object.pk|yesno:"Editar Producto,Nuevo Producto" }}</h2>
     <form method="POST" enctype="multipart/form-data">
         {% csrf_token %}
@@ -69,7 +70,7 @@
                 {{ form.aplica_iva|add_bootstrap_class }}
             </div>
             <div class="col-md-2 mb-2">
-                <label class="form-label small">Aplicar Ieps</label>
+                <label class="form-label small">Aplicar IEPS</label>
                 {{ form.aplica_ieps|add_bootstrap_class }}
             </div>
 
@@ -109,4 +110,39 @@
         </div>
     </form>
 </div>
+
+ <script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const productoInput = document.getElementById('id_sku');
+        const esNuevo = document
+            .querySelector('div[data-producto-es-nuevo]')
+            .dataset.productoEsNuevo === 'true';
+        
+        if (productoInput) {
+            productoInput.focus();
+        }
+
+        productoInput.addEventListener('blur', function () {
+            let val = productoInput.value.trim();
+            if (val) {
+                productoInput.value = val.padStart(6, '0');
+            }
+        });
+
+        // busca el ultimo numero para esa clave_movimiento
+        if (productoInput && esNuevo) {
+            
+            // Solo se ejecuta si es un nuevo registro
+            fetch('/inv/ajax/ultimo_producto/')
+                .then(response => response.json())
+                .then(data => {
+                    productoInput.value = data.producto;
+                })
+                .catch(error => {
+                    console.error('Error obteniendo clave de producto:', error);
+                });
+        }
+    });
+</script>
+
 {% endblock %}

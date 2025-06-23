@@ -4,7 +4,13 @@
 <div class="container mt-4">
     <div class="d-flex justify-content-between align-items-center mb-3">
         <h2>Productos</h2>
-        <a href="{% url 'inv:producto_create' %}" class="btn btn-primary">Nuevo Producto</a>
+        <div class="d-flex gap-2">
+            <form method="get" class="d-flex">
+                <input type="text" name="q" value="{{ query }}" class="form-control form-control-sm me-2" placeholder="Buscar producto...">
+                <button type="submit" class="btn btn-sm btn-outline-primary">Buscar</button>
+            </form>
+            <a href="{% url 'inv:producto_create' %}" class="btn btn-primary">Nuevo Producto</a>
+        </div>
     </div>
 
     {% if productos %}
@@ -13,10 +19,10 @@
                 <tr>
                     <th>Nombre</th>
                     <th>Categoria</th>
-                    <th>SKU</th>
+                    <th>Código</th>
                     <th>Precio1</th>
                     <th>Precio2</th>
-                    <th>Acciones</th>
+                    <th>  </th>
                 </tr>
             </thead>
             <tbody>

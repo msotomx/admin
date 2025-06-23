@@ -2,11 +2,12 @@ from django import forms
 from django.forms import BaseInlineFormSet, inlineformset_factory
 from django.core.exceptions import ValidationError
 from .models import Moneda, Categoria, UnidadMedida, Almacen
-from .models import ClaveMovimiento, Proveedor, Producto
+from .models import ClaveMovimiento, Proveedor, Producto, Vendedor
 from .models import Movimiento, DetalleMovimiento
 from .models import Traspaso, DetalleTraspaso, Remision, DetalleRemision, SaldoInicial
 from .models import Compra, DetalleCompra
 from core.models import Empresa
+from cxc.models import Cliente
 from core.models import CertificadoCSD
 
 from decimal import Decimal
@@ -75,6 +76,18 @@ class ProveedorForm(forms.ModelForm):
             'comentarios': forms.Textarea(attrs={'rows': 3}),
         }
 
+class VendedorForm(forms.ModelForm):
+    class Meta:
+        model = Vendedor
+        fields = '__all__'
+        widgets = {
+            'vendedor': forms.TextInput(attrs={'class': 'form-control'}),
+            'nombre': forms.TextInput(attrs={'class': 'form-control'}),
+            'telefono': forms.TextInput(attrs={'class': 'form-control'}),
+            'email': forms.TextInput(attrs={'class': 'form-control'}),
+            'fecha_registro': forms.DateInput(attrs={'type': 'date'}),
+        }        
+
 class ProductoForm(forms.ModelForm):
     class Meta:
         model = Producto
@@ -101,6 +114,11 @@ class MovimientoForm(forms.ModelForm):
             'fecha_movimiento': forms.DateInput(attrs={'type': 'date'}),
         }
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        self.fields['clave_movimiento'].queryset = ClaveMovimiento.objects.all().order_by('nombre')
+
 class DetalleMovimientoForm(forms.ModelForm):
     class Meta:
         model = DetalleMovimiento
@@ -114,9 +132,9 @@ class DetalleMovimientoForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields['producto'].queryset = Producto.objects.all()
-        # self.fields['costo_unit'].initial = Producto.costo_reposicion  # Valor inicial por defecto
 
+        self.fields['producto'].queryset = Producto.objects.all().order_by('nombre')
+        
 # valida productos repetidos
 # valida cantidad = 0
 class DetalleMovimientoFormSet(BaseInlineFormSet):
@@ -158,29 +176,51 @@ DetalleMovimientoFormSet = inlineformset_factory(
 class RemisionForm(forms.ModelForm):
     class Meta:
         model = Remision
+        fields = '__all__'
         exclude = ['usuario', 'numero_factura', 'status', 'monto_total']
         widgets = {
             'fecha_remision': forms.DateInput(attrs={'type': 'date'}),
         }
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        self.fields['cliente'].queryset = Cliente.objects.all().order_by('nombre')
+        self.fields['clave_movimiento'].queryset = ClaveMovimiento.objects.all().order_by('nombre')
+        self.fields['vendedor'].queryset = Vendedor.objects.all().order_by('nombre')
 
 class DetalleRemisionForm(forms.ModelForm):
     class Meta:
         model = DetalleRemision
-        fields = ['producto', 'cantidad', 'precio', 'descuento', 'subtotal']
+        fields = ['producto', 'cantidad', 'precio', 'descuento', 'subtotal',
+                  'tasa_iva', 'iva_producto', 'tasa_ieps', 'ieps_producto',
+                  'tasa_retencion_iva','tasa_retencion_isr',
+                  'retencion_iva','retencion_isr'
+                  ]
+
         widgets = {
-            'producto': forms.Select(attrs={'class': 'form-select form-select-sm'}),
-            'cantidad': forms.NumberInput(attrs={'class': 'form-control form-control-sm'}),
-            'precio': forms.NumberInput(attrs={'class': 'form-control form-control-sm'}),
-            'descuento': forms.NumberInput(attrs={'class': 'form-control form-control-sm'}),
-            'subtotal': forms.NumberInput(attrs={'class': 'form-control form-control-sm', 'readonly': 'readonly'}),
+            'producto'  : forms.Select(attrs={'class': 'form-select form-select-sm'}),
+            'cantidad'  : forms.NumberInput(attrs={'class': 'form-control form-control-sm'}),
+            'precio'    : forms.NumberInput(attrs={'class': 'form-control form-control-sm'}),
+            'descuento' : forms.NumberInput(attrs={'class': 'form-control form-control-sm'}),
+            'subtotal'  : forms.NumberInput(attrs={'class': 'form-control form-control-sm', 'readonly': 'readonly'})
         }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields['producto'].queryset = Producto.objects.all()
-        # self.fields['descuento'].initial = 0   # Valor inicial por defecto
+        self.fields['producto'].queryset = Producto.objects.all().order_by('nombre')
+
         
+        # Bootstrap para todos los campos
+        for field in self.fields.values():
+            field.widget.attrs['class'] = 'form-control form-control-sm'
+
+        # Impuestos ocultos
+        for tax_field in ['tasa_iva', 'iva_producto', 'tasa_ieps', 'ieps_producto', 
+                          'tasa_retencion_iva', 'tasa_retencion_isr', 'retencion_iva', 'retencion_isr']:
+            self.fields[tax_field].initial = 0
+            self.fields[tax_field].widget = forms.HiddenInput()
+
 # valida productos repetidos
 # valida cantidad = 0
 
@@ -245,7 +285,9 @@ DetalleRemisionFormSet = inlineformset_factory(
     form=DetalleRemisionForm,
     formset=DetalleRemisionFormSet,
     fk_name='numero_remision',
-    fields=['producto', 'cantidad', 'precio', 'descuento', 'subtotal'],
+    fields=['producto', 'cantidad', 'precio', 'descuento', 'subtotal', 'tasa_iva','tasa_ieps',
+            'iva_producto', 'ieps_producto','tasa_retencion_iva','tasa_retencion_isr',
+            'retencion_iva','retencion_isr'],
     extra=1,
     can_delete=True
 )
@@ -262,6 +304,9 @@ class CompraForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+
+        self.fields['clave_movimiento'].queryset = ClaveMovimiento.objects.all().order_by('nombre')
+        self.fields['proveedor'].queryset = Proveedor.objects.all().order_by('nombre')
 
         # Aplica clases a todos los campos visibles
         for field in self.fields.values():
@@ -288,8 +333,8 @@ class DetalleCompraForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields['producto'].queryset = Producto.objects.all()
-                
+        self.fields['producto'].queryset = Producto.objects.all().order_by('nombre')
+        
 # valida productos repetidos
 # valida cantidad = 0
 

@@ -47,11 +47,11 @@
                     <label class="form-label small">Moneda</label>
                     {{ form.moneda|add_bootstrap_class }}
                 </div>
-                <div class="col-md-1 mb-2">
+                <div class="col-md-2 mb-2">
                     <label class="form-label small">Paridad</label>
                     {{ form.paridad|add_bootstrap_class }}
                 </div>
-                <div class="col-md-2 mb-2">
+                <div class="col-md-1 mb-2">
                     <label class="form-label small">Flete</label>
                     {{ form.flete|add_bootstrap_class }}
                 </div>
@@ -275,6 +275,31 @@ document.addEventListener('DOMContentLoaded', function () {
     }
     
     // fin de blur producto
+    // BLUR DE MONEDA
+    const monedaInput = document.getElementById('id_moneda');
+    monedaInput.addEventListener('focusout', async function () {
+        const monedaId = monedaInput.value;
+        console.log("EN MONEDA") 
+        if (monedaId) {
+            try {
+                // 1. Obtener paridad en el modelo Moneda
+                const monedaResp = await fetch(`/inv/obtener_paridad_moneda/?moneda_id=${monedaId}`);
+                if (!monedaResp.ok) throw new Error('Error al obtener la paridad de la moneda');
+                const monedaData = await monedaResp.json();
+                const paridadInput = document.getElementById('id_paridad');
+                paridad = parseFloat(monedaData.paridad);
+                console.log("EN MONEDA,monedaData.paridad:", monedaData.paridad);
+                if (paridadInput) {
+                    paridadInput.value = paridad.toFixed(4);
+                }
+
+            } catch (err) {
+                console.error('Error al obtener datos de la moneda:', err);
+            }
+        }
+    });
+    
+    // fin blur MONEDA
 
     // Recalcular subtotal automáticamente
     document.addEventListener('input', function (e) {

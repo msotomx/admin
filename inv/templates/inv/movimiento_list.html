@@ -19,7 +19,7 @@
                     <th>Referencia</th>
                     <th>Fecha</th>
                     <th>Usuario</th>
-                    <th class="text-center">Acciones</th>
+                    <th class="text-center"> </th>
                 </tr>
             </thead>
             <tbody class="small">
@@ -32,7 +32,7 @@
                         <td>{{ movimiento.fecha_movimiento|date:"d/m/Y" }}</td>
                         <td>{{ movimiento.usuario }}</td>
                         <td class="text-center">
-                            <a href="{% url 'inv:movimiento_detail' movimiento.pk %}" class="btn btn-sm btn-outline-info">Ver</a>
+                            <a href="{% url 'inv:imprimir_movimiento' movimiento.pk %}" target="_blank" class="btn btn-sm btn-outline-info">Ver</a>
                             <a href="{% url 'inv:movimiento_update' movimiento.pk %}" class="btn btn-sm btn-outline-warning">Editar</a>
                             <a href="{% url 'inv:movimiento_delete' movimiento.pk %}" class="btn btn-sm btn-outline-danger">Eliminar</a>
                         </td>

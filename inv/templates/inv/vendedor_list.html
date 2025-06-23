@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2>Vendedores</h2>
+        <a href="{% url 'inv:vendedor_create' %}" class="btn btn-primary mb-2">Nuevo Vendedor</a>
+    </div>
+    <table class="table table-bordered table-striped">
+        <thead class="table-dark">
+            <tr>
+                <th>Clave</th>
+                <th>Nombre</th>
+                <th>Teléfono</th>
+                <th>Email</th>
+                <th>Fecha Registro</th>
+                <th>  </th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for vendedor in vendedores %}
+            <tr>
+                <td>{{ vendedor.vendedor }}</td>
+                <td>{{ vendedor.nombre }}</td>
+                <td>{{ vendedor.telefono }}</td>
+                <td>{{ vendedor.email }}</td>
+                <td>{{ vendedor.fecha_registro }}</td>
+                <td>
+                    <a href="{% url 'inv:vendedor_update' vendedor.id %}" class="btn btn-sm btn-warning">Editar</a>
+                    <a href="{% url 'inv:vendedor_delete' vendedor.id %}" class="btn btn-sm btn-danger">Eliminar</a>
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

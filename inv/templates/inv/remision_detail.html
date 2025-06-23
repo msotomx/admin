@@ -5,15 +5,15 @@
     <h4>Detalle de la Remision: {{ remision.numero_remision }}</h4>
 
     <div class="mb-3">
-        <strong>Almacen:</strong> {{ remision.almacen }}<br>
+        <strong>Almacen       :</strong> {{ remision.almacen }}<br>
         <strong>Clave Remision:</strong> {{ remision.clave_movimiento }}<br>
-        <strong>Remision:</strong> {{ remision.numero_remision }}<br>
-        <strong>Fecha:</strong> {{ remision.fecha_remision|date:"d/m/Y" }}<br>
-        <strong>Factura:</strong> {{ remision.numero_factura }}<br>
-        <strong>Cliente:</strong> {{ remision.cliente }}<br>
-        <strong>Importe Total:</strong> {{ remision.monto_total }}<br>
-        <strong>Status:</strong> {{ remision.status }}<br>
-        <strong>Usuario:</strong> {{ remision.usuario }}
+        <strong>Remision      :</strong> {{ remision.numero_remision }}<br>
+        <strong>Fecha         :</strong> {{ remision.fecha_remision|date:"d/m/Y" }}<br>
+        <strong>Factura       :</strong> {{ remision.numero_factura }}<br>
+        <strong>Cliente       :</strong> {{ remision.cliente }}<br>
+        <strong>Importe Total :</strong> {{ remision.monto_total }}<br>
+        <strong>Status        :</strong> {{ remision.status }} -  {{ remision.get_status_display }}<br>
+        <strong>Usuario       :</strong> {{ remision.usuario }}
         
 
     </div>

@@ -4,7 +4,8 @@
 
 {% block content %}
 <div class="container mt-4">
-    
+    <div data-cliente-es-nuevo="{% if view.object.pk %}false{% else %}true{% endif %}"></div>
+
     <h2 class="mb-4">{{ view.object.pk|yesno:"Editar Cliente,Nuevo Cliente" }}</h2>
     <form method="POST">
         {% csrf_token %}
@@ -120,16 +121,40 @@
         </div>
     </form>
 </div>
-<script>
+
+ <script>
     document.addEventListener('DOMContentLoaded', function () {
-        const input = document.getElementById('id_cliente');
-        input.addEventListener('blur', function () {
-            let val = input.value.trim();
+        const clienteInput = document.getElementById('id_cliente');
+        const esNuevo = document
+            .querySelector('div[data-cliente-es-nuevo]')
+            .dataset.clienteEsNuevo === 'true';
+        
+        if (clienteInput) {
+            clienteInput.focus();
+        }
+
+        clienteInput.addEventListener('blur', function () {
+            let val = clienteInput.value.trim();
             if (val) {
-                input.value = val.padStart(6, '0');
+                clienteInput.value = val.padStart(6, '0');
             }
         });
+
+        // busca el ultimo numero para esa clave_movimiento
+        if (clienteInput && esNuevo) {
+        
+            // Solo se ejecuta si es un nuevo registro
+            fetch('/cxc/ajax/ultimo_cliente/')
+                .then(response => response.json())
+                .then(data => {
+                    clienteInput.value = data.cliente;
+                })
+                .catch(error => {
+                    console.error('Error obteniendo clave de cliente:', error);
+                });
+        }
     });
-    </script>
+</script>
+
     
 {% endblock %}
