@@ -1,7 +1,6 @@
 Pendientes:
 FACTURAS
 - validar que no se repita numero de factura
-- eliminar campo serie_sat en Factura
 - buscar facturas por cliente
 - opcion de enviar por email
 CLIENTES:
@@ -9,5 +8,77 @@ CLIENTES:
 REPORTES
 - agregar reporte por tipo de cliente
 - existencia por categoria - todas
+Modificar email al crear el usuario en crear_tenant_completo, dejar el email capturado
+revisar al crear la Empresa, el nombre comercial esta con minusculas
+En sign_inicial - cambiar en boton Creando Nueva Empresa...
 
+Concepto		Tabla			Vive en DB
+Conexión a base		EmpresaDB		default
+Usuario			User			default
+Perfil de usuario	PerfilUsuario		default
+Datos fiscales		Empresa	empresa_xxx 	(base del tenant)
+
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'admin.settings.dev')
+
+comando para buscar en los archivos:
+ grep -r "lo que buscas" .
+ grep -r "User =" .
+ grep -r "sign_inicial" .
+
+Borra Manualmente las migraciones:
+find . -path "*/migrations/*.py" -not -name "__init__.py" -delete
+find . -path "*/migrations/*.pyc" -delete
+
+En tu consola Django (python manage.py shell) ejecuta:
+
+from core.services.tenant_setup import crear_tenant_test
+crear_tenant_test("Cars Mas")
+en NOMBRE DE EMPRESA: limitar el nombre a 30 caracteres (slug), agregar fecha de hoy en formato:YYYYMMAA
+nombre de empresa= empresa_YYYYMMAA_slugy
+
+
+==================================================
+ListView
+    def get_queryset(self):
+        return Moneda.objects.using(self.db_name).all()
     
+CreateView
+    def form_valid(self, form):
+        # Accede al nombre de la base de datos del tenant desde la sesión
+        db_name = self.request.session.get('db_config')['NAME']
+        
+        # Guarda el objeto en la base de datos del tenant
+        form.instance.save(using=db_name)  # Guarda en la base de datos del tenant
+        
+        # Redirige al lugar correspondiente después de guardar
+        return super().form_valid(form)
+
+
+UpdateView
+    def get_queryset(self):
+        db_name = self.request.session.get('db_config')['NAME']
+        return Moneda.objects.using(db_name).filter(id=self.kwargs['pk'])  # Filtramos por la ID de la moneda
+
+    def form_valid(self, form):
+        # Obtenemos el nombre de la base de datos del tenant
+        db_name = self.request.session.get('db_config')['NAME']
+        
+        # Guarda el objeto en la base de datos del tenant
+        form.instance.save(using=db_name)  # Guarda en la base de datos del tenant
+        
+        # Redirige al lugar correspondiente después de guardar
+        return super().form_valid(form)
+
+
+
+DeleteView
+    def get_queryset(self):
+        db_name = self.request.session.get('db_config')['NAME']
+        return Movimiento.objects.using(db_name).filter(id=self.kwargs['pk'])
+
+    def delete(self, request, *args, **kwargs):
+        # Elimina el objeto en la base del tenant
+        self.object = self.get_object()
+        db_name = self.request.session.get('db_config')['NAME']
+        self.object.delete(using=db_name)
+        return super().delete(request, *args, **kwargs)

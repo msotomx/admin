@@ -114,10 +114,15 @@ class MovimientoForm(forms.ModelForm):
             'fecha_movimiento': forms.DateInput(attrs={'type': 'date'}),
         }
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, db_name=None, **kwargs):
         super().__init__(*args, **kwargs)
 
-        self.fields['clave_movimiento'].queryset = ClaveMovimiento.objects.all().order_by('nombre')
+        if db_name is not None:
+            self.db_name = db_name
+            self.fields['clave_movimiento'].queryset = ClaveMovimiento.objects.using(db_name).order_by('nombre')
+        else:
+            # opción segura: evita fallar si no hay db_name
+            self.fields['clave_movimiento'].queryset = ClaveMovimiento.objects.none()
 
 class DetalleMovimientoForm(forms.ModelForm):
     class Meta:
@@ -133,7 +138,7 @@ class DetalleMovimientoForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        self.fields['producto'].queryset = Producto.objects.all().order_by('nombre')
+        self.fields['producto'].queryset = Producto.objects.using(self.db_name).all().order_by('nombre')
         
 # valida productos repetidos
 # valida cantidad = 0
@@ -185,9 +190,9 @@ class RemisionForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        self.fields['cliente'].queryset = Cliente.objects.all().order_by('nombre')
-        self.fields['clave_movimiento'].queryset = ClaveMovimiento.objects.all().order_by('nombre')
-        self.fields['vendedor'].queryset = Vendedor.objects.all().order_by('nombre')
+        self.fields['cliente'].queryset = Cliente.objects.using(self.db_name).all().order_by('nombre')
+        self.fields['clave_movimiento'].queryset = ClaveMovimiento.objects.using(self.db_name).all().order_by('nombre')
+        self.fields['vendedor'].queryset = Vendedor.objects.using(self.db_name).all().order_by('nombre')
 
 class DetalleRemisionForm(forms.ModelForm):
     class Meta:
@@ -208,7 +213,7 @@ class DetalleRemisionForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields['producto'].queryset = Producto.objects.all().order_by('nombre')
+        self.fields['producto'].queryset = Producto.objects.using(self.db_name).all().order_by('nombre')
 
         
         # Bootstrap para todos los campos
@@ -305,8 +310,8 @@ class CompraForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        self.fields['clave_movimiento'].queryset = ClaveMovimiento.objects.all().order_by('nombre')
-        self.fields['proveedor'].queryset = Proveedor.objects.all().order_by('nombre')
+        self.fields['clave_movimiento'].queryset = ClaveMovimiento.objects.using(self.db_name).all().order_by('nombre')
+        self.fields['proveedor'].queryset = Proveedor.objects.using(self.db_name).all().order_by('nombre')
 
         # Aplica clases a todos los campos visibles
         for field in self.fields.values():
@@ -333,7 +338,7 @@ class DetalleCompraForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields['producto'].queryset = Producto.objects.all().order_by('nombre')
+        self.fields['producto'].queryset = Producto.objects.using(self.db_name).all().order_by('nombre')
         
 # valida productos repetidos
 # valida cantidad = 0
@@ -420,15 +425,9 @@ class EmpresaForm(forms.ModelForm):
 class EmpresaLugarForm(forms.ModelForm):
     class Meta:
         model = Empresa
-        exclude = ['empresa','num_empresa','fecha_inicio','fecha_renovacion','factor','activa','directorio',
-                   'almacen_actual','almacen_facturacion','decimales_unidades','decimales_importe',
-                   'cuenta_iva','clave_compras','clave_traspasos','clave_remision','iva',
-                   'retencion_iva','retencion_isr', 'ieps',
-                   'nombre_fiscal','rfc','regimen_de_sociedad','regimen_fiscal','representante',
-                   'telefono','email','calle','numero_exterior','numero_interior','colonia',
-                   'codigo_postal','localidad','municipio','estado','pais','ruta_xml','pagina_web']
-        
-        fields = '__all__'  # O puedes listar explícitamente los campos
+        fields = ['nombre_comercial', 'calle_expedicion', 'numero_exterior_expedicion',
+                  'numero_interior_expedicion','colonia_expedicion','codigo_postal_expedicion',
+                  'localidad_expedicion','municipio_expedicion','estado_expedicion','pais_expedicion']
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

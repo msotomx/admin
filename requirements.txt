@@ -3,3 +3,6 @@ Pillow  # manejo de imagenes
 mysqlclient
 django-widget-tweaks
 requests
+python-decouple
+sudo apt install libpq-dev
+pip install psycopg

@@ -3,6 +3,7 @@ from django.urls import path
 from . import views
 from .views import CustomLoginView, empresa_detail
 from django.urls import reverse_lazy
+from .views import sign_inicial_view, logOutUsuario
 
 
 app_name = 'core'
@@ -10,7 +11,7 @@ app_name = 'core'
 urlpatterns = [
     path('', views.inicio, name='inicio'),
     path('login/', CustomLoginView.as_view(), name='login'),
-    path('logout/', auth_views.LogoutView.as_view(next_page='/login/'), name='logout'),
+    path('logout/', logOutUsuario, name='logout'),
     # Página de recuperación de contraseña
     path(
         'password_reset/',
@@ -46,5 +47,6 @@ urlpatterns = [
     #    name='password_reset_complete'),
     path('empresa/', views.empresa_detail, name='empresa_detail'),
     path('empresa/inactiva/', views.empresa_inactiva, name='empresa_inactiva'),
-    path('empresa/sin_empresa/', views.sin_empresa, name='sin_empresa')
+    path('empresa/sin_empresa/', views.sin_empresa, name='sin_empresa'),
+    path('registro/', sign_inicial_view, name='sign_inicial'),
 ]

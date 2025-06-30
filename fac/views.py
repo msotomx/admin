@@ -8,6 +8,7 @@ from fac.models import Factura, DetalleFactura, TipoComprobante, Exportacion
 from inv.models import Producto, Moneda, ClaveMovimiento, Remision, DetalleRemision
 from cxc.models import Cliente, RegimenFiscal
 from fac.forms import FacturaForm, DetalleFacturaFormSet, DetalleFacturaForm
+from core.utils import get_empresa_actual
 from django.utils.timezone import now, localtime
 from django.db import transaction
 from django.http import JsonResponse
@@ -19,6 +20,9 @@ from django.forms import modelformset_factory
 from django.views.decorators.http import require_GET
 from django.db.models import Q
 from django.http import JsonResponse
+from core.mixins import TenantRequiredMixin
+from django.contrib.auth.decorators import login_required
+from core.decorators import tenant_required
 
 # CRUD FACTURAS ==================
 from decimal import Decimal
@@ -35,8 +39,7 @@ class FacturaBaseView:
         retencion_isr_total = Decimal('0')
 
         cliente = factura.cliente
-        perfil = getattr(self.request.user, 'perfilusuario', None)
-        empresa = getattr(perfil, 'empresa', None)
+        empresa = self.empresa
 
         for detalle_form in formset:
             cleaned = getattr(detalle_form, 'cleaned_data', {})
@@ -89,9 +92,11 @@ class FacturaBaseView:
         factura.total                = subtotal_total + iva_total + ieps_total \
                                         - retencion_iva_total - retencion_isr_total
         factura.fecha_creacion       = localtime(now()).date() 
-        factura.save()
+        factura.save(
+            using=self.db_name
+        )
 
-class FacturaListView(ListView):
+class FacturaListView(TenantRequiredMixin, ListView):
     model = Factura
     template_name = 'fac/factura_list.html'
     context_object_name = 'facturas'
@@ -125,21 +130,21 @@ class FacturaListView(ListView):
         return context
 
 from decimal import Decimal
-class FacturaCreateView(FacturaBaseView, CreateView):
+class FacturaCreateView(TenantRequiredMixin, FacturaBaseView, CreateView):
     model = Factura
     form_class = FacturaForm
     template_name = 'fac/factura_form.html'
 
     def get_initial(self):
         initial = super().get_initial()
-        perfil = getattr(self.request.user, 'perfilusuario', None)
-        empresa = getattr(perfil, 'empresa', None)
+        
+        empresa = self.empresa
         if empresa:
             initial['empresa'] = empresa
         
         if empresa.clave_remision:
             try:
-                clave_remision = ClaveMovimiento.objects.get(clave_movimiento=empresa.clave_remision)
+                clave_remision = ClaveMovimiento.objects.using(self.db_name).get(clave_movimiento=empresa.clave_remision)
                 initial['clave_remision'] = clave_remision.id
 
             except ClaveMovimiento.DoesNotExist:
@@ -151,13 +156,13 @@ class FacturaCreateView(FacturaBaseView, CreateView):
         initial['serie_emisor'] = 'A'
         initial['lugar_expedicion'] = empresa.codigo_postal_expedicion
         initial['tipo_cambio'] = 1
-        moneda_mxn = Moneda.objects.filter(clave="MXN").first()
+        moneda_mxn = Moneda.objects.using(self.db_name).filter(clave="MXN").first()
         if moneda_mxn:
             initial['moneda'] = moneda_mxn.id
 
-        tipo_comprobante = TipoComprobante.objects.filter(tipo_comprobante='I').first()
+        tipo_comprobante = TipoComprobante.objects.using(self.db_name).filter(tipo_comprobante='I').first()
         initial['tipo_comprobante'] = tipo_comprobante
-        initial['exportacion'] = Exportacion.objects.filter(exportacion='01').first()
+        initial['exportacion'] = Exportacion.objects.using(self.db_name).filter(exportacion='01').first()
         initial['condiciones_pago'] = 'CONTADO'
         initial['xml'] = ''
         initial['pdf'] = ''
@@ -175,9 +180,19 @@ class FacturaCreateView(FacturaBaseView, CreateView):
         initial['total'] = 0
         return initial
 
+    # get original
+    #def get(self, request, *args, **kwargs):
+    #    form = self.form_class(initial=self.get_initial())
+    #    formset = DetalleFacturaFormSet(queryset=DetalleFactura.objects.using(self.db_name).none(), prefix='detalles')
+    #    return render(request, self.template_name, {'form': form, 'formset': formset})
+
     def get(self, request, *args, **kwargs):
-        form = self.form_class(initial=self.get_initial())
-        formset = DetalleFacturaFormSet(queryset=DetalleFactura.objects.none(), prefix='detalles')
+        form = self.form_class(request.POST or None, db_name=self.db_name)
+        formset = DetalleFacturaFormSet(queryset=DetalleFactura.objects.using(self.db_name).none())  # Inicializa el formset vacío
+
+        # Asignar el valor inicial de 'almacen'
+        initial = self.get_initial()  # Llamamos a get_initial() para obtener los valores iniciales del formulario
+        form.initial = initial  # Asignamos esos valores iniciales al formulario
         return render(request, self.template_name, {'form': form, 'formset': formset})
 
     def get_context_data(self, **kwargs):
@@ -186,8 +201,12 @@ class FacturaCreateView(FacturaBaseView, CreateView):
         return context
 
     def post(self, request, *args, **kwargs):
-        form = self.form_class(request.POST)
-        formset = DetalleFacturaFormSet(request.POST, prefix='detalles')
+        form = self.form_class(request.POST or None, db_name=self.db_name)
+        formset = DetalleFacturaFormSet(
+            request.POST,
+            queryset=DetalleFactura.objects.using(self.db_name).none(),
+            prefix='detalles'
+        )
         
         if form.is_valid() and formset.is_valid():
             return self.guardar_factura_y_detalles(form, formset)
@@ -200,15 +219,14 @@ class FacturaCreateView(FacturaBaseView, CreateView):
         factura = form.save(commit=False)
 
         # Asignaciones obligatorias
-        perfil = getattr(self.request.user, 'perfilusuario', None)
-        empresa = getattr(perfil, 'empresa', None)
+        empresa = self.empresa
 
-        factura.usuario = perfil.user
-        factura.empresa = empresa
+        factura.usuario = self.request.user.username
+        factura.empresa = empresa  
         
         # Asignar moneda MXN si no viene del formulario
         if not factura.moneda:
-            moneda_mxn = Moneda.objects.filter(clave="MXN").first()
+            moneda_mxn = Moneda.objects.using(self.db_name).filter(clave="MXN").first()
             if not moneda_mxn:
                 form.add_error(None, "No se encontró la moneda MXN en la base de datos.")
                 return self.form_invalid(form, formset)
@@ -216,7 +234,7 @@ class FacturaCreateView(FacturaBaseView, CreateView):
 
         # Asegurar tipo de comprobante
         if not factura.tipo_comprobante:
-            tipo_comp = TipoComprobante.objects.filter(tipo_comprobante='I').first()
+            tipo_comp = TipoComprobante.objects.using(self.db_name).filter(tipo_comprobante='I').first()
             if not tipo_comp:
                 form.add_error(None, "No se encontró el tipo de comprobante 'I'")
                 return self.form_invalid(form, formset)
@@ -226,7 +244,7 @@ class FacturaCreateView(FacturaBaseView, CreateView):
         factura.serie_emisor = factura.serie_emisor or 'A'
         factura.lugar_expedicion = empresa.codigo_postal_expedicion or '00000'
         factura.tipo_cambio = factura.tipo_cambio or Decimal('1.00')
-        factura.exportacion = factura.exportacion or Exportacion.objects.filter(exportacion='01').first()
+        factura.exportacion = factura.exportacion or Exportacion.objects.using(self.db_name).filter(exportacion='01').first()
         factura.condiciones_pago = factura.condiciones_pago or 'CONTADO'
         factura.estatus = factura.estatus or 'Borrador'
         factura.subtotal = factura.subtotal or Decimal('0.00')
@@ -237,7 +255,10 @@ class FacturaCreateView(FacturaBaseView, CreateView):
         factura.retencion_iva_factura = factura.retencion_iva_factura or Decimal('0.00')
         factura.retencion_isr_factura = factura.retencion_isr_factura or Decimal('0.00')
 
-        factura.save()
+        factura.save(
+            using=self.db_name
+        )
+
         # procesar detalles
         self.procesar_formset(formset, factura)
         
@@ -261,15 +282,19 @@ from django.db import transaction
 from .models import Factura, DetalleFactura
 from .forms import FacturaForm, DetalleFacturaFormSet
 
-class FacturaUpdateView(FacturaBaseView, UpdateView):
+class FacturaUpdateView(TenantRequiredMixin, FacturaBaseView, UpdateView):
     model = Factura
     form_class = FacturaForm
     template_name = 'fac/factura_form.html'
 
     def get(self, request, *args, **kwargs):
         self.object = self.get_object()
-        form    = self.get_form()
-        formset = DetalleFacturaFormSet(instance=self.object, prefix='detalles')
+        form = self.form_class(instance=self.object)
+        formset = DetalleFacturaFormSet(
+            instance=self.object,
+            queryset=DetalleRemision.objects.using(self.db_name).filter(factura=self.object),
+            prefix='detalles'
+        )
         
         if (self.object.estatus == "Vigente") or (self.object.estatus == "Cancelada"):
             for f in formset.forms:
@@ -287,9 +312,14 @@ class FacturaUpdateView(FacturaBaseView, UpdateView):
     
     def post(self, request, *args, **kwargs):
         self.object = self.get_object()
-        form    = self.get_form()
-        formset = DetalleFacturaFormSet(request.POST, instance=self.object, prefix='detalles')
-
+        form = self.form_class(request.POST or None, db_name=self.db_name)
+        formset = DetalleFacturaFormSet(
+            request.POST,
+            instance=self.object,
+            queryset=DetalleFactura.objects.using(self.db_name).filter(factura=self.object),
+            prefix='detalles'
+        )
+        
         if form.is_valid() and formset.is_valid():
             return self.form_valid(form, formset)
         return self.form_invalid(form, formset)
@@ -299,12 +329,12 @@ class FacturaUpdateView(FacturaBaseView, UpdateView):
         # Guarda la factura principal
         factura = form.save(commit=False)
         
-        perfil = getattr(self.request.user, 'perfilusuario', None)
-        empresa = getattr(perfil, 'empresa', None)
+        empresa = self.empresa
 
-        factura.empresa = empresa
+        factura.save(
+            using=self.db_name
+        )
 
-        factura.save()
 
         # Recalcula y graba los detalles usando tu lógica centralizada
         self.procesar_formset(formset, factura)
@@ -322,14 +352,14 @@ class FacturaUpdateView(FacturaBaseView, UpdateView):
         return render(self.request, self.template_name, {'form': form, 'formset': formset})
 
 # VER FACTURA CUANDO YA ESTA TIMBRADA 
-class FacturaDetailView(DetailView):
+class FacturaDetailView(TenantRequiredMixin, DetailView):
     model = Factura
     template_name = 'fac/factura_detail.html'
     context_object_name = 'factura'
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['detalles'] = DetalleFactura.objects.filter(factura=self.object)
+        context['detalles'] = DetalleFactura.objects.using(self.db_name).filter(factura=self.object)
         return context
 
 from django.views.generic import DeleteView
@@ -338,7 +368,7 @@ from django.contrib import messages
 from django.urls import reverse_lazy
 from .models import Factura
 
-class FacturaDeleteView(DeleteView):
+class FacturaDeleteView(TenantRequiredMixin, DeleteView):
     model = Factura
     template_name = 'fac/factura_confirm_delete.html'
     success_url = reverse_lazy('fac:factura_list')
@@ -352,30 +382,55 @@ class FacturaDeleteView(DeleteView):
 
         return super().dispatch(request, *args, **kwargs)
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        db_name = self.request.session.get('db_config')['NAME']
+        context['detalles'] = self.object.detalles.using(db_name).all()
+        return context
+
+    def get_queryset(self):
+        db_name = self.request.session.get('db_config')['NAME']
+        return Factura.objects.using(db_name).filter(id=self.kwargs['pk'])
+
     def delete(self, request, *args, **kwargs):
+        db_name = self.request.session.get('db_config')['NAME']
+        self.object = self.get_object()
+
+        # Eliminar detalles explícitamente
+        self.object.detallefactura_set.using(db_name).all().delete()
+
+        # Eliminar Encabezado - MOvimiento
+        self.object.delete(using=db_name)
         messages.success(request, "Factura eliminada correctamente.")
         return super().delete(request, *args, **kwargs)
 
 # FUNCION PARA VALIDAR SI UNA FACTURA YA EXISTE
+@login_required
+@tenant_required
 def verificar_factura(request):
+    get_empresa_actual(request)
     numero_factura = request.GET.get('numero_factura')
 
     try:
-        factura = Factura.objects.get(numero_factura=numero_factura)
+        factura = Factura.objects.using(request.db_name).get(numero_factura=numero_factura)
         return JsonResponse({'existe': True, 'id': factura.id})
     except Factura.DoesNotExist:
         return JsonResponse({'existe': False})
 
+@login_required
+@tenant_required
 def obtener_clave_prod_serv2(request):
     producto_id = request.GET.get('producto_id')
     try:
-        producto = Producto.objects.get(pk=producto_id)
+        producto = Producto.objects.using(request.db_name).get(pk=producto_id)
         return JsonResponse({'clave_prod_serv': producto.clave_sat})
     except Producto.DoesNotExist:
         return JsonResponse({'error': 'Producto no encontrado'}, status=404)
 
+@login_required
+@tenant_required
 def obtener_ultimo_numero_factura(request):
-    ultima = Factura.objects.all().order_by('-numero_factura').first()
+    ultima = Factura.objects.using(request.db_name).all().order_by('-numero_factura').first()
     if ultima and ultima.numero_factura.isdigit():
         siguiente = str(int(ultima.numero_factura) + 1).zfill(7)
     else:
@@ -384,6 +439,8 @@ def obtener_ultimo_numero_factura(request):
     return JsonResponse({'numero_factura': siguiente})
 
 # ESTA FUNCION SE UTILIZA EN GENERAR CFDI
+@login_required
+@tenant_required
 @require_GET
 def obtener_tasa_empresa(request):
     cliente_id = request.GET.get('cliente_id')
@@ -392,9 +449,8 @@ def obtener_tasa_empresa(request):
         return JsonResponse({'error': 'Parámetro cliente_id inválido'}, status=400)
  
     # 2) Obtener la empresa asociada al usuario
-    perfil = getattr(request.user, 'perfilusuario', None)
-    empresa = getattr(perfil, 'empresa', None)
-
+    empresa = get_empresa_actual(request)
+    
     if not empresa:
         return JsonResponse({'error': 'Usuario sin empresa asignada'}, status=403)
 
@@ -406,7 +462,7 @@ def obtener_tasa_empresa(request):
 
     # 4) Ajustar según configuración del cliente
     try:
-        cliente = Cliente.objects.get(pk=cliente_id)
+        cliente = Cliente.objects.using(request.db_name).get(pk=cliente_id)
     except Cliente.DoesNotExist:
         return JsonResponse({'error': 'Cliente no encontrado'}, status=404)
 
@@ -430,11 +486,12 @@ from django.core.serializers.json import DjangoJSONEncoder
 from django.utils.timezone import localtime, now
 
 # Esta función toma el objeto Factura y construye el JSON que se enviará al PAC para timbrar.
-
-def generar_json_cfdi(factura):
+@login_required
+@tenant_required
+def generar_json_cfdi(request,factura):
     cliente = factura.cliente
     emisor = factura.empresa
-    detalles = factura.detalles.all()
+    detalles = factura.detalles.using(request.db_name).all()
 
     conceptos = []
     # Para acumular totales y agrupar traslados/retenciones
@@ -617,7 +674,32 @@ def generar_json_cfdi(factura):
     descuentoF = factura.descuento_factura
     if descuentoF is None:
         descuentoF = float('0.0')
-    
+    camposPDF = {
+        "tipoComprobante": "Factura",
+        "Comentarios": "Aqui van los comentarios de la factura",
+        "calleEmisor": emisor.calle_expedicion,
+        "noExteriorEmisor": emisor.numero_exterior_expedicion,
+        "noInteriorEmisor": emisor.numero_interior_expedicion,
+        "coloniaEmisor": emisor.colonia_expedicion,
+        "codigoPostalEmisor": emisor.codigo_postal_expedicion,
+        "localidadEmisor": emisor.localidad_expedicion,
+        "municipioEmisor": emisor.municipio_expedicion,
+        "estadoEmisor": emisor.estado_expedicion,
+        "paisEmisor": emisor.pais_expedicion,
+        "telefonoEmisor": emisor.telefono,
+        "emailEmisor": emisor.email,
+        "calleReceptor": cliente.calle,
+        "noExteriorReceptor": cliente.numero_exterior,
+        "noInteriorReceptor": cliente.numero_interior,
+        "coloniaReceptor": cliente.colonia,
+        "codigoPostalReceptor": cliente.codigo_postal,
+        "localidadReceptor": cliente.ciudad,
+        "municipioReceptor": cliente.municipio,
+        "estadoReceptor": cliente.estado,
+        "paisReceptor": "Mexico",
+        
+    }
+
     json_cfdi = {
         "fecha_emision": fecha,
         "serie": factura.serie_emisor,
@@ -631,6 +713,7 @@ def generar_json_cfdi(factura):
         "subtotal": float(factura.subtotal) + float(factura.descuento_factura),
         "total": float(factura.total),
         "lugar_expedicion": factura.lugar_expedicion,
+        "observaciones": "observaciones de la factura vamos a ver que tantos caracteres acepta este campo de observaciones",
         "exportacion": factura.exportacion.exportacion,
         "respuesta_compatibilidad_terceros": False,
         # Emisor
@@ -645,6 +728,7 @@ def generar_json_cfdi(factura):
         # Conceptos e impuestos
         "conceptos": conceptos,
         "impuestos": impuestos,
+        "camposPDF": camposPDF,
         # Solo incluir si aplica:
         # "informacion_global": informacion_global,
     }
@@ -657,10 +741,13 @@ def generar_json_cfdi(factura):
 
 from django.core.exceptions import ObjectDoesNotExist
 # Esta función obtiene la factura y llama a la función generar_json_cfdi
-def generar_json_timbrado(factura_id):
-    from .models import Factura  # Importación interna para evitar problemas circulares
+@login_required
+@tenant_required
+def generar_json_timbrado22(request,factura_id):
+    from .models import Factura  # Importación interna para evitar pro
     try:
         factura = (Factura.objects
+            .using(request.db_name)  # ← base del tenant
             .select_related(
                 'empresa', 'cliente__regimen_fiscal',
                 'forma_pago', 'moneda', 'metodo_pago',
@@ -684,7 +771,9 @@ from datetime import datetime
 
 import logging
 logger = logging.getLogger(__name__)
-def guardar_archivos_factura(factura, uuid=None, sello=None, sello_sat=None, 
+@login_required
+@tenant_required
+def guardar_archivos_factura(request,factura, uuid=None, sello=None, sello_sat=None, 
                              num_certificado=None, rfc_certifico=None, 
                              fecha_timbrado=None, estatus=None):
     """
@@ -735,8 +824,11 @@ def guardar_archivos_factura(factura, uuid=None, sello=None, sello_sat=None,
 
     # Guardar cambios
     try:
-        factura.save(update_fields=['estatus', 'fecha_timbrado', 'uuid',
-                                    'sello','sello_sat','num_certificado','rfc_certifico'])
+        factura.save(
+            using=request.db_name,  # 👈 fuerza guardado en la base tenant
+            update_fields=['estatus', 'fecha_timbrado', 'uuid',
+                        'sello','sello_sat','num_certificado','rfc_certifico']
+        )
         success, mensaje = consultar_y_guardar_archivos(factura)
         if not success:
                 return JsonResponse({'success': False, 'error': mensaje}, status=500)
@@ -767,10 +859,17 @@ from django.contrib.auth.decorators import login_required
 import base64
 
 @login_required
+@tenant_required
 @require_POST
 def timbrar_factura(request,factura_id):
-    factura = get_object_or_404(Factura, pk=factura_id, usuario=request.user)
-    
+    db_name = request.db_name  # ← viene del decorador tenant_required
+
+    factura = get_object_or_404(
+        Factura.objects.using(db_name),
+        pk=factura_id,
+        usuario=request.user.username
+    )
+
     # 1) Verificar estatus de la factura
     if factura.estatus not in ['Borrador', 'Error']:
         return JsonResponse(
@@ -783,7 +882,7 @@ def timbrar_factura(request,factura_id):
     # 2) Generar JSON CFDI
     try:
         # Genera el JSON del CFDI
-        json_cfdi = generar_json_cfdi(factura)
+        json_cfdi = generar_json_cfdi(request, factura)
         
         # Validación
         if validar_cfdi(json_cfdi):
@@ -815,7 +914,7 @@ def timbrar_factura(request,factura_id):
     except requests.RequestException as e:
         # Error de red, timeout, etc.
         factura.estatus = "Error"
-        factura.save(update_fields=['estatus'])
+        factura.save(using=request.db_name, update_fields=['estatus'])
         return JsonResponse({'success': False, 'error': f'Error al conectar con PAC: {e}'}, status=502)
     
     # 5) Procesar respuesta
@@ -833,6 +932,7 @@ def timbrar_factura(request,factura_id):
         try:
             timbre = data["data"].get("timbre_fiscal", {})
             guardar_archivos_factura(
+                request,
                 factura,
                 uuid            = timbre.get("uuid"),
                 sello           = timbre.get("sello"),
@@ -850,7 +950,7 @@ def timbrar_factura(request,factura_id):
     else:
         # En caso de fallo del PAC: marcar ERROR y devolver detalle
         factura.estatus = "Error"
-        factura.save(update_fields=['estatus'])
+        factura.save(using=request.db_name, update_fields=['estatus'])
         # Obtener mensaje de error del PAC si viene en JSON
         err_msg = None
         if data and data.get("error"):
@@ -860,6 +960,8 @@ def timbrar_factura(request,factura_id):
         return JsonResponse({'success': False, 'error': err_msg}, status=resp.status_code or 500)
 
 from django.contrib import messages
+@login_required
+@tenant_required
 def validar_cfdi(json_cfdi):
     # Validar emisor
     emisor = json_cfdi.get('emisor', {})
@@ -920,7 +1022,9 @@ def validar_cfdi(json_cfdi):
 import requests
 import base64
 
-def consultar_y_guardar_archivos(factura):
+@login_required
+@tenant_required
+def consultar_y_guardar_archivos(request, factura):
     uuid = factura.uuid
     if not uuid:
         return False, "UUID no disponible"
@@ -956,7 +1060,7 @@ def consultar_y_guardar_archivos(factura):
         # Guardar en el modelo
         factura.xml.save(f"{nombre_factura}.xml", ContentFile(xml_str.encode('utf-8')), save=False)
         factura.pdf.save(f"{nombre_factura}.pdf", ContentFile(base64.b64decode(pdf_b64)), save=False)
-        factura.save(update_fields=["xml", "pdf"])
+        factura.save(using=request.db_name,update_fields=["xml", "pdf"])
 
         return True, "Archivos descargados y guardados correctamente"
 
@@ -969,9 +1073,19 @@ from django.shortcuts import get_object_or_404
 from django.views.decorators.clickjacking import xframe_options_exempt
 # DESCARGA EL PDF
 
+
+@login_required
+@tenant_required
 @xframe_options_exempt
 def descargar_factura(request, factura_id, tipo):
-    factura = get_object_or_404(Factura, id=factura_id)
+    #    factura = get_object_or_404(Factura, id=factura_id)
+    db_name = request.db_name  # ← viene del decorador tenant_required
+
+    factura = get_object_or_404(
+        Factura.objects.using(db_name),
+        id=factura_id,
+    )
+
     nombre_factura= f"FACTURA_{factura.cliente.rfc}_{factura.numero_factura}" if factura.cliente and factura.numero_factura else " "
     if tipo == 'xml':
         archivo = factura.xml
@@ -995,6 +1109,8 @@ def descargar_factura(request, factura_id, tipo):
 
 
 # Busca la remision y regresa los datos para cargarlos en factura_form.html
+@login_required
+@tenant_required
 def cargar_remision(request):
     numero = request.GET.get('numero_remision')
     clave_id = request.GET.get('clave_movimiento')
@@ -1058,10 +1174,16 @@ para un cliente específico. En este caso, se cancela la parte correspondiente
 de la factura global y se emite un nuevo CFDI individual. 
 """
 # CANCELAR FACTURA TIMBRADA
-class CancelarFacturaView(View):
+class CancelarFacturaView(TenantRequiredMixin, View):
     def post(self, request, pk):
-        factura = get_object_or_404(Factura, pk=pk)
-        print("EN CANCELAR FACTURA")
+        # factura = get_object_or_404(Factura, pk=pk)
+        db_name = request.db_name  # ← viene del decorador tenant_required
+
+        factura = get_object_or_404(
+            Factura.objects.using(db_name),
+            pk=pk,
+        )
+
         if not factura.uuid:
             messages.error(request, "La factura no tiene UUID y no puede ser cancelada.")
             return redirect('fac:factura_list')
@@ -1081,15 +1203,14 @@ class CancelarFacturaView(View):
         try:
             resp = requests.delete(url, json=payload, headers=headers)
             if resp.status_code == 200:
-                print("CODIGO DE RESPUESTA 200")
                 factura.estatus = 'Cancelada'
                 factura.fecha_cancelacion = timezone.now()
-                factura.save()
+                factura.save(
+                    using=self.db_name
+                )
+
                 messages.success(request, f"Factura: {factura.numero_factura} cancelada correctamente.")
             else:
-                print("En error")
-                print("resp.status_code:",resp.status_code)
-
                 messages.error(request, f"Error al cancelar factura: {resp.status_code} - {resp.text}")
         except Exception as e:
             print(str(e))

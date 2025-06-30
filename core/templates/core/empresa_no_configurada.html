@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+
+{% block title %}Empresa no configurada{% endblock %}
+
+{% block content %}
+<div class="container mt-5 text-center">
+    <div class="alert alert-danger shadow-sm p-4 rounded">
+        <h2 class="mb-3"><i class="bi bi-exclamation-triangle-fill text-danger"></i> Empresa no configurada</h2>
+        <p class="lead">No se pudo establecer la conexión con la base de datos correspondiente a tu empresa.</p>
+        <p>Verifica que tu cuenta esté vinculada a una empresa activa y correctamente configurada.</p>
+        <a href="{% url 'logout' %}" class="btn btn-outline-secondary mt-3">Cerrar sesión</a>
+    </div>
+</div>
+{% endblock %}

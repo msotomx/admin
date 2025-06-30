@@ -14,7 +14,8 @@ from pathlib import Path
 import os
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
-BASE_DIR = Path(__file__).resolve().parent.parent
+BASE_DIR = Path(__file__).resolve().parent.parent.parent
+print("BASE_DIR:", BASE_DIR)
 
 
 # Quick-start development settings - unsuitable for production
@@ -54,6 +55,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'core.middleware.TenantMiddleware',
     'core.middleware.EmpresaActivaMiddleware',
 ]
 
@@ -70,6 +72,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'core.context_processors.empresa_context',
             ],
         },
     },
@@ -88,9 +91,10 @@ DATABASES = {
         "USER": "root",
         "PASSWORD": "",
         "HOST": "127.0.0.1",
-        "PORT": "3306",
+        "PORT": 3306,
     }
 }
+DATABASE_ROUTERS = ['core.db_router.TenantDatabaseRouter']
 
 # Password validation
 # https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators

@@ -6,7 +6,6 @@ from cxc.models import RegimenFiscal
 # Create your models here.
 class Empresa(models.Model):
     nombre_comercial = models.CharField(max_length=50, blank=True)
-    num_empresa = models.CharField(max_length=8,blank=False, unique=True)   # es el ID en la BD del Servidor
     activa = models.BooleanField(default=False)
     directorio = models.CharField(max_length=30,blank=True)   # es la ubicacion dentro del servidor
     fecha_inicio = models.DateField()
@@ -30,7 +29,7 @@ class Empresa(models.Model):
     nombre_fiscal = models.CharField(max_length=80, blank=True)
     rfc = models.CharField(max_length=13,blank=True)
     regimen_de_sociedad = models.CharField(max_length=25, blank=True)
-    regimen_fiscal = models.ForeignKey(RegimenFiscal,on_delete=models.RESTRICT, default='1',blank=True,null=True)
+    regimen_fiscal = models.ForeignKey(RegimenFiscal,on_delete=models.RESTRICT, blank=True,null=True)
     representante = models.CharField(max_length=50, blank=True)
     telefono = models.CharField(max_length=12, blank=True)
     email = models.EmailField(blank=True,default="")
@@ -59,15 +58,46 @@ class Empresa(models.Model):
     def __str__(self):
         return self.nombre_comercial
 
-class PerfilUsuario(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
-    empresa = models.ForeignKey(Empresa, on_delete=models.CASCADE)
+# Empresas Registradas 
+from django.db import models
+from django.utils import timezone
+from datetime import timedelta
+from django.utils.text import slugify
+
+class EmpresaDB(models.Model):
+    nombre = models.CharField(max_length=100)
+    slug = models.SlugField(unique=True)
+    db_name = models.CharField(max_length=100, unique=True)
+    db_user = models.CharField(max_length=100, default='admin_user')
+    db_password = models.CharField(max_length=100, default='admin_pass')
+    db_host = models.CharField(max_length=100, default='localhost')
+    db_port = models.CharField(max_length=10, default='3306')
+    activa = models.BooleanField(default=True)
+    fecha_inicio = models.DateField(auto_now_add=True)
+    fecha_renovacion = models.DateField(blank=True, null=True)
+    contacto_nombre = models.CharField(max_length=100, blank=False)
+    contacto_telefono = models.CharField(max_length=20, blank=False)
+    contacto_email = models.EmailField(blank=False)
+
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            self.slug = slugify(self.nombre)
+        self.fecha_renovacion = self.fecha_inicio + timedelta(days=90)  # se suman 90 dias a la fecha de inicio
+        super().save(*args, **kwargs)
 
     def __str__(self):
-        return f'{self.user.username} - {self.empresa.nombre_comercial}'
+        return self.nombre
+
+class PerfilUsuario(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    empresa = models.ForeignKey(EmpresaDB, on_delete=models.CASCADE)
+    tipo_usuario = models.CharField(max_length=1, blank=True)
+
+    def __str__(self):
+        return f'{self.user.username} - {self.empresa.nombre}'
 
 class CertificadoCSD(models.Model):
-    empresa = models.OneToOneField(User, on_delete=models.CASCADE)
+    empresa = models.OneToOneField(Empresa, on_delete=models.CASCADE)
     rfc = models.CharField(max_length=13)
     cer_archivo = models.FileField(upload_to='csd/')
     key_archivo = models.FileField(upload_to='csd/')
@@ -75,4 +105,5 @@ class CertificadoCSD(models.Model):
     fecha_registro = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"CSD de {self.empresa.username} - {self.rfc}"
+        return f"CSD de {self.empresa.nombre_comercial} - {self.rfc}"
+

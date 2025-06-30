@@ -58,7 +58,7 @@ class Cliente(models.Model):
         return self.nombre
 
 class Cargo(models.Model):
-    usuario = models.ForeignKey(User,on_delete=models.RESTRICT)
+    usuario = models.ForeignKey(User,on_delete=models.SET_NULL, null=True)
     clave_movimiento = models.ForeignKey(ClaveMovimientoCxC,on_delete=models.RESTRICT)
     referencia_cargo = models.CharField(max_length=8, blank=False)
     cliente = models.ForeignKey(Cliente,on_delete=models.RESTRICT)
@@ -73,7 +73,7 @@ class Cargo(models.Model):
         return self.referencia
     
 class Abono(models.Model):
-    usuario = models.ForeignKey(User,on_delete=models.RESTRICT)
+    usuario = models.ForeignKey(User,on_delete=models.SET_NULL, null=True)
     cliente = models.ForeignKey(Cliente,on_delete=models.RESTRICT)
     clave_movimiento = models.ForeignKey(ClaveMovimientoCxC,on_delete=models.RESTRICT)
     referencia = models.CharField(max_length=8, blank=False)

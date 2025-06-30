@@ -49,7 +49,7 @@ class Factura(models.Model):
         ('Cancelada','Cancelado'), 
         ('Error','Error') 
             )
-    usuario = models.ForeignKey(User,on_delete=models.RESTRICT)
+    usuario = models.ForeignKey(User,on_delete=models.SET_NULL, null=True)
     empresa = models.ForeignKey(Empresa,on_delete=models.RESTRICT)
     cliente = models.ForeignKey(Cliente,on_delete=models.RESTRICT)
     clave_remision = models.ForeignKey(ClaveMovimiento,on_delete=models.RESTRICT, blank=True)

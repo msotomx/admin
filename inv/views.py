@@ -4,6 +4,7 @@ from django.conf import settings
 
 from .forms import CertificadoCSDForm
 from core.models import CertificadoCSD
+from core.utils import get_empresa_actual
 from services.pac import registrar_emisor_pac
 from django.contrib import messages
 
@@ -18,7 +19,6 @@ from .models import Compra, DetalleCompra
 from .models import SaldoInicial
 from core.models import Empresa
 from cxc.models import Cliente
-from core.models import Empresa
 from core.models import CertificadoCSD
 from .forms import MonedaForm, CategoriaForm, UnidadMedidaForm, AlmacenForm, ClaveMovimientoForm
 from .forms import ProveedorForm, ProductoForm, MovimientoForm,  DetalleMovimientoFormSet
@@ -31,130 +31,328 @@ from django.http import JsonResponse
 from django.db.models import Case, When, Value, F, DecimalField
 from datetime import datetime
 from django.utils.timezone import now, localtime
+from core.db_router import get_current_tenant_connection
+from core.mixins import TenantRequiredMixin
+from django.contrib.auth.decorators import login_required
+from core.decorators import tenant_required
 
 # CRUD MONEDAS
-class MonedaListView(ListView):
+class MonedaListView(TenantRequiredMixin,ListView):
     model = Moneda
     template_name = 'inv/moneda_list.html'
     context_object_name = 'monedas'
 
-class MonedaCreateView(CreateView):
+    def get_queryset(self):
+        return Moneda.objects.using(self.db_name).all()
+    
+class MonedaCreateView(TenantRequiredMixin,CreateView):
     model = Moneda
     form_class = MonedaForm
     template_name = 'inv/moneda_form.html'
     success_url = reverse_lazy('inv:moneda_list')
 
-class MonedaUpdateView(UpdateView):
+    def form_valid(self, form):
+        # Accede al nombre de la base de datos del tenant desde la sesión
+        db_name = self.request.session.get('db_config')['NAME']
+        
+        # Guarda el objeto en la base de datos del tenant
+        form.instance.save(using=db_name)  # Guarda en la base de datos del tenant
+        
+        # Redirige al lugar correspondiente después de guardar
+        return super().form_valid(form)
+    
+class MonedaUpdateView(TenantRequiredMixin,UpdateView):
     model = Moneda
     form_class = MonedaForm
     template_name = 'inv/moneda_form.html'
     success_url = reverse_lazy('inv:moneda_list')
 
-class MonedaDeleteView(DeleteView):
+    def get_queryset(self):
+        db_name = self.request.session.get('db_config')['NAME']
+        return Moneda.objects.using(db_name).filter(id=self.kwargs['pk'])  # Filtramos por la ID de la moneda
+
+    def form_valid(self, form):
+        # Obtenemos el nombre de la base de datos del tenant
+        db_name = self.request.session.get('db_config')['NAME']
+        
+        # Guarda el objeto en la base de datos del tenant
+        form.instance.save(using=db_name)  # Guarda en la base de datos del tenant
+        
+        # Redirige al lugar correspondiente después de guardar
+        return super().form_valid(form)
+
+
+class MonedaDeleteView(TenantRequiredMixin,DeleteView):
     model = Moneda
     template_name = 'inv/moneda_confirm_delete.html'
     success_url = reverse_lazy('inv:moneda_list')
 
+    def get_queryset(self):
+        db_name = self.request.session.get('db_config')['NAME']
+        return Moneda.objects.using(db_name).filter(id=self.kwargs['pk'])
+
+    def delete(self, request, *args, **kwargs):
+        # Elimina el objeto en la base del tenant
+        self.object = self.get_object()
+        db_name = self.request.session.get('db_config')['NAME']
+        self.object.delete(using=db_name)
+        return super().delete(request, *args, **kwargs)
+
 # CRUD CATEGORIA
-class CategoriaListView(ListView):
+class CategoriaListView(TenantRequiredMixin,ListView):
     model = Categoria
     template_name = 'inv/categoria_list.html'
     context_object_name = 'categorias'
 
-class CategoriaCreateView(CreateView):
+    def get_queryset(self):
+        return Categoria.objects.using(self.db_name).all()
+
+class CategoriaCreateView(TenantRequiredMixin,CreateView):
     model = Categoria
     form_class = CategoriaForm
     template_name = 'inv/categoria_form.html'
     success_url = reverse_lazy('inv:categoria_list')
 
-class CategoriaUpdateView(UpdateView):
+    def form_valid(self, form):
+        # Accede al nombre de la base de datos del tenant desde la sesión
+        db_name = self.request.session.get('db_config')['NAME']
+        
+        # Guarda el objeto en la base de datos del tenant
+        form.instance.save(using=db_name)  # Guarda en la base de datos del tenant
+        
+        # Redirige al lugar correspondiente después de guardar
+        return super().form_valid(form)
+
+class CategoriaUpdateView(TenantRequiredMixin,UpdateView):
     model = Categoria
     form_class = CategoriaForm
     template_name = 'inv/categoria_form.html'
     success_url = reverse_lazy('inv:categoria_list')
 
-class CategoriaDeleteView(DeleteView):
+    def get_queryset(self):
+        db_name = self.request.session.get('db_config')['NAME']
+        return Categoria.objects.using(db_name).filter(id=self.kwargs['pk'])  # Filtramos por la ID de la moneda
+
+    def form_valid(self, form):
+        # Obtenemos el nombre de la base de datos del tenant
+        db_name = self.request.session.get('db_config')['NAME']
+        
+        # Guarda el objeto en la base de datos del tenant
+        form.instance.save(using=db_name)  # Guarda en la base de datos del tenant
+        
+        # Redirige al lugar correspondiente después de guardar
+        return super().form_valid(form)
+
+class CategoriaDeleteView(TenantRequiredMixin,DeleteView):
     model = Categoria
     template_name = 'inv/categoria_confirm_delete.html'
     success_url = reverse_lazy('inv:categoria_list')
 
+    def get_queryset(self):
+        db_name = self.request.session.get('db_config')['NAME']
+        return Categoria.objects.using(db_name).filter(id=self.kwargs['pk'])
+
+    def delete(self, request, *args, **kwargs):
+        # Elimina el objeto en la base del tenant
+        self.object = self.get_object()
+        db_name = self.request.session.get('db_config')['NAME']
+        self.object.delete(using=db_name)
+        return super().delete(request, *args, **kwargs)
+
 # CRUD UNIDAD DE MEDIDA
-class UnidadMedidaListView(ListView):
+class UnidadMedidaListView(TenantRequiredMixin,ListView):
     model = UnidadMedida
     template_name = 'inv/unidadmedida_list.html'
     context_object_name = 'unidadesmedida'
+    
+    def get_queryset(self):
+        return UnidadMedida.objects.using(self.db_name).all()
 
-class UnidadMedidaCreateView(CreateView):
+class UnidadMedidaCreateView(TenantRequiredMixin,CreateView):
     model = UnidadMedida
     form_class = UnidadMedidaForm
     template_name = 'inv/unidadmedida_form.html'
     success_url = reverse_lazy('inv:unidadmedida_list')
 
-class UnidadMedidaUpdateView(UpdateView):
+    def form_valid(self, form):
+        # Accede al nombre de la base de datos del tenant desde la sesión
+        db_name = self.request.session.get('db_config')['NAME']
+        
+        # Guarda el objeto en la base de datos del tenant
+        form.instance.save(using=db_name)  # Guarda en la base de datos del tenant
+        
+        # Redirige al lugar correspondiente después de guardar
+        return super().form_valid(form)
+
+class UnidadMedidaUpdateView(TenantRequiredMixin,UpdateView):
     model = UnidadMedida
     form_class = UnidadMedidaForm
     template_name = 'inv/unidadmedida_form.html'
     success_url = reverse_lazy('inv:unidadmedida_list')
 
-class UnidadMedidaDeleteView(DeleteView):
+    def get_queryset(self):
+        db_name = self.request.session.get('db_config')['NAME']
+        return UnidadMedida.objects.using(db_name).filter(id=self.kwargs['pk'])  # Filtramos por la ID de la moneda
+
+    def form_valid(self, form):
+        # Obtenemos el nombre de la base de datos del tenant
+        db_name = self.request.session.get('db_config')['NAME']
+        
+        # Guarda el objeto en la base de datos del tenant
+        form.instance.save(using=db_name)  # Guarda en la base de datos del tenant
+        
+        # Redirige al lugar correspondiente después de guardar
+        return super().form_valid(form)
+
+class UnidadMedidaDeleteView(TenantRequiredMixin,DeleteView):
     model = UnidadMedida
     template_name = 'inv/unidadmedida_confirm_delete.html'
     success_url = reverse_lazy('inv:unidadmedida_list')
 
+    def get_queryset(self):
+        db_name = self.request.session.get('db_config')['NAME']
+        return UnidadMedida.objects.using(db_name).filter(id=self.kwargs['pk'])
+
+    def delete(self, request, *args, **kwargs):
+        # Elimina el objeto en la base del tenant
+        self.object = self.get_object()
+        db_name = self.request.session.get('db_config')['NAME']
+        self.object.delete(using=db_name)
+        return super().delete(request, *args, **kwargs)
+
 # CRUD ALMACEN
-class AlmacenListView(ListView):
+class AlmacenListView(TenantRequiredMixin,ListView):
     model = Almacen
     template_name = 'inv/almacen_list.html'
     context_object_name = 'almacenes'
+    
+    def get_queryset(self):
+        return Almacen.objects.using(self.db_name).all()
 
-class AlmacenCreateView(CreateView):
+class AlmacenCreateView(TenantRequiredMixin,CreateView):
     model = Almacen
     form_class = AlmacenForm
     template_name = 'inv/almacen_form.html'
     success_url = reverse_lazy('inv:almacen_list')
 
-class AlmacenUpdateView(UpdateView):
+    def form_valid(self, form):
+        # Accede al nombre de la base de datos del tenant desde la sesión
+        db_name = self.request.session.get('db_config')['NAME']
+        
+        # Guarda el objeto en la base de datos del tenant
+        form.instance.save(using=db_name)  # Guarda en la base de datos del tenant
+        
+        # Redirige al lugar correspondiente después de guardar
+        return super().form_valid(form)
+
+class AlmacenUpdateView(TenantRequiredMixin,UpdateView):
     model = Almacen
     form_class = AlmacenForm
     template_name = 'inv/almacen_form.html'
     success_url = reverse_lazy('inv:almacen_list')
 
-class AlmacenDeleteView(DeleteView):
+    def get_queryset(self):
+        db_name = self.request.session.get('db_config')['NAME']
+        return Almacen.objects.using(db_name).filter(id=self.kwargs['pk'])  # Filtramos por la ID de la moneda
+
+    def form_valid(self, form):
+        # Obtenemos el nombre de la base de datos del tenant
+        db_name = self.request.session.get('db_config')['NAME']
+        
+        # Guarda el objeto en la base de datos del tenant
+        form.instance.save(using=db_name)  # Guarda en la base de datos del tenant
+        
+        # Redirige al lugar correspondiente después de guardar
+        return super().form_valid(form)
+
+class AlmacenDeleteView(TenantRequiredMixin,DeleteView):
     model = Almacen
     template_name = 'inv/almacen_confirm_delete.html'
     success_url = reverse_lazy('inv:almacen_list')
 
+    def get_queryset(self):
+        db_name = self.request.session.get('db_config')['NAME']
+        return Almacen.objects.using(db_name).filter(id=self.kwargs['pk'])
+
+    def delete(self, request, *args, **kwargs):
+        # Elimina el objeto en la base del tenant
+        self.object = self.get_object()
+        db_name = self.request.session.get('db_config')['NAME']
+        self.object.delete(using=db_name)
+        return super().delete(request, *args, **kwargs)
+
 # CRUD CLAVES MOV INVENTARIO
-class ClavesMovListView(ListView):
+class ClavesMovListView(TenantRequiredMixin,ListView):
     model = ClaveMovimiento
     template_name = 'inv/clavemovimiento_list.html'
     context_object_name = 'clavesmovimiento'
     ordering = ['nombre'] 
 
-class ClavesMovCreateView(CreateView):
+    def get_queryset(self):
+        return ClaveMovimiento.objects.using(self.db_name).all()
+
+class ClavesMovCreateView(TenantRequiredMixin,CreateView):
     model = ClaveMovimiento
     form_class = ClaveMovimientoForm
     template_name = 'inv/clavemovimiento_form.html'
     success_url = reverse_lazy('inv:clavemovimiento_list')
 
-class ClavesMovUpdateView(UpdateView):
+    def form_valid(self, form):
+        # Accede al nombre de la base de datos del tenant desde la sesión
+        db_name = self.request.session.get('db_config')['NAME']
+        
+        # Guarda el objeto en la base de datos del tenant
+        form.instance.save(using=db_name)  # Guarda en la base de datos del tenant
+        
+        # Redirige al lugar correspondiente después de guardar
+        return super().form_valid(form)
+
+class ClavesMovUpdateView(TenantRequiredMixin,UpdateView):
     model = ClaveMovimiento
     form_class = ClaveMovimientoForm
     template_name = 'inv/clavemovimiento_form.html'
     success_url = reverse_lazy('inv:clavemovimiento_list')
 
-class ClavesMovDeleteView(DeleteView):
+    def get_queryset(self):
+        db_name = self.request.session.get('db_config')['NAME']
+        return ClaveMovimiento.objects.using(db_name).filter(id=self.kwargs['pk'])  # Filtramos por la ID de la moneda
+
+    def form_valid(self, form):
+        # Obtenemos el nombre de la base de datos del tenant
+        db_name = self.request.session.get('db_config')['NAME']
+        
+        # Guarda el objeto en la base de datos del tenant
+        form.instance.save(using=db_name)  # Guarda en la base de datos del tenant
+        
+        # Redirige al lugar correspondiente después de guardar
+        return super().form_valid(form)
+
+class ClavesMovDeleteView(TenantRequiredMixin,DeleteView):
     model = ClaveMovimiento
     template_name = 'inv/clavemovimiento_confirm_delete.html'
     success_url = reverse_lazy('inv:clavemovimiento_list')
 
+    def get_queryset(self):
+        db_name = self.request.session.get('db_config')['NAME']
+        return ClaveMovimiento.objects.using(db_name).filter(id=self.kwargs['pk'])
+
+    def delete(self, request, *args, **kwargs):
+        # Elimina el objeto en la base del tenant
+        self.object = self.get_object()
+        db_name = self.request.session.get('db_config')['NAME']
+        self.object.delete(using=db_name)
+        return super().delete(request, *args, **kwargs)
+
 # CRUD VENDEDOR
-class VendedorListView(ListView):
+class VendedorListView(TenantRequiredMixin,ListView):
     model = Vendedor
     template_name = 'inv/vendedor_list.html'
     context_object_name = 'vendedores'
 
-class VendedorCreateView(CreateView):
+    def get_queryset(self):
+        return Vendedor.objects.using(self.db_name).all()
+
+class VendedorCreateView(TenantRequiredMixin,CreateView):
     model = Vendedor
     form_class = VendedorForm
     template_name = 'inv/vendedor_form.html'
@@ -168,46 +366,115 @@ class VendedorCreateView(CreateView):
 
     def form_valid(self, form):
         vendedor = form.cleaned_data['vendedor']
-        print("vendedor:", vendedor)
+        # Accede al nombre de la base de datos del tenant desde la sesión
+        db_name = self.request.session.get('db_config')['NAME']
+        
+        # Guarda el objeto en la base de datos del tenant
         form.instance.vendedor = str(vendedor).zfill(3)
+        form.instance.save(using=db_name)  # Guarda en la base de datos del tenant
+        
+        # Redirige al lugar correspondiente después de guardar
         return super().form_valid(form)
 
-class VendedorUpdateView(UpdateView):
+class VendedorUpdateView(TenantRequiredMixin, UpdateView):
     model = Vendedor
     form_class = VendedorForm
     template_name = 'inv/vendedor_form.html'
     success_url = reverse_lazy('inv:vendedor_list')
 
-class VendedorDeleteView(DeleteView):
+    def get_queryset(self):
+        db_name = self.request.session.get('db_config')['NAME']
+        return Vendedor.objects.using(db_name).filter(id=self.kwargs['pk'])  # Filtramos por la ID de la moneda
+
+    def form_valid(self, form):
+        # Obtenemos el nombre de la base de datos del tenant
+        db_name = self.request.session.get('db_config')['NAME']
+        
+        # Guarda el objeto en la base de datos del tenant
+        form.instance.save(using=db_name)  # Guarda en la base de datos del tenant
+        
+        # Redirige al lugar correspondiente después de guardar
+        return super().form_valid(form)
+
+class VendedorDeleteView(TenantRequiredMixin, DeleteView):
     model = Vendedor
     template_name = 'inv/vendedor_confirm_delete.html'
     success_url = reverse_lazy('inv:vendedor_list')
 
+    def get_queryset(self):
+        db_name = self.request.session.get('db_config')['NAME']
+        return Vendedor.objects.using(db_name).filter(id=self.kwargs['pk'])
+
+    def delete(self, request, *args, **kwargs):
+        # Elimina el objeto en la base del tenant
+        self.object = self.get_object()
+        db_name = self.request.session.get('db_config')['NAME']
+        self.object.delete(using=db_name)
+        return super().delete(request, *args, **kwargs)
+
 # CRUD PROVEEDOR
-class ProveedorListView(ListView):
+class ProveedorListView(TenantRequiredMixin, ListView):
     model = Proveedor
     template_name = 'inv/proveedor_list.html'
     context_object_name = 'proveedores'
 
-class ProveedorCreateView(CreateView):
+    def get_queryset(self):
+        return Proveedor.objects.using(self.db_name).all()
+
+class ProveedorCreateView(TenantRequiredMixin, CreateView):
     model = Proveedor
     form_class = ProveedorForm
     template_name = 'inv/proveedor_form.html'
     success_url = reverse_lazy('inv:proveedor_list')
 
-class ProveedorUpdateView(UpdateView):
+    def form_valid(self, form):
+        # Accede al nombre de la base de datos del tenant desde la sesión
+        db_name = self.request.session.get('db_config')['NAME']
+        
+        # Guarda el objeto en la base de datos del tenant
+        form.instance.save(using=db_name)  # Guarda en la base de datos del tenant
+        
+        # Redirige al lugar correspondiente después de guardar
+        return super().form_valid(form)
+
+class ProveedorUpdateView(TenantRequiredMixin, UpdateView):
     model = Proveedor
     form_class = ProveedorForm
     template_name = 'inv/proveedor_form.html'
     success_url = reverse_lazy('inv:proveedor_list')
 
-class ProveedorDeleteView(DeleteView):
+    def get_queryset(self):
+        db_name = self.request.session.get('db_config')['NAME']
+        return Proveedor.objects.using(db_name).filter(id=self.kwargs['pk'])  # Filtramos por la ID de la moneda
+
+    def form_valid(self, form):
+        # Obtenemos el nombre de la base de datos del tenant
+        db_name = self.request.session.get('db_config')['NAME']
+        
+        # Guarda el objeto en la base de datos del tenant
+        form.instance.save(using=db_name)  # Guarda en la base de datos del tenant
+        
+        # Redirige al lugar correspondiente después de guardar
+        return super().form_valid(form)
+
+class ProveedorDeleteView(TenantRequiredMixin, DeleteView):
     model = Proveedor
     template_name = 'inv/proveedor_confirm_delete.html'
     success_url = reverse_lazy('inv:proveedor_list')
 
+    def get_queryset(self):
+        db_name = self.request.session.get('db_config')['NAME']
+        return Proveedor.objects.using(db_name).filter(id=self.kwargs['pk'])
+
+    def delete(self, request, *args, **kwargs):
+        # Elimina el objeto en la base del tenant
+        self.object = self.get_object()
+        db_name = self.request.session.get('db_config')['NAME']
+        self.object.delete(using=db_name)
+        return super().delete(request, *args, **kwargs)
+
 # CRUD PRODUCTO
-class ProductoListView(ListView):
+class ProductoListView(TenantRequiredMixin, ListView):
     model = Producto
     template_name = 'inv/producto_list.html'
     context_object_name = 'productos'
@@ -215,8 +482,8 @@ class ProductoListView(ListView):
     def get_queryset(self):
         query = self.request.GET.get('q', '').strip()
         # Primero obtenemos todos los productos
-        productos = Producto.objects.all()
-
+        productos = Producto.objects.using(self.db_name).all()
+        
         if query:
             # Aplicamos filtros si hay búsqueda
             productos = productos.filter(
@@ -232,7 +499,7 @@ class ProductoListView(ListView):
         context['query'] = self.request.GET.get('q', '').strip()  # para que se mantenga en el input
         return context
 
-class ProductoCreateView(CreateView):  
+class ProductoCreateView(TenantRequiredMixin, CreateView):  
     model = Producto
     form_class = ProductoForm
     template_name = 'inv/producto_form.html'
@@ -246,20 +513,56 @@ class ProductoCreateView(CreateView):
 
     def form_valid(self, form):
         sku = form.cleaned_data['sku']
-
         form.instance.sku = str(sku).zfill(6)
-        return super().form_valid(form)
 
-class ProductoUpdateView(UpdateView):
+        # Accede al nombre de la base de datos del tenant desde la sesión
+        db_name = self.request.session.get('db_config')['NAME']
+        
+        # Guarda el objeto en la base de datos del tenant
+        form.instance.save(using=db_name)  # Guarda en la base de datos del tenant
+        
+        # Redirige al lugar correspondiente después de guardar
+        return super().form_valid(form)
+    
+    def form_invalid(self, form):
+        print("Errores del form producto:", form.errors)
+        return 
+
+class ProductoUpdateView(TenantRequiredMixin, UpdateView):
     model = Producto
     form_class = ProductoForm
     template_name = 'inv/producto_form.html'
     success_url = reverse_lazy('inv:producto_list')
 
-class ProductoDeleteView(DeleteView):
+    def get_queryset(self):
+        db_name = self.request.session.get('db_config')['NAME']
+        return Producto.objects.using(db_name).filter(id=self.kwargs['pk'])  # Filtramos por la ID de la moneda
+
+    def form_valid(self, form):
+        # Obtenemos el nombre de la base de datos del tenant
+        db_name = self.request.session.get('db_config')['NAME']
+        
+        # Guarda el objeto en la base de datos del tenant
+        form.instance.save(using=db_name)  # Guarda en la base de datos del tenant
+        
+        # Redirige al lugar correspondiente después de guardar
+        return super().form_valid(form)
+
+class ProductoDeleteView(TenantRequiredMixin, DeleteView):
     model = Producto
     template_name = 'inv/producto_confirm_delete.html'
     success_url = reverse_lazy('inv:producto_list')
+
+    def get_queryset(self):
+        db_name = self.request.session.get('db_config')['NAME']
+        return Producto.objects.using(db_name).filter(id=self.kwargs['pk'])
+
+    def delete(self, request, *args, **kwargs):
+        # Elimina el objeto en la base del tenant
+        self.object = self.get_object()
+        db_name = self.request.session.get('db_config')['NAME']
+        self.object.delete(using=db_name)
+        return super().delete(request, *args, **kwargs)
 
     def form_valid(self, form):
         return super().form_valid(form)
@@ -268,29 +571,28 @@ class ProductoDeleteView(DeleteView):
         return super().form_invalid(form)
 
 # CRUD MOVIMIENTOS
-class MovimientoListView(ListView):
+class MovimientoListView(TenantRequiredMixin, ListView):
     model = Movimiento
     template_name = 'inv/movimiento_list.html'
     context_object_name = 'movimientos'
     ordering = ['-fecha_movimiento','-clave_movimiento', '-referencia']  # Orden descendente por fecha
     paginate_by = 10  # Número de movimientos por página
  
-class MovimientoCreateView(CreateView):
+class MovimientoCreateView(TenantRequiredMixin, CreateView):
     model = Movimiento
     form_class = MovimientoForm
     template_name = 'inv/movimiento_form.html'
 
     def get_initial(self):
         initial = super().get_initial()
-        perfil = getattr(self.request.user, 'perfilusuario', None)
-        empresa = getattr(perfil, 'empresa', None)
-        
+        empresa = self.empresa #  <==== Viene de TenantRequireMixin
+
         if empresa:
             # Verificar que el almacen_actual está asignado
             if empresa.almacen_actual:
                 try:
                     # Buscar el Almacen usando el ID almacen_actual
-                    almacen = Almacen.objects.get(id=empresa.almacen_actual)
+                    almacen = Almacen.objects.using(self.db_name).get(id=empresa.almacen_actual)
                     # Asignar solo el id del almacen
                     initial['almacen'] = almacen.id
                 except Almacen.DoesNotExist:
@@ -305,8 +607,9 @@ class MovimientoCreateView(CreateView):
         return initial
     
     def get(self, request, *args, **kwargs):
-        form = self.form_class()
-        formset = DetalleMovimientoFormSet(queryset=DetalleMovimiento.objects.none())  # Inicializa el formset vacío
+        #form = self.form_class()
+        form = self.form_class(request.POST or None, db_name=self.db_name)
+        formset = DetalleMovimientoFormSet(queryset=DetalleMovimiento.objects.using(self.db_name).none())  # Inicializa el formset vacío
 
         # Asignar el valor inicial de 'almacen'
         initial = self.get_initial()  # Llamamos a get_initial() para obtener los valores iniciales del formulario
@@ -314,9 +617,13 @@ class MovimientoCreateView(CreateView):
         return render(request, self.template_name, {'form': form, 'formset': formset})
 
     def post(self, request, *args, **kwargs):
-        form = self.form_class(request.POST)
-        formset = DetalleMovimientoFormSet(request.POST)
-
+        # form = self.form_class(request.POST)
+        form = self.form_class(request.POST or None, db_name=self.db_name)
+        formset = DetalleMovimientoFormSet(
+            request.POST,
+            queryset=DetalleMovimiento.objects.using(self.db_name).none(),
+            prefix='detalles'
+        )
         if form.is_valid() and formset.is_valid():
             return self.form_valid(form, formset)
         else:
@@ -328,7 +635,7 @@ class MovimientoCreateView(CreateView):
             referencia_formateada = str(referencia).zfill(7)
             form.instance.referencia = referencia_formateada
 
-        form.instance.usuario = self.request.user
+        form.instance.usuario = self.request.user.username
         # Asignar move_s leyendo de la clave_movimiento
         clave_movimiento = form.cleaned_data.get('clave_movimiento')
         if clave_movimiento:
@@ -345,7 +652,7 @@ class MovimientoCreateView(CreateView):
     def form_invalid(self, form, formset):
         return render(self.request, self.template_name, {'form': form, 'formset': formset})
 
-class MovimientoUpdateView(UpdateView):
+class MovimientoUpdateView(TenantRequiredMixin, UpdateView):
     model = Movimiento
     form_class = MovimientoForm
     template_name = 'inv/movimiento_form.html'
@@ -359,9 +666,18 @@ class MovimientoUpdateView(UpdateView):
     def get_context_data(self, **kwargs):
         data = super().get_context_data(**kwargs)
         if self.request.POST:
-            data['formset'] = DetalleMovimientoFormSet(self.request.POST, instance=self.object, prefix='detalles')
+            data['formset'] = DetalleMovimientoFormSet(
+                self.request.POST,
+                instance=self.object,
+                queryset=DetalleMovimiento.objects.using(self.db_name).filter(referencia=self.object),
+                prefix='detalles'
+            )
         else:
-            data['formset'] = DetalleMovimientoFormSet(instance=self.object, prefix='detalles')
+            data['formset'] = DetalleMovimientoFormSet(
+                instance=self.object, 
+                queryset=DetalleMovimiento.objects.using(self.db_name).filter(referencia=self.object),
+                prefix='detalles'
+        )
         return data
     
     def form_valid(self, form):
@@ -377,48 +693,71 @@ class MovimientoUpdateView(UpdateView):
             return self.form_invalid(form)
 
 # DETALLE DE MOVIMIENTO
-class MovimientoDetailView(DetailView):
+class MovimientoDetailView(TenantRequiredMixin, DetailView):
     model = Movimiento
     template_name = 'inv/movimiento_detail.html'
     context_object_name = 'movimiento'
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['detalles'] = DetalleMovimiento.objects.filter(referencia=self.object)
+        context['detalles'] = DetalleMovimiento.objects.using(self.db_name).filter(referencia=self.object)
         return context
 
-class MovimientoDeleteView(DeleteView):
+class MovimientoDeleteView(TenantRequiredMixin, DeleteView):
     model = Movimiento
     template_name = 'inv/movimiento_confirm_delete.html'
     success_url = reverse_lazy('inv:movimiento_list')
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['detalles'] = self.object.detalles.all()
+        db_name = self.request.session.get('db_config')['NAME']
+        context['detalles'] = self.object.detalles.using(db_name).all()
         return context
 
+    def get_queryset(self):
+        db_name = self.request.session.get('db_config')['NAME']
+        return Movimiento.objects.using(db_name).filter(id=self.kwargs['pk'])
+
+    def delete(self, request, *args, **kwargs):
+        db_name = self.request.session.get('db_config')['NAME']
+        self.object = self.get_object()
+
+        # Eliminar detalles explícitamente
+        self.object.detallemovimiento_set.using(db_name).all().delete()
+
+        # Eliminar Encabezado - MOvimiento
+        self.object.delete(using=db_name)
+
+        return super().delete(request, *args, **kwargs)
+
+@login_required
+@tenant_required
 def verificar_movimiento(request):
     clave_movimiento_id = request.GET.get('clave_movimiento')
     referencia = request.GET.get('referencia')
 
-    try:
-        movimiento = Movimiento.objects.get(clave_movimiento_id=clave_movimiento_id, referencia=referencia)
+    try: 
+        movimiento = Movimiento.objects.using(request.db_name).get(clave_movimiento_id=clave_movimiento_id, referencia=referencia)
         return JsonResponse({'existe': True, 'id': movimiento.id})
     except Movimiento.DoesNotExist:
         return JsonResponse({'existe': False})
 
+@login_required
+@tenant_required
 def obtener_costo_producto(request):
     producto_id = request.GET.get('producto_id')
     try:
-        producto = Producto.objects.get(pk=producto_id)
+        producto = Producto.objects.using(request.db_name).get(pk=producto_id) 
         return JsonResponse({'costo_reposicion': str(producto.costo_reposicion)})
     except Producto.DoesNotExist:
         return JsonResponse({'error': 'Producto no encontrado'}, status=404)
 
+@login_required
+@tenant_required
 def obtener_paridad_moneda(request):
     moneda_id = request.GET.get('moneda_id')
     try:
-        moneda = Moneda.objects.get(pk=moneda_id)
+        moneda = Moneda.objects.using(request.db_name).get(pk=moneda_id)
         return JsonResponse({'paridad': str(moneda.paridad)})
     except Moneda.DoesNotExist:
         return JsonResponse({'error': 'Moneda no encontrada'}, status=404)
@@ -430,7 +769,7 @@ class RemisionBaseView:
     def procesar_formset(self, formset, remision):
         monto_total = 0
 
-        remision.detalles.all().delete()
+        remision.detalles.using(self.db_name).all().delete()
 
         for detalle_form in formset:
             if detalle_form.cleaned_data and not detalle_form.cleaned_data.get('DELETE', False):
@@ -440,7 +779,7 @@ class RemisionBaseView:
                 descuento = cd['descuento']
                 subtotal = (cantidad * precio) - descuento
 
-                DetalleRemision.objects.create(
+                DetalleRemision.objects.using(self.db_name).create(
                     numero_remision=remision,
                     producto=cd['producto'],
                     cantidad=cantidad,
@@ -462,7 +801,7 @@ class RemisionBaseView:
         remision.monto_total = monto_total
         remision.save()
 
-class RemisionListView(ListView):
+class RemisionListView(TenantRequiredMixin, ListView):
     model = Remision
     template_name = 'inv/remision_list.html'
     context_object_name = 'remisiones'
@@ -470,19 +809,19 @@ class RemisionListView(ListView):
     paginate_by = 10  # Número de movimientos por página
 
 from decimal import Decimal
-class RemisionCreateView(RemisionBaseView, CreateView):
+class RemisionCreateView(TenantRequiredMixin, RemisionBaseView, CreateView):
     model = Remision
     form_class = RemisionForm
     template_name = 'inv/remision_form.html'
 
     def get_initial(self):
         initial = super().get_initial()
-        perfil = getattr(self.request.user, 'perfilusuario', None)
-        empresa = getattr(perfil, 'empresa', None)
+        
+        empresa = self.empresa
 
         if empresa and empresa.almacen_actual:
             try:
-                almacen = Almacen.objects.get(id=empresa.almacen_actual)
+                almacen = Almacen.objects.using(self.db_name).get(id=empresa.almacen_actual)
                 initial['almacen'] = almacen.id
             except Almacen.DoesNotExist:
                 print("No se encontró el almacén", empresa.almacen_actual)
@@ -492,16 +831,22 @@ class RemisionCreateView(RemisionBaseView, CreateView):
 
     def get(self, request, *args, **kwargs):
         form = self.form_class(initial=self.get_initial())
-        formset = DetalleRemisionFormSet(queryset=DetalleRemision.objects.none(), prefix='detalles')
+        formset = DetalleRemisionFormSet(queryset=DetalleRemision.objects.using(self.db_name).none(), prefix='detalles')
         return render(request, self.template_name, {'form': form, 'formset': formset})
 
     def post(self, request, *args, **kwargs):
-        form = self.form_class(request.POST)
-        formset = DetalleRemisionFormSet(request.POST, prefix='detalles')
-
+        #form = self.form_class(request.POST)
+        form = self.form_class(request.POST or None, db_name=self.db_name)
+        
+        formset = DetalleRemisionFormSet(
+            request.POST,
+            queryset=DetalleRemision.objects.using(self.db_name).none(),
+            prefix='detalles'
+        )
+        
         if form.is_valid() and formset.is_valid():
             self.object = form.save(commit=False)
-            self.object.usuario = self.request.user
+            self.object.usuario = self.request.user.username
             self.object.numero_factura = '0'
             self.object.status = 'R'
             numero_remision = form.cleaned_data.get('numero_remision')
@@ -522,7 +867,7 @@ class RemisionCreateView(RemisionBaseView, CreateView):
     def form_invalid(self, form, formset):
         return render(self.request, self.template_name, {'form': form, 'formset': formset})
     
-class RemisionUpdateView(RemisionBaseView, UpdateView):
+class RemisionUpdateView(TenantRequiredMixin, RemisionBaseView, UpdateView):
     model = Remision
     form_class = RemisionForm
     template_name = 'inv/remision_form.html'
@@ -531,14 +876,24 @@ class RemisionUpdateView(RemisionBaseView, UpdateView):
     def get(self, request, *args, **kwargs):
         self.object = self.get_object()
         form = self.form_class(instance=self.object)
-        formset = DetalleRemisionFormSet(instance=self.object,prefix='detalles')
+        formset = DetalleRemisionFormSet(
+            instance=self.object,
+            queryset=DetalleRemision.objects.using(self.db_name).filter(numero_remision=self.object),
+            prefix='detalles'
+        )
 
         return render(request, self.template_name, {'form': form, 'formset': formset})
 
     def post(self, request, *args, **kwargs):
         self.object = self.get_object()
-        form = self.form_class(request.POST, instance=self.object)
-        formset = DetalleRemisionFormSet(request.POST, prefix='detalles')
+        #form = self.form_class(request.POST, instance=self.object)
+        form = self.form_class(request.POST or None, db_name=self.db_name)
+        formset = DetalleRemisionFormSet(
+            request.POST,
+            instance=self.object,
+            queryset=DetalleRemision.objects.using(self.db_name).filter(numero_remision=self.object),
+            prefix='detalles'
+        )
 
         if form.is_valid() and formset.is_valid():
             self.object = form.save()
@@ -553,41 +908,61 @@ class RemisionUpdateView(RemisionBaseView, UpdateView):
         return form
 
 # DETALLE DE MOVIMIENTO DE REMISIONES
-class RemisionDetailView(DetailView):
+class RemisionDetailView(TenantRequiredMixin, DetailView):
     model = Remision
     template_name = 'inv/remision_detail.html'
     context_object_name = 'remision'
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['detalles'] = DetalleRemision.objects.filter(numero_remision=self.object)
+        context['detalles'] = DetalleRemision.objects.using(self.db_name).filter(numero_remision=self.object)
         return context
 
-class RemisionDeleteView(DeleteView):
+class RemisionDeleteView(TenantRequiredMixin, DeleteView):
     model = Remision
     template_name = 'inv/remision_confirm_delete.html'
     success_url = reverse_lazy('inv:remision_list')
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['detalles'] = self.object.detalles.all()
+        db_name = self.request.session.get('db_config')['NAME']
+        context['detalles'] = self.object.detalles.using(db_name).all()
         return context
 
+    def get_queryset(self):
+        db_name = self.request.session.get('db_config')['NAME']
+        return Remision.objects.using(db_name).filter(id=self.kwargs['pk'])
+
+    def delete(self, request, *args, **kwargs):
+        db_name = self.request.session.get('db_config')['NAME']
+        self.object = self.get_object()
+
+        # Eliminar detalles explícitamente
+        self.object.detalleremision_set.using(db_name).all().delete()
+
+        # Eliminar Encabezado - MOvimiento
+        self.object.delete(using=db_name)
+
+        return super().delete(request, *args, **kwargs)
+
+@login_required
+@tenant_required
 def verificar_remision(request):
     clave_movimiento_id = request.GET.get('clave_movimiento')
     numero_remision = request.GET.get('numero_remision')
-    print(" EN VERIFICAR REMISION")
+    
     try:
-        remision = Remision.objects.get(clave_movimiento_id=clave_movimiento_id, numero_remision=numero_remision)
-        print("REMISION SI EXISTE")
+        remision = Remision.objects.using(request.db_name).get(clave_movimiento_id=clave_movimiento_id, numero_remision=numero_remision)
         return JsonResponse({'existe': True, 'id': remision.id})
     except Remision.DoesNotExist:
         return JsonResponse({'existe': False})
 
+@login_required
+@tenant_required
 def obtener_precio_producto(request):
     producto_id = request.GET.get('producto_id')
     try:
-        producto = Producto.objects.get(pk=producto_id)
+        producto = Producto.objects.using(request.db_name).get(pk=producto_id)
         aplica_iva = 0
         aplica_ieps = 0
         if producto.aplica_iva:
@@ -605,10 +980,12 @@ def obtener_precio_producto(request):
     except Producto.DoesNotExist:
         return JsonResponse({'error': 'Producto no encontrado'}, status=404)
 
+@login_required
+@tenant_required
 def obtener_ultimo_numero_remision(request):
     clave = request.GET.get('clave')
     if clave:
-        ultima = Remision.objects.filter(clave_movimiento=clave).order_by('-numero_remision').first()
+        ultima = Remision.objects.using(request.db_name).filter(clave_movimiento=clave).order_by('-numero_remision').first()
         if ultima and ultima.numero_remision.isdigit():
             siguiente = str(int(ultima.numero_remision) + 1).zfill(7)
         else:
@@ -616,10 +993,12 @@ def obtener_ultimo_numero_remision(request):
         return JsonResponse({'numero_remision': siguiente})
     return JsonResponse({'numero_remision': '0000001'})
 
+@login_required
+@tenant_required
 def obtener_ultimo_movimiento(request):
     clave = request.GET.get('clave')
     if clave:
-        ultima = Movimiento.objects.filter(clave_movimiento=clave).order_by('-referencia').first()
+        ultima = Movimiento.objects.using(request.db_name).filter(clave_movimiento=clave).order_by('-referencia').first()
         if ultima and ultima.referencia.isdigit():
             siguiente = str(int(ultima.referencia) + 1).zfill(7)
         else:
@@ -627,11 +1006,13 @@ def obtener_ultimo_movimiento(request):
         return JsonResponse({'referencia': siguiente})
     return JsonResponse({'referencia': '0000001'})
 
+@login_required
+@tenant_required
 def obtener_ultima_compra(request):
     clave = request.GET.get('clave')
     
     if clave:
-        ultima = Compra.objects.filter(clave_movimiento=clave).order_by('-referencia').first()
+        ultima = Compra.objects.using(request.db_name).filter(clave_movimiento=clave).order_by('-referencia').first()
         if ultima and ultima.referencia.isdigit():
             siguiente = str(int(ultima.referencia) + 1).zfill(7)
         else:
@@ -639,9 +1020,11 @@ def obtener_ultima_compra(request):
         return JsonResponse({'referencia': siguiente})
     return JsonResponse({'referencia': '0000001'})
 
+@login_required
+@tenant_required
 def obtener_ultimo_vendedor(request):
 
-    ultimo = Vendedor.objects.all().order_by('-vendedor').first()
+    ultimo = Vendedor.objects.using(request.db_name).all().order_by('-vendedor').first()
     if ultimo:
         siguiente = str(int(ultimo.vendedor) + 1).zfill(3)
     else:
@@ -654,8 +1037,10 @@ def obtener_ultimo_vendedor(request):
 from django.shortcuts import render
 from django.db.models import Sum, F, ExpressionWrapper, DecimalField
 
+@login_required
+@tenant_required
 def remisiones_por_dia(request):
-    almacenes = Almacen.objects.all()
+    almacenes = Almacen.objects.using(request.db_name).all()
     resultados = []
     total_general = 0
     almacen = None
@@ -666,9 +1051,9 @@ def remisiones_por_dia(request):
         fecha_ini = request.GET['fecha_ini']
         fecha_fin = request.GET['fecha_fin']
 
-        almacen = Almacen.objects.get(id=almacen_id)
+        almacen = Almacen.objects.using(request.db_name).get(id=almacen_id)
 
-        resultados = DetalleRemision.objects.filter(
+        resultados = DetalleRemision.objects.using(request.db_name).filter(
             numero_remision__almacen=almacen,
             numero_remision__fecha_remision__range=[fecha_ini, fecha_fin]
         ).select_related('producto', 'numero_remision').annotate(
@@ -694,11 +1079,14 @@ def remisiones_por_dia(request):
         'total_general': total_general,
     })
 
+@login_required
+@tenant_required
 def buscar_remisiones_por_dia(request):
-    almacenes = Almacen.objects.all()
+    almacenes = Almacen.objects.using(request.db_name).all()
     return render(request, 'inv/reportes/remisiones_por_dia_buscar.html', {'almacenes': almacenes})
 
-
+@login_required
+@tenant_required
 def remisiones_por_cliente(request):
     #clientes = Cliente.objects.all()
     total_general = 0
@@ -709,14 +1097,14 @@ def remisiones_por_cliente(request):
     fecha_ini = request.GET.get('fecha_ini')
     fecha_fin = request.GET.get('fecha_fin')
 
-    cliente = Cliente.objects.get(pk=cliente_id)
+    cliente = Cliente.objects.using(request.db_name).get(pk=cliente_id)
     
-    remisiones = Remision.objects.filter(
+    remisiones = Remision.objects.using(request.db_name).filter(
     cliente_id=cliente_id,
     fecha_remision__range=[fecha_ini, fecha_fin]
     ).order_by('fecha_remision','numero_remision') 
 
-    detalles = DetalleRemision.objects.filter(numero_remision__in=remisiones
+    detalles = DetalleRemision.objects.using(request.db_name).filter(numero_remision__in=remisiones
                                               ).select_related('numero_remision','producto'
                                               ).order_by('numero_remision__fecha_remision', 'numero_remision__numero_remision', 'id')
 
@@ -738,24 +1126,28 @@ def remisiones_por_cliente(request):
 
     return render(request, 'inv/reportes/remisiones_por_cliente.html', contexto)
 
+@login_required
+@tenant_required
 def buscar_remisiones_por_cliente(request):
-    clientes = Cliente.objects.all()
+    clientes = Cliente.objects.using(request.db_name).all()
     return render(request, 'inv/reportes/remisiones_por_cliente_buscar.html', {'clientes': clientes})
 
+@login_required
+@tenant_required
 def remisiones_por_producto(request):
     producto_id = request.GET.get('producto')
     fecha_ini = request.GET.get('fecha_ini')
     fecha_fin = request.GET.get('fecha_fin')
 
-    producto = Producto.objects.get(pk=producto_id)
+    producto = Producto.objects.using(request.db_name).get(pk=producto_id)
 
     # saca las remisiones a partir del detalle
-    remisiones = Remision.objects.filter(
+    remisiones = Remision.objects.using(request.db_name).filter(
         detalles__producto_id=producto_id,  # este detalles es el related_names definido en la Tabla DetalleRemision
         fecha_remision__range=[fecha_ini, fecha_fin]
     ).distinct().order_by('fecha_remision', 'numero_remision')
     
-    detalles = DetalleRemision.objects.filter(
+    detalles = DetalleRemision.objects.using(request.db_name).filter(
         numero_remision__in=remisiones,
         producto_id=producto_id
     ).select_related('numero_remision', 'producto'
@@ -779,14 +1171,16 @@ def remisiones_por_producto(request):
 
     return render(request, 'inv/reportes/remisiones_por_producto.html', contexto)
 
+@login_required
+@tenant_required
 def buscar_remisiones_por_producto(request):
-    productos = Producto.objects.all()
+    productos = Producto.objects.using(request.db_name).all()
 
     producto_id = request.GET.get('producto')
     fecha_ini = request.GET.get('fecha_ini')
     fecha_fin = request.GET.get('fecha_fin')
 
-    producto_seleccionado = Producto.objects.filter(id=producto_id).first() if producto_id else None
+    producto_seleccionado = Producto.objects.using(request.db_name).filter(id=producto_id).first() if producto_id else None
 
     contexto = {
         'productos': productos,
@@ -798,8 +1192,10 @@ def buscar_remisiones_por_producto(request):
 
 # VISTAS PARA CONSULTA DE MOVIMIENTOS TOTALES POR PRODUCTO: MOVIMIENTOS Y REMISIONES
 # SE UTILIZA EN LA OPCION DE CONSULTAR "MOVIMIENTOS POR PRODUCTO"
+@login_required
+@tenant_required
 def buscar_movimientos_por_producto_totales(request):
-    productos = Producto.objects.all()
+    productos = Producto.objects.using(request.db_name).all()
     return render(request, 'inv/reportes/movimientos_por_producto_buscar.html', {
         'productos': productos
     })
@@ -807,15 +1203,17 @@ def buscar_movimientos_por_producto_totales(request):
 from django.db.models import F, Value, CharField
 from django.db.models.functions import Coalesce
 # OPCION CONSULTAR "MOVIMIENTOS POR PRODUCTO"
+@login_required
+@tenant_required
 def movimientos_por_producto_totales(request):
     producto_id = request.GET.get('producto')
     fecha_ini = request.GET.get('fecha_ini')
     fecha_fin = request.GET.get('fecha_fin')
 
-    producto = Producto.objects.get(pk=producto_id)
+    producto = Producto.objects.using(request.db_name).get(pk=producto_id)
 
     # Movimientos
-    movimientos = DetalleMovimiento.objects.filter(
+    movimientos = DetalleMovimiento.objects.using(request.db_name).filter(
         producto_id=producto_id,
         referencia__fecha_movimiento__range=[fecha_ini, fecha_fin]
     ).annotate(
@@ -838,7 +1236,7 @@ def movimientos_por_producto_totales(request):
     ).values('fecha', 'tipo', 'clave', 'nombre_mov', 'ref','cantidad_entrada', 'cantidad_salida', 'origen')
 
     # Compras
-    compras = DetalleCompra.objects.filter(
+    compras = DetalleCompra.objects.using(request.db_name).filter(
         producto_id=producto_id,
         referencia__fecha_compra__range=[fecha_ini, fecha_fin]
     ).annotate(
@@ -853,7 +1251,7 @@ def movimientos_por_producto_totales(request):
     ).values('fecha', 'tipo', 'clave', 'nombre_mov', 'ref','cantidad_entrada', 'cantidad_salida', 'origen')
 
     # Remisiones
-    remisiones = DetalleRemision.objects.filter(
+    remisiones = DetalleRemision.objects.using(request.db_name).filter(
         producto_id=producto_id,
         numero_remision__fecha_remision__range=[fecha_ini, fecha_fin],
         numero_remision__status__in=['R', 'F']  # Solo remisiones válidas
@@ -890,14 +1288,18 @@ def movimientos_por_producto_totales(request):
     return render(request, 'inv/reportes/movimientos_por_producto.html', contexto)
 
 # MOVIMIENTOS POR CLAVE DE MOVIMIENTO
+@login_required
+@tenant_required
 def buscar_movimientos_por_clave(request):
-    claves = ClaveMovimiento.objects.all()
+    claves = ClaveMovimiento.objects.using(request.db_name).all()
 
     context = {
         'claves': claves,
     }
     return render(request, 'inv/reportes/movimientos_por_clave_buscar.html', context)
 
+@login_required
+@tenant_required
 def movimientos_por_clave(request):
     clave_id = request.GET.get('clave')
     fecha_ini = request.GET.get('fecha_ini')
@@ -906,11 +1308,11 @@ def movimientos_por_clave(request):
     clave_seleccionado = None
     if clave_id:
         try:
-            clave_seleccionado = ClaveMovimiento.objects.get(id=clave_id)
+            clave_seleccionado = ClaveMovimiento.objects.using(request.db_name).get(id=clave_id)
         except ClaveMovimiento.DoesNotExist:
             clave_seleccionado = None
-    print("movimientos")
-    movimientos = DetalleMovimiento.objects.filter(
+    
+    movimientos = DetalleMovimiento.objects.using(request.db_name).filter(
         referencia__clave_movimiento_id=clave_id,
         referencia__fecha_movimiento__range=[fecha_ini, fecha_fin]
     ).select_related('referencia', 'producto').annotate(
@@ -924,9 +1326,8 @@ def movimientos_por_clave(request):
         cant=F('cantidad'),
     ).values('fecha', 'clave', 'nombre_mov', 'move_s', 'ref', 'sku', 'nombre_producto', 'cant')
 
-    print("compras")
     # COMPRAS
-    compras = DetalleCompra.objects.filter(
+    compras = DetalleCompra.objects.using(request.db_name).filter(
         referencia__clave_movimiento_id=clave_id,
         referencia__fecha_compra__range=[fecha_ini, fecha_fin]
     ).select_related('referencia', 'producto').annotate(
@@ -940,9 +1341,8 @@ def movimientos_por_clave(request):
         cant=F('cantidad'),
     ).values('fecha', 'clave', 'nombre_mov', 'move_s', 'ref', 'sku', 'nombre_producto', 'cant')
 
-    print("remisiones")
     # REMISIONES
-    remisiones = DetalleRemision.objects.filter(
+    remisiones = DetalleRemision.objects.using(request.db_name).filter(
         numero_remision__clave_movimiento_id=clave_id,
         numero_remision__fecha_remision__range=[fecha_ini, fecha_fin]
     ).select_related('numero_remision', 'producto').annotate(
@@ -959,7 +1359,7 @@ def movimientos_por_clave(request):
     resultados = movimientos.union(compras).union(remisiones).order_by('fecha')
 
     # resultados = list(movimientos.union(compras).union(remisiones).order_by('fecha'))
-    print("despues de UNION")
+    
     # pasa fechas de string a fecha
     fecha_ini = datetime.strptime(fecha_ini, '%Y-%m-%d').date() if fecha_ini else None
     fecha_fin = datetime.strptime(fecha_fin, '%Y-%m-%d').date() if fecha_fin else None
@@ -975,16 +1375,17 @@ def movimientos_por_clave(request):
 
 # FUNCION PARA LLAMAR A calcular_existencia_producto 
 from .utils import calcular_existencia_producto
-
+@login_required
+@tenant_required
 def api_existencia_producto(request):
     producto_id = request.GET.get('producto')
     almacen_id = request.GET.get('almacen')
     fecha_leida = request.GET.get('fecha')
 
     try:
-        producto = Producto.objects.get(pk=producto_id)
-        almacen = Almacen.objects.get(pk=almacen_id)
-        fecha = datetime.strptime(fecha_leida, '%Y-%m-%d').date()
+        producto = Producto.objects.using(request.db_name).get(pk=producto_id)
+        almacen = Almacen.objects.using(request.db_name).get(pk=almacen_id)
+        fecha = datetime.strptime(fecha_leida, '%Y-%m-%d').date()  # ojo fecha a YY-MM-DD ***
 
         existencia = calcular_existencia_producto(producto, almacen, fecha)
         
@@ -993,9 +1394,11 @@ def api_existencia_producto(request):
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=400)
 
+@login_required
+@tenant_required
 def buscar_existencia_producto(request):
-    productos = Producto.objects.all()
-    almacenes = Almacen.objects.all()
+    productos = Producto.objects.using(request.db_name).all()
+    almacenes = Almacen.objects.using(request.db_name).all()
     contexto = {
         'productos':productos,
         'almacenes':almacenes,
@@ -1007,6 +1410,8 @@ from decimal import Decimal
 from datetime import datetime
 from django.db.models import F, Value, Case, When, DecimalField, CharField
 
+@login_required
+@tenant_required
 def imprimir_existencia_producto(request):
     producto = None  
     saldo_inicial = Decimal('0.00')
@@ -1017,12 +1422,12 @@ def imprimir_existencia_producto(request):
         fecha_fin = request.GET.get('fecha_fin')
 
         if producto_id and almacen_id and fecha_fin:
-            producto = Producto.objects.get(id=producto_id)
-            almacen = Almacen.objects.get(id=almacen_id)
+            producto = Producto.objects.using(request.db_name).get(id=producto_id)
+            almacen = Almacen.objects.using(request.db_name).get(id=almacen_id)
             fecha_leida = datetime.strptime(fecha_fin, '%Y-%m-%d').date()
 
             saldo = (
-                SaldoInicial.objects
+                SaldoInicial.objects.using(request.db_name)
                 .filter(producto=producto, almacen=almacen, fecha__lte=fecha_leida)
                 .order_by('-fecha')
                 .first()
@@ -1038,7 +1443,7 @@ def imprimir_existencia_producto(request):
                 fecha_saldo = saldo.fecha
 
             # Movimientos
-            movimientos = DetalleMovimiento.objects.filter(
+            movimientos = DetalleMovimiento.objects.using(request.db_name).filter(
                 referencia__almacen_id=almacen_id,
                 producto_id=producto_id,
                 referencia__fecha_movimiento__range=[fecha_ini, fecha_fin]
@@ -1062,7 +1467,7 @@ def imprimir_existencia_producto(request):
             ).values('fecha', 'tipo', 'clave', 'nombre_mov', 'ref', 'cantidad_entrada', 'cantidad_salida', 'origen')
 
             # Compras
-            compras = DetalleCompra.objects.filter(
+            compras = DetalleCompra.objects.using(request.db_name).filter(
                 referencia__almacen_id=almacen_id,
                 producto_id=producto_id,
                 referencia__fecha_compra__range=[fecha_ini, fecha_fin]
@@ -1078,7 +1483,7 @@ def imprimir_existencia_producto(request):
             ).values('fecha', 'tipo', 'clave', 'nombre_mov', 'ref', 'cantidad_entrada', 'cantidad_salida', 'origen')
 
             # Remisiones
-            remisiones = DetalleRemision.objects.filter(
+            remisiones = DetalleRemision.objects.using(request.db_name).filter(
                 numero_remision__almacen_id=almacen_id,
                 producto_id=producto_id,
                 numero_remision__fecha_remision__range=[fecha_ini, fecha_fin],
@@ -1163,7 +1568,7 @@ class CompraBaseView:
         compra.detalles.all().delete()
 
         for detalle in detalles_dict.values():
-            DetalleCompra.objects.create(
+            DetalleCompra.objects.using(self.db_name).create(
                 referencia=compra,
                 producto=detalle['producto'],
                 cantidad=detalle['cantidad'],
@@ -1181,7 +1586,7 @@ class CompraBaseView:
         compra.monto_total = monto_total
         compra.save()
 
-class CompraListView(ListView):
+class CompraListView(TenantRequiredMixin, ListView):
     model = Compra
     template_name = 'inv/compra_list.html'
     context_object_name = 'compras'
@@ -1189,27 +1594,26 @@ class CompraListView(ListView):
     paginate_by = 10  # Número de movimientos por página
 
 from decimal import Decimal
-class CompraCreateView(CompraBaseView, CreateView):
+class CompraCreateView(TenantRequiredMixin, CompraBaseView, CreateView):
     model = Compra
     form_class = CompraForm
     template_name = 'inv/compra_form.html'
 
     def get_initial(self):
         initial = super().get_initial()
-        perfil = getattr(self.request.user, 'perfilusuario', None)
-        empresa = getattr(perfil, 'empresa', None)
-                
+        empresa = self.empresa
+
         if empresa and empresa.almacen_actual:
             try:
-                almacen = Almacen.objects.get(id=empresa.almacen_actual)
-                moneda = Moneda.objects.all()
+                almacen = Almacen.objects.using(self.db_name).get(id=empresa.almacen_actual)
+                moneda = Moneda.objects.using(self.db_name).all()
                 initial['almacen'] = almacen.id
             except Almacen.DoesNotExist:
                 print("No se encontró el almacén", empresa.almacen_actual)
         
         if empresa.clave_compras:
             try:
-                clave_compras = ClaveMovimiento.objects.get(clave_movimiento=empresa.clave_compras)
+                clave_compras = ClaveMovimiento.objects.using(self.db_name).get(clave_movimiento=empresa.clave_compras)
                 initial['clave_movimiento'] = clave_compras.id
             except ClaveMovimiento.DoesNotExist:
                 pass
@@ -1219,15 +1623,21 @@ class CompraCreateView(CompraBaseView, CreateView):
 
     def get(self, request, *args, **kwargs):
         form = self.form_class(initial=self.get_initial())
-        formset = DetalleCompraFormSet(queryset=DetalleCompra.objects.none(), prefix='detalles')
+        formset = DetalleCompraFormSet(queryset=DetalleCompra.using(self.db_name).objects.none(), prefix='detalles')
         return render(request, self.template_name, {'form': form, 'formset': formset})
 
     def post(self, request, *args, **kwargs):
-        form = self.form_class(request.POST)
-        formset = DetalleCompraFormSet(request.POST, prefix='detalles')
+        #form = self.form_class(request.POST)
+        form = self.form_class(request.POST or None, db_name=self.db_name)
+        formset = DetalleCompraFormSet(
+            request.POST,
+            queryset=DetalleCompra.objects.using(self.db_name).none(),
+            prefix='detalles'
+        )
+
         if form.is_valid() and formset.is_valid():
             self.object = form.save(commit=False)
-            self.object.usuario = self.request.user
+            self.object.usuario = self.request.user.username
             self.object.pedido = ''
             self.object.fecha_pagada = '1900-01-01'
             self.object.descuento_pp = 0
@@ -1254,7 +1664,7 @@ class CompraCreateView(CompraBaseView, CreateView):
 
         return render(self.request, self.template_name, {'form': form, 'formset': formset})
     
-class CompraUpdateView(CompraBaseView, UpdateView):
+class CompraUpdateView(TenantRequiredMixin, CompraBaseView, UpdateView):
     model = Compra
     form_class = CompraForm
     template_name = 'inv/compra_form.html'
@@ -1263,14 +1673,24 @@ class CompraUpdateView(CompraBaseView, UpdateView):
     def get(self, request, *args, **kwargs):
         self.object = self.get_object()
         form = self.form_class(instance=self.object)
-        formset = DetalleCompraFormSet(instance=self.object,prefix='detalles')
+        formset = DetalleCompraFormSet(
+            instance=self.object,
+            queryset=DetalleCompra.objects.using(self.db_name).filter(referencia=self.object),
+            prefix='detalles'
+        )
 
         return render(request, self.template_name, {'form': form, 'formset': formset})
 
     def post(self, request, *args, **kwargs):
         self.object = self.get_object()
-        form = self.form_class(request.POST, instance=self.object)
-        formset = DetalleCompraFormSet(request.POST, prefix='detalles')
+        # form = self.form_class(request.POST, instance=self.object)
+        form = self.form_class(request.POST or None, db_name=self.db_name)
+        formset = DetalleCompraFormSet(
+            request.POST,
+            instance=self.object,
+            queryset=DetalleCompra.objects.using(self.db_name).filter(referencia=self.object),
+            prefix='detalles'
+        )
 
         if form.is_valid() and formset.is_valid():
             self.object = form.save()
@@ -1285,55 +1705,70 @@ class CompraUpdateView(CompraBaseView, UpdateView):
         return form
 
 # DETALLE DE MOVIMIENTO DE COMPRAS
-class CompraDetailView(DetailView):
+class CompraDetailView(TenantRequiredMixin, DetailView):
     model = Compra
     template_name = 'inv/compra_detail.html'
     context_object_name = 'compra'
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['detalles'] = DetalleCompra.objects.filter(referencia=self.object)
+        context['detalles'] = DetalleCompra.objects.using(self.db_name).filter(referencia=self.object)
         return context
 
-class CompraDeleteView(DeleteView):
+class CompraDeleteView(TenantRequiredMixin, DeleteView):
     model = Compra
     template_name = 'inv/compra_confirm_delete.html'
     success_url = reverse_lazy('inv:compra_list')
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['detalles'] = self.object.detalles.all()
+        db_name = self.request.session.get('db_config')['NAME']
+        context['detalles'] = self.object.detalles.using(db_name).all()
         return context
 
+    def get_queryset(self):
+        db_name = self.request.session.get('db_config')['NAME']
+        return Compra.objects.using(db_name).filter(id=self.kwargs['pk'])
+
+    def delete(self, request, *args, **kwargs):
+        db_name = self.request.session.get('db_config')['NAME']
+        self.object = self.get_object()
+
+        # Eliminar detalles explícitamente
+        self.object.detallecompra_set.using(db_name).all().delete()
+
+        # Eliminar Encabezado - MOvimiento
+        self.object.delete(using=db_name)
+
+        return super().delete(request, *args, **kwargs)
+
+@login_required
+@tenant_required
 def verificar_compra(request):
     clave_movimiento_id = request.GET.get('clave_movimiento')
     referencia = request.GET.get('referencia')
 
     try:
-        compra = Compra.objects.get(clave_movimiento_id=clave_movimiento_id, referencia=referencia)
+        compra = Compra.objects.using(request.db_name).get(clave_movimiento_id=clave_movimiento_id, referencia=referencia)
         return JsonResponse({'existe': True, 'id': referencia.id})
     except Compra.DoesNotExist:
         return JsonResponse({'existe': False})
 
+@login_required
+@tenant_required
 def obtener_dias_plazo(request):
     proveedor_id = request.GET.get('proveedor_id')
     try:
-        proveedor = Proveedor.objects.get(pk=proveedor_id)
+        proveedor = Proveedor.objects.using(request.db_name).get(pk=proveedor_id)
         return JsonResponse({'dias_plazo': str(proveedor.dias_plazo)})
     except Proveedor.DoesNotExist:
         return JsonResponse({'error': 'Proveedor no encontrado'}, status=404)
 
-def obtener_dias_plazo(request):
-    proveedor_id = request.GET.get('proveedor_id')
-    try:
-        proveedor = Proveedor.objects.get(pk=proveedor_id)
-        return JsonResponse({'dias_credito': proveedor.plazo_credito})
-    except Proveedor.DoesNotExist:
-        return JsonResponse({'error': 'Proveedor no encontrado'}, status=404)
-
 # CONSULTA DE COMPRAS POR DIA    
+@login_required
+@tenant_required
 def compras_por_dia(request):
-    almacenes = Almacen.objects.all()
+    almacenes = Almacen.objects.using(request.db_name).all()
     resultados = []
     total_general = 0
     almacen = None
@@ -1344,9 +1779,9 @@ def compras_por_dia(request):
         fecha_ini = request.GET['fecha_ini']
         fecha_fin = request.GET['fecha_fin']
 
-        almacen = Almacen.objects.get(id=almacen_id)
+        almacen = Almacen.objects.using(request.db_name).get(id=almacen_id)
 
-        resultados = DetalleCompra.objects.filter(
+        resultados = DetalleCompra.objects.using(request.db_name).filter(
             referencia__almacen=almacen,
             referencia__fecha_compra__range=[fecha_ini, fecha_fin]
         ).select_related('producto', 'referencia').annotate(
@@ -1372,25 +1807,29 @@ def compras_por_dia(request):
         'total_general': total_general,
     })
 
+@login_required
+@tenant_required
 def buscar_compras_por_dia(request):
-    almacenes = Almacen.objects.all()
+    almacenes = Almacen.objects.using(request.db_name).all()
     return render(request, 'inv/reportes/compras_por_dia_buscar.html', {'almacenes': almacenes})
 
 #CONSULTAR COMPRAS POR PRODUCTO
+@login_required
+@tenant_required
 def compras_por_producto(request):
     producto_id = request.GET.get('producto')
     fecha_ini = request.GET.get('fecha_ini')
     fecha_fin = request.GET.get('fecha_fin')
 
-    producto = Producto.objects.get(pk=producto_id)
+    producto = Producto.objects.using(request.db_name).get(pk=producto_id)
 
     # saca las compras a partir del detalle
-    compras = Compra.objects.filter(
+    compras = Compra.objects.using(request.db_name).filter(
         detalles__producto_id=producto_id,  # este detalles es el related_names definido en la Tabla DetalleCompra
         fecha_compra__range=[fecha_ini, fecha_fin]
     ).distinct().order_by('fecha_compra', 'referencia')
     
-    detalles = DetalleCompra.objects.filter(
+    detalles = DetalleCompra.objects.using(request.db_name).filter(
         referencia__in=compras,
         producto_id=producto_id
     ).select_related('referencia', 'producto'
@@ -1416,14 +1855,16 @@ def compras_por_producto(request):
 
     return render(request, 'inv/reportes/compras_por_producto.html', contexto)
 
+@login_required
+@tenant_required
 def buscar_compras_por_producto(request):
-    productos = Producto.objects.all()
+    productos = Producto.objects.using(request.db_name).all()
 
     producto_id = request.GET.get('producto')
     fecha_ini = request.GET.get('fecha_ini')
     fecha_fin = request.GET.get('fecha_fin')
 
-    producto_seleccionado = Producto.objects.filter(id=producto_id).first() if producto_id else None
+    producto_seleccionado = Producto.objects.using(request.db_name).filter(id=producto_id).first() if producto_id else None
 
     contexto = {
         'productos': productos,
@@ -1434,6 +1875,8 @@ def buscar_compras_por_producto(request):
     return render(request, 'inv/reportes/compras_por_producto_buscar.html', contexto)
 
 #CONSULTAR COMPRAS POR PROVEEDOR
+@login_required
+@tenant_required
 def compras_por_proveedor(request):
     total_general = 0
     total_cantidad = 0
@@ -1444,14 +1887,14 @@ def compras_por_proveedor(request):
     fecha_ini = request.GET.get('fecha_ini')
     fecha_fin = request.GET.get('fecha_fin')
 
-    proveedor = Proveedor.objects.get(pk=proveedor_id)
+    proveedor = Proveedor.objects.using(request.db_name).get(pk=proveedor_id)
     
     compras = Compra.objects.filter(
     proveedor_id=proveedor_id,
     fecha_compra__range=[fecha_ini, fecha_fin]
     ).order_by('fecha_compra','referencia') 
 
-    detalles = DetalleCompra.objects.filter(referencia__in=compras
+    detalles = DetalleCompra.objects.using(request.db_name).filter(referencia__in=compras
                                               ).select_related('referencia','producto'
                                               ).order_by('referencia__fecha_compra', 'referencia__referencia', 'id')
 
@@ -1476,51 +1919,85 @@ def compras_por_proveedor(request):
 
     return render(request, 'inv/reportes/compras_por_proveedor.html', contexto)
 
+@login_required
+@tenant_required
 def buscar_compras_por_proveedor(request):
-    proveedores = Proveedor.objects.all()
+    proveedores = Proveedor.objects.using(request.db_name).all()
     return render(request, 'inv/reportes/compras_por_proveedor_buscar.html', {'proveedores': proveedores})
 
-#def buscar_info_general(request):
-#    empresa = Empresa.objects.filter(pk=empresa_id)
-#    return render(request, 'inv/reportes/info_general_buscar.html', {'empresa': empresa})
-
 # CRUD INFORMACION GENERAL - SOLO LIST y UPDATE 
-class EmpresaListView(ListView):
+class EmpresaListView(TenantRequiredMixin, ListView):
     model = Empresa
     template_name = 'inv/empresa_list.html'
     context_object_name = 'empresas'
 
-class EmpresaCreateView(CreateView):
+    def get_queryset(self):
+        return Empresa.objects.using(self.db_name).all()
+
+class EmpresaCreateView(TenantRequiredMixin, CreateView):
     model = Empresa
     form_class = EmpresaForm
     template_name = 'inv/empresa_form.html'
     success_url = reverse_lazy('inv:empresa_list')
 
-class EmpresaUpdateView(UpdateView):
+class EmpresaUpdateView(TenantRequiredMixin, UpdateView):
     model = Empresa
     form_class = EmpresaForm
     template_name = 'inv/empresa_form.html'
     success_url = reverse_lazy('inv:empresa_list')
+
+    def get_queryset(self):
+        db_name = self.request.session.get('db_config')['NAME']
+        return Empresa.objects.using(db_name).filter(id=self.kwargs['pk'])  # Filtramos por la ID de la moneda
+
+    def form_valid(self, form):
+        # Obtenemos el nombre de la base de datos del tenant
+        db_name = self.request.session.get('db_config')['NAME']
+        
+        # Guarda el objeto en la base de datos del tenant
+        form.instance.save(using=db_name)  # Guarda en la base de datos del tenant
+        
+        # Redirige al lugar correspondiente después de guardar
+        return super().form_valid(form)
 
     def form_invalid(self, form):
         return super().form_invalid(form)
 
 # CRUD INFORMACION GENERAL - LUGAR DE EXPEDICION 
-class EmpresaLugarListView(ListView):
+class EmpresaLugarListView(TenantRequiredMixin, ListView):
     model = Empresa
     template_name = 'inv/empresa_lugarexp_list.html'
     context_object_name = 'empresas'
 
-class EmpresaLugarUpdateView(UpdateView):
+    def get_queryset(self):
+        return Empresa.objects.using(self.db_name).all()
+
+class EmpresaLugarUpdateView(TenantRequiredMixin, UpdateView):
     model = Empresa
     form_class = EmpresaLugarForm
     template_name = 'inv/empresa_lugarexp_form.html'
     success_url = reverse_lazy('inv:empresa_lugarexp_list')
 
+    def get_queryset(self):
+        db_name = self.request.session.get('db_config')['NAME']
+        return Empresa.objects.using(db_name).filter(id=self.kwargs['pk'])  # Filtramos por la ID de la moneda
+
+    def form_valid(self, form):
+        # Obtenemos el nombre de la base de datos del tenant
+        db_name = self.request.session.get('db_config')['NAME']
+        
+        # Guarda el objeto en la base de datos del tenant
+        form.instance.save(using=db_name)  # Guarda en la base de datos del tenant
+        
+        # Redirige al lugar correspondiente después de guardar
+        return super().form_valid(form)
+
     def form_invalid(self, form):
         return super().form_invalid(form)
 
 # REGISTRO DEL EMISOR DE CFDI
+@login_required
+@tenant_required
 def registrar_emisor_view(request):
     return render(request, "inv/cfdi_registrar_emisor.html")
 
@@ -1530,6 +2007,8 @@ def registrar_emisor_view(request):
 import base64
 import requests
 
+@login_required
+@tenant_required
 def registrar_csd_view(request):
     if request.method == "POST":
         rfc = request.POST.get("rfc")
@@ -1565,7 +2044,7 @@ def registrar_csd_view(request):
             if response.status_code == 200:
                 # Guarda los archivos localmente y registra en la base de datos
                 csd = CertificadoCSD.objects.create(
-                    empresa=request.user,
+                    empresa=get_empresa_actual(request),
                     rfc=rfc,
                     cer_archivo=cer_file,
                     key_archivo=key_file,
@@ -1582,18 +2061,23 @@ def registrar_csd_view(request):
 
     return render(request, 'inv/cfdi_registrar_emisor.html')
 
+@login_required
+@tenant_required
 def obtener_ultimo_producto(request):
 
-    ultimo = Producto.objects.all().order_by('-sku').first()
+    ultimo = Producto.objects.using(request.db_name).all().order_by('-sku').first()
     if ultimo:
         siguiente = str(int(ultimo.sku) + 1).zfill(6)
     else:
         siguiente = "000001"
     return JsonResponse({'producto': siguiente})
 
+@login_required
+@tenant_required
 def imprimir_remision(request, pk):
-    remision = get_object_or_404(Remision, pk=pk)
-    detalles = remision.detalles.all()
+    remision = get_object_or_404(Remision.objects.using(request.db_name), pk=pk)
+    detalles = DetalleRemision.objects.using(request.db_name).filter(numero_remision=remision)
+
     total = 0
     for det in detalles:
         total = total + (det.cantidad * det.precio) - det.descuento
@@ -1604,9 +2088,11 @@ def imprimir_remision(request, pk):
         'total': total,
     })
 
+@login_required
+@tenant_required
 def imprimir_movimiento(request, pk):
-    movimiento = get_object_or_404(Movimiento, pk=pk)
-    detalles = movimiento.detalles.all()
+    movimiento = get_object_or_404(Movimiento.objects.using(request.db_name), pk=pk)
+    detalles = DetalleMovimiento.objects.using(request.db_name).filter(referencia=movimiento)
     total = 0
     for det in detalles:
         total = total + det.cantidad * det.costo_unit
@@ -1617,9 +2103,12 @@ def imprimir_movimiento(request, pk):
         'total': total,
     })
 
+@login_required
+@tenant_required
 def imprimir_compra(request, pk):
-    compra = get_object_or_404(Compra, pk=pk)
-    detalles = compra.detalles.all()
+    compra = get_object_or_404(Compra.objects.using(request.db_name), pk=pk)
+    detalles = DetalleCompra.objects.using(request.db_name).filter(referencia=compra)
+
     total = 0
     for det in detalles:
         total = total + (det.cantidad * det.costo_unit) - det.descuento

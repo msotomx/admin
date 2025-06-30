@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import User
+from cxc.models import Cliente
 from decimal import Decimal
 
 class Categoria(models.Model):
@@ -88,8 +89,9 @@ class Producto(models.Model):
     unidad_medida = models.ForeignKey(UnidadMedida,on_delete=models.RESTRICT)
     precio_promocion = models.DecimalField(default=0, decimal_places=2, max_digits=10)
     costo_reposicion = models.DecimalField(default=0, decimal_places=2, max_digits=10)
-    aplica_iva = models.BooleanField(blank=True)   # False - No se aplica, True - Se aplica al facturar
+    aplica_iva  = models.BooleanField(blank=True)   # False - No se aplica, True - Se aplica al facturar
     aplica_ieps = models.BooleanField(blank=True)   # False - No se aplica, True - Se aplica al facturar
+    tasa_ieps   = models.DecimalField(max_digits=9, decimal_places=6, default=Decimal('0'))
     campo_libre_str = models.CharField(max_length=50,blank=True,default='')
     campo_libre_num = models.DecimalField(max_digits=10,decimal_places=4, default=0, null=True, blank=True)
 
@@ -97,7 +99,7 @@ class Producto(models.Model):
         return self.nombre
 
 class Movimiento(models.Model):
-    usuario = models.ForeignKey(User,on_delete=models.RESTRICT)
+    usuario = models.CharField(max_length=40, blank=True)
     referencia = models.CharField(max_length=7, blank=False)
     move_s = models.CharField(max_length=1,blank=False)  # 'E' entrada 'S' salida
     clave_movimiento = models.ForeignKey(ClaveMovimiento,on_delete=models.RESTRICT)
@@ -118,11 +120,11 @@ class DetalleMovimiento(models.Model):
         return self.referencia
 
 class Cotizacion(models.Model):
-    usuario = models.ForeignKey(User,on_delete=models.RESTRICT)
+    usuario = models.CharField(max_length=40, blank=True)
     numero_cotizacion = models.CharField(max_length=7,blank=False,default="")
     vendedor = models.ForeignKey(Vendedor,on_delete=models.RESTRICT)
     fecha_cotizacion = models.DateField(blank=False)
-    cliente = models.ForeignKey('cxc.Cliente',on_delete=models.RESTRICT)
+    cliente = models.ForeignKey(Cliente,on_delete=models.RESTRICT)
     comentarios = models.TextField(blank=True)
 
     def __str__(self):
@@ -149,14 +151,14 @@ class Remision(models.Model):
         ('E','ELIMINADA')    # la remision se ha borrado
     )
     almacen = models.ForeignKey(Almacen,on_delete=models.RESTRICT)
-    usuario = models.ForeignKey(User,on_delete=models.RESTRICT)
-    vendedor = models.ForeignKey(Vendedor,on_delete=models.RESTRICT)
+    usuario = models.CharField(max_length=40, blank=True)
+    vendedor = models.ForeignKey(Vendedor,on_delete=models.RESTRICT) 
     clave_movimiento = models.ForeignKey(ClaveMovimiento,on_delete=models.RESTRICT)
     numero_remision = models.CharField(max_length=7,blank=False,default="")
     numero_cotizacion = models.ForeignKey(Cotizacion,on_delete=models.RESTRICT, blank=True, null=True)
     fecha_remision = models.DateField(blank=False)
     numero_factura = models.CharField(max_length=20,blank=False,default="")
-    cliente = models.ForeignKey('cxc.Cliente',on_delete=models.RESTRICT)
+    cliente = models.ForeignKey(Cliente,on_delete=models.RESTRICT)
     monto_total = models.DecimalField(default=0,decimal_places=2, max_digits=10,null=True)
     status = models.CharField(max_length=1,default='R',choices=ESTADO_CHOICES)   # CON Esto, solo permite 0 o 1
 
@@ -192,7 +194,7 @@ class DetalleRemision(models.Model):
 
 class Compra(models.Model):
     almacen = models.ForeignKey(Almacen,on_delete=models.RESTRICT)
-    usuario = models.ForeignKey(User,on_delete=models.RESTRICT)
+    usuario = models.CharField(max_length=40, blank=True)
     clave_movimiento = models.ForeignKey(ClaveMovimiento,on_delete=models.RESTRICT)
     referencia = models.CharField(max_length=7,blank=False,default="")
     pedido = models.CharField(max_length=7,blank=True,default="")
@@ -221,7 +223,7 @@ class DetalleCompra(models.Model):
         return self.producto.nombre
 
 class Traspaso(models.Model):
-    usuario = models.ForeignKey(User,on_delete=models.RESTRICT)
+    usuario = models.CharField(max_length=40, blank=True)
     referencia = models.CharField(max_length=7, blank=False)
     fecha_traspaso = models.DateField(blank=False)
     alm1 = models.ForeignKey(Almacen,on_delete=models.RESTRICT, related_name='traspasos_salida')
