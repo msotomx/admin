@@ -1,14 +1,16 @@
-from core.utils import get_empresa_actual
+from core._thread_locals import get_current_empresa_fiscal
+
 
 def empresa_context(request):
     if request.user.is_authenticated:
-        print("EN EMPRESA-CONTEXT- usuario:", request.user.username)
+        print("EN CONTEXT_PROCESSORS - usuario:", request.user.username)
+        empresa_fiscal = None
         try:
-            empresa = get_empresa_actual(request)   # regresa empresa fiscal
-            print("EN EMPRESA_CONTEXT empresa.nombre_comercial:", empresa.nombre_comercial)
-            return {'empresa_actual': empresa}
+            empresa_fiscal = get_current_empresa_fiscal()  # regresa Empresa.nombre_comercial de _thread_locals
+            print("EN CONTEXT_PROCESSORS empresa_actual:", empresa_fiscal)
+            return {'empresa_actual': empresa_fiscal}
         except Exception:
-            print("EN EMPRESA_CONTEXT-except")
+            print("EN CONTEXT_PROCESSORS-except")
             return {'empresa_actual': None}
         
     return {'empresa_actual': None}

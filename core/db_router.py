@@ -1,28 +1,43 @@
 # ROUTER PERSONALIZADO PARA BASE DE DATOS
 # Este DatabaseRouter se usará para decidir a qué base de datos se envían las operaciones de cada usuario.
 
-from django.conf import settings
+import threading
 from threading import local
-from copy import deepcopy
+from django.conf import settings
 from django.db import connections
+from copy import deepcopy
+from core.db_config import get_db_config_from_empresa
+from core.models import EmpresaDB
+from core._thread_locals import get_current_empresa_id, get_current_tenant, get_current_empresa_fiscal
 
-_thread_locals = local()
+# regresa el db_config, recibe empresaDB
 
-def set_current_tenant_connection(db_config):
-    alias = db_config['ALIAS']
-    db_config = deepcopy(db_config)
-    db_config.pop('ALIAS')
-    db_config["CONN_HEALTH_CHECKS"] = False
+_thread_locals = threading.local()
+def set_current_tenant_connection(alias):
+    """
+    Establece la conexión con la base de datos correspondiente al alias del tenant.
+    """
+    # Verificar si la conexión ya existe, sino crearla
+    empresa_id = get_current_empresa_id()  # regresa la empresa_id de _thread_locals
+    empresa_fiscal = get_current_empresa_fiscal()
 
-    # registrar la conexión en settings
-    if alias not in settings.DATABASES:
-        settings.DATABASES[alias] = db_config
+    print("EN SET_CURRENT_TENANT_CONNECTION - alias:", alias)
+    if alias not in connections.databases:
+        # Si no está registrada, debemos configurar la base de datos para este alias
+        empresa = EmpresaDB.objects.using('default').get(id=empresa_id)  # Aquí obtenemos la empresa completa
+        print(f"EN SET_CURRENT_TENANT_CONNECTION - Empresa: {empresa.nombre}")
+
+        db_config = get_db_config_from_empresa(empresa)  # Obtener la configuración del tenant
         connections.databases[alias] = db_config
-        print("Se establece conexion con la BD:", alias)
+        print(f"Conexión con la base de datos {alias} registrada exitosamente.")
+    else:
+        print(f"La conexión con {alias} ya está registrada.")
 
-    _thread_locals.tenant_db_alias = alias
+    # Guardar datos activos en _thread_locals
+    from core._thread_locals import set_current_tenant
+    set_current_tenant(alias, empresa_id, empresa_fiscal)
 
-# aqui regresa el config de la base tenant
+# aqui regresa el alias de la base tenant
 def get_current_tenant_connection():
     return getattr(_thread_locals, 'tenant_db_alias', None)
 
@@ -64,3 +79,4 @@ def allow_migrate(self, db, app_label, model_name=None, **hints):
 
     # Migrar las demás apps solo en la base tenant activa
     return db_conf and db == db_conf['ALIAS']
+

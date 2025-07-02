@@ -137,7 +137,9 @@ document.addEventListener('DOMContentLoaded', function () {
         claveMovimientoInput.addEventListener('change', function () {
             const clave = this.value;
             if (clave) {
-                fetch(`/inv/ajax/ultima_compra/?clave=${clave}`)
+                fetch(`/inv/ajax/ultima_compra/?clave=${clave}`, {
+                    credentials: 'include'
+                    })
                     .then(response => response.json())
                     .then(data => {
                         referenciaInput.value = data.referencia;
@@ -158,7 +160,9 @@ document.addEventListener('DOMContentLoaded', function () {
     const claveMovInput = document.getElementById('id_clave_movimiento');
 
     async function verificarCompra(claveMovId, referencia) {
-        const response = await fetch(`/inv/verificar_compra/?clave_movimiento=${claveMovId}&referencia=${referencia}`);
+        const response = await fetch(`/inv/verificar_compra/?clave_movimiento=${claveMovId}&referencia=${referencia}`, {
+                    credentials: 'include'
+                });
         const data = await response.json();
         if (data.existe) {
             // alert('Este movimiento ya existe. Se mostrará en modo edición.');
@@ -257,7 +261,9 @@ document.addEventListener('DOMContentLoaded', function () {
                     if (productoId && fecha && almacenId) {
                         try {
                             // 1. Obtener costo_reposicion 
-                            const costoResp = await fetch(`/inv/obtener_costo_producto/?producto_id=${productoId}`);
+                            const costoResp = await fetch(`/inv/obtener_costo_producto/?producto_id=${productoId}`, {
+                                credentials: 'include'
+                            });
                             if (!costoResp.ok) throw new Error('Error al obtener costo reposicion');
                             const costoData = await costoResp.json();
                             const costoInput = row.querySelector("input[name$='-costo_unit']");
@@ -283,7 +289,9 @@ document.addEventListener('DOMContentLoaded', function () {
         if (monedaId) {
             try {
                 // 1. Obtener paridad en el modelo Moneda
-                const monedaResp = await fetch(`/inv/obtener_paridad_moneda/?moneda_id=${monedaId}`);
+                const monedaResp = await fetch(`/inv/obtener_paridad_moneda/?moneda_id=${monedaId}`, {
+                    credentials: 'include'
+                });
                 if (!monedaResp.ok) throw new Error('Error al obtener la paridad de la moneda');
                 const monedaData = await monedaResp.json();
                 const paridadInput = document.getElementById('id_paridad');
@@ -354,7 +362,9 @@ document.addEventListener('DOMContentLoaded', function () {
 
         try {
             // Obtener días de plazo del proveedor
-            const response = await fetch(`/inv/obtener_dias_plazo/?proveedor_id=${proveedorId}`);
+            const response = await fetch(`/inv/obtener_dias_plazo/?proveedor_id=${proveedorId}`, {
+                    credentials: 'include'
+                });
             if (!response.ok) throw new Error('Error al obtener días de plazo');
 
             const data = await response.json();

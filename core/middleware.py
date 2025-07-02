@@ -1,9 +1,9 @@
 from django.shortcuts import redirect, render
 from django.urls import reverse
 from core.models import Empresa
-from core.models import PerfilUsuario
+from core.models import PerfilUsuario  
 from django.utils.deprecation import MiddlewareMixin
-
+from core.db_config import get_db_config_from_empresa
 
 EXEMPT_PATHS = [
     '/admin/',  # evita interferir con el admin
@@ -13,7 +13,7 @@ EXEMPT_PATHS = [
     '/core/empresa_inactiva/',
 ]
 
-class EmpresaActivaMiddleware:
+class EmpresaActivaMiddleware22:
     def __init__(self, get_response):
         self.get_response = get_response
 
@@ -52,23 +52,30 @@ from django.conf import settings
 from core.models import EmpresaDB
 from django.core.exceptions import PermissionDenied
 from django.utils.deprecation import MiddlewareMixin
+from core._thread_locals import set_current_tenant
 
 class TenantMiddleware(MiddlewareMixin):
     def process_request(self, request):
+        if not request.user.is_authenticated:
+            return
+
         empresa_id = request.session.get('empresa_id')
-        db_config = request.session.get('db_config')
         alias = request.session.get('alias_tenant')
+        empresa_fiscal = request.session.get('empresa_fiscal', 'Empresa desconocida')
+        
+        if not empresa_id or not alias:
+            request.alias_tenant = None
+            request.empresa_id = None
+            request.empresa_empresa_fiscal = None
+            set_current_tenant(None, None, None)
+            return
 
-        print(f"🌀 TenantMiddleware: empresa_id = {empresa_id}")
-        print(f"🌀 TenantMiddleware: alias tenant = {alias if alias else '❌'}")
+        set_current_tenant(alias, empresa_id, empresa_fiscal)
+        set_current_tenant_connection(alias)  # Cambiado de set_current_tenant a set_current_tenant_connection
+        
+        # (Opcional) Para acceso directo desde el request
+        request.alias_tenant = alias
+        request.empresa_id = empresa_id
+        request.empresa_fiscal = empresa_fiscal
 
-        if empresa_id and db_config:
-            try:
-                db_alias = alias or 'default'
-                connections.databases[db_alias] = db_config
-                request.tenant_db = db_alias
-                print(f"✅ Conexión configurada para alias: {db_alias}")
-            except Exception as e:
-                print(f"❌ Error configurando conexión tenant: {e}")
-        else:
-            print("⚠️ No se encontró empresa_id o db_config en la sesión")
+        print(f"🧵 EN TENANT_Middleware: alias={alias}, empresa_id={empresa_id}, empresa_fiscal={empresa_fiscal}")

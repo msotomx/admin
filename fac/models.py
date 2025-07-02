@@ -166,13 +166,13 @@ class DetalleFactura(models.Model):
         retencion_isr = self.importe * tasa_retencion_isr
         self.retencion_isr = retencion_isr.quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
 
-    def grabar(self):
+    def grabar(self, using=None):
         """
         Método único de mantenimiento:  
         calcula impuestos y luego hace save().
         """
         self.calcular_importes()
-        super().save()
+        super().save(using=using)
 
     def __str__(self):
         return f'{self.descripcion} ({self.cantidad})'

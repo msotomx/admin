@@ -174,7 +174,8 @@ document.addEventListener('DOMContentLoaded', function () {
         claveMovimientoInput.addEventListener('change', function () {
             const clave = this.value;
             if (clave) {
-                fetch(`/inv/ajax/numero-remision/?clave=${clave}`)
+                fetch(`/inv/ajax/numero-remision/?clave=${clave}`, {
+                    credentials: 'include'})
                     .then(response => response.json())
                     .then(data => {
                         numero_remisionInput.value = data.numero_remision;
@@ -190,7 +191,8 @@ document.addEventListener('DOMContentLoaded', function () {
     const claveMovInput = document.getElementById('id_clave_movimiento');
 
     async function verificarRemision(claveMovId, numero_remision) {
-        const response = await fetch(`/inv/verificar-remision/?clave_movimiento=${claveMovId}&numero_remision=${numero_remision}`);
+        const response = await fetch(`/inv/verificar-remision/?clave_movimiento=${claveMovId}&numero_remision=${numero_remision}`, {
+                    credentials: 'include'});
         const data = await response.json();
         if (data.existe) {
             // alert('Este movimiento ya existe. Se mostrará en modo edición.');
@@ -249,7 +251,8 @@ document.addEventListener('DOMContentLoaded', function () {
                     //  Tambien obtiene la tasa_iva_empresa, tasa_ieps_empresa, 
                     //                     tasa_retencion_iva_empresa, tasa_retencion_ieps_empresa
 
-                    const tasaResp = await fetch(`/fac/obtener_tasa_empresa/?cliente_id=${clienteId}`);
+                    const tasaResp = await fetch(`/fac/obtener_tasa_empresa/?cliente_id=${clienteId}`, {
+                        credentials: 'include'});
                     if (!tasaResp.ok) throw new Error('Error al obtener datos del Cliente y Empresa');
                     const data = await tasaResp.json();
                     // Usar como variables globales 
@@ -319,7 +322,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 if (productoId && fecha && almacenId) {
                     try {
                         // 1. Obtener precio 
-                        const precioResp = await fetch(`/inv/obtener_precio_producto/?producto_id=${productoId}`);
+                        const precioResp = await fetch(`/inv/obtener_precio_producto/?producto_id=${productoId}`, {
+                            credentials: 'include'});
                         if (!precioResp.ok) throw new Error('Error al obtener precio');
                         const precioData = await precioResp.json();
                         const precioInput = row.querySelector("input[name$='-precio']");
@@ -339,7 +343,8 @@ document.addEventListener('DOMContentLoaded', function () {
                         console.log("En CHANGE-PRODUCTO -aplica_iva:", aplica_iva)
 
                         // 2. Obtener existencia del producto
-                        const existenciaResp = await fetch(`/inv/api/existencia_producto/?producto=${productoId}&almacen=${almacenId}&fecha=${fecha}`);
+                        const existenciaResp = await fetch(`/inv/api/existencia_producto/?producto=${productoId}&almacen=${almacenId}&fecha=${fecha}`, {
+                            credentials: 'include'});
                         if (!existenciaResp.ok) throw new Error('Error al obtener existencia');
                         const existenciaData = await existenciaResp.json();
 

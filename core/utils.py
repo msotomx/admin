@@ -1,16 +1,18 @@
-from core.models import Empresa, EmpresaDB
-from core.db_router import get_current_tenant_connection
-from core.db_router import set_current_tenant_connection
-
+from core.models import Empresa, EmpresaDB   
+from core.db_router import set_current_tenant_connection  
 from django.core.exceptions import PermissionDenied
+from core._thread_locals import get_current_empresa_id
+import threading
+from threading import local
 
+_thread_locals = threading.local()
 def establecer_conexion_tenant(request):
     """
     Establece la conexión al tenant usando la empresa_id de la sesión.
     Devuelve la empresaDB usada.
     """
-    empresa_id = request.session.get('empresa_id')
-    print("🧭 get_empresa_actual → empresa_id en sesión:", empresa_id)
+    empresa_id = get_current_empresa_id  # de _thread_locals.py 
+    print("EN UTILS-ESTABLECER_CONEXION_TENANT - empresa_id:", empresa_id)
     if not empresa_id:
         raise PermissionDenied("No se encontró 'empresa_id' en la sesión.")
 
@@ -43,8 +45,9 @@ def establecer_conexion_tenant(request):
     return empresaDB
 
 def get_empresa_actual(request):
+    print("EN UTILS.py GET_EMPRESA_ACTUAL")
     empresaDB = establecer_conexion_tenant(request)
-
+    print("EN UTILS.py GET_EMPRESA_ACTUAL empresaBD.nombre:",empresaDB.nombre)
     try:
         empresa_fiscal = Empresa.objects.using(empresaDB.db_name).first()
     except Exception as e:
@@ -54,7 +57,6 @@ def get_empresa_actual(request):
         raise PermissionDenied("La empresa no está configurada correctamente en la base tenant.")
 
     return empresa_fiscal
-
 
 def cargar_datos_iniciales(db_alias):
     from inv.models import UnidadMedida, ClaveMovimiento, Moneda, Almacen

@@ -144,7 +144,9 @@
         if (clienteInput && esNuevo) {
         
             // Solo se ejecuta si es un nuevo registro
-            fetch('/cxc/ajax/ultimo_cliente/')
+            fetch('/cxc/ajax/ultimo_cliente/', {
+                    credentials: 'include'
+                })
                 .then(response => response.json())
                 .then(data => {
                     clienteInput.value = data.cliente;

@@ -5,7 +5,7 @@
      <a class="navbar-brand" href="#">
       {% if user.is_authenticated %}
           {% if empresa_actual %}
-              {{ empresa_actual.nombre_comercial|truncatechars:30 }}
+              {{ empresa_actual|truncatechars:30 }}
           {% else %}
               SIN EMPRESA
           {% endif %}

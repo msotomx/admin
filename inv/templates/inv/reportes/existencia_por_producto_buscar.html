@@ -77,8 +77,9 @@
 
                 // Obtener existencia del producto
                 async function obtenerExistencia(productoId, almacenId, fecha) {
-                    const existenciaResp = await fetch(`/inv/api/existencia_producto/?producto=${productoId}&almacen=${almacenId}&fecha=${fecha}`);
-                    console.log("existencia:",existenciaResp)
+                    const existenciaResp = await fetch(`/inv/api/existencia_producto/?producto=${productoId}&almacen=${almacenId}&fecha=${fecha}`, {
+                        credentials: 'include'});
+                    
                     if (!existenciaResp.ok) throw new Error('Error al obtener existencia');
                     const existenciaData = await existenciaResp.json();
                     return existenciaData.existencia;

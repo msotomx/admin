@@ -14,10 +14,16 @@
             </div>
         {% endif %}
 
-
+        {% if form.non_field_errors %}
+        <div class="alert alert-danger">
+            {% for error in form.non_field_errors %}
+            <p>{{ error }}</p>
+            {% endfor %}
+        </div>
+        {% endif %}
         {% if form.errors %}
             <div class="alert alert-danger">
-                Error en los datos ingresados.
+                Favor de revisar datos ingresados.
             </div>
         {% endif %}
         <div class="mb-3">

@@ -4,7 +4,7 @@ from . import views
 from .views import CustomLoginView, empresa_detail
 from django.urls import reverse_lazy
 from .views import sign_inicial_view, logOutUsuario
-
+from .views import setup_tenant
 
 app_name = 'core'
 
@@ -49,4 +49,5 @@ urlpatterns = [
     path('empresa/inactiva/', views.empresa_inactiva, name='empresa_inactiva'),
     path('empresa/sin_empresa/', views.sin_empresa, name='sin_empresa'),
     path('registro/', sign_inicial_view, name='sign_inicial'),
+    path('setup-tenant/', setup_tenant, name='setup_tenant'),
 ]

@@ -38,47 +38,8 @@ nombre de empresa= empresa_YYYYMMAA_slugy
 
 
 ==================================================
-ListView
-    def get_queryset(self):
-        return Moneda.objects.using(self.db_name).all()
-    
-CreateView
-    def form_valid(self, form):
-        # Accede al nombre de la base de datos del tenant desde la sesión
-        db_name = self.request.session.get('db_config')['NAME']
-        
-        # Guarda el objeto en la base de datos del tenant
-        form.instance.save(using=db_name)  # Guarda en la base de datos del tenant
-        
-        # Redirige al lugar correspondiente después de guardar
-        return super().form_valid(form)
+ grep -r "fetch" .
 
+empresa = EmpresaDB.objects.get(pk=request.session['empresa_id'])
+db_config = get_db_config_from_empresa(empresa)
 
-UpdateView
-    def get_queryset(self):
-        db_name = self.request.session.get('db_config')['NAME']
-        return Moneda.objects.using(db_name).filter(id=self.kwargs['pk'])  # Filtramos por la ID de la moneda
-
-    def form_valid(self, form):
-        # Obtenemos el nombre de la base de datos del tenant
-        db_name = self.request.session.get('db_config')['NAME']
-        
-        # Guarda el objeto en la base de datos del tenant
-        form.instance.save(using=db_name)  # Guarda en la base de datos del tenant
-        
-        # Redirige al lugar correspondiente después de guardar
-        return super().form_valid(form)
-
-
-
-DeleteView
-    def get_queryset(self):
-        db_name = self.request.session.get('db_config')['NAME']
-        return Movimiento.objects.using(db_name).filter(id=self.kwargs['pk'])
-
-    def delete(self, request, *args, **kwargs):
-        # Elimina el objeto en la base del tenant
-        self.object = self.get_object()
-        db_name = self.request.session.get('db_config')['NAME']
-        self.object.delete(using=db_name)
-        return super().delete(request, *args, **kwargs)

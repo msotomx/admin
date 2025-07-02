@@ -56,9 +56,8 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'core.middleware.TenantMiddleware',
-    'core.middleware.EmpresaActivaMiddleware',
 ]
-
+# 'core.middleware.EmpresaActivaMiddleware',
 ROOT_URLCONF = 'admin.urls'
 
 TEMPLATES = [
@@ -162,3 +161,15 @@ EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 PAC_CLIENT_ID = '0ed04e34-760b-41ef-b778-68c35891d7f1'
 PAC_API_TOKEN = 'CyJdHuv41rlHtTGfH1Y9bvwxFH24c4SGbP35WP1M5cc8743a'
 PAC_URL = 'https://dev.techbythree.com/api/v1/facturacion/timbrar'
+
+
+# Seguridad para sesiones en desarrollo
+SESSION_ENGINE = 'django.contrib.sessions.backends.db'
+SESSION_COOKIE_NAME = 'sessionid'
+SESSION_COOKIE_SECURE = False          # Solo en desarrollo
+SESSION_COOKIE_SAMESITE = 'Lax'
+SESSION_COOKIE_HTTPONLY = True
+SESSION_SAVE_EVERY_REQUEST = True       # (opcional) para asegurar persistencia
+
+CSRF_COOKIE_SAMESITE = 'Lax'
+CSRF_TRUSTED_ORIGINS = ['http://127.0.0.1:8000']

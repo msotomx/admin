@@ -114,11 +114,11 @@ class MovimientoForm(forms.ModelForm):
             'fecha_movimiento': forms.DateInput(attrs={'type': 'date'}),
         }
 
-    def __init__(self, *args, db_name=None, **kwargs):
+    def __init__(self, *args, **kwargs):
+        db_name = kwargs.pop('db_name', None)
         super().__init__(*args, **kwargs)
-
+                
         if db_name is not None:
-            self.db_name = db_name
             self.fields['clave_movimiento'].queryset = ClaveMovimiento.objects.using(db_name).order_by('nombre')
         else:
             # opción segura: evita fallar si no hay db_name
@@ -136,9 +136,15 @@ class DetalleMovimientoForm(forms.ModelForm):
         }
 
     def __init__(self, *args, **kwargs):
+        db_name = kwargs.pop('db_name', None)
         super().__init__(*args, **kwargs)
 
-        self.fields['producto'].queryset = Producto.objects.using(self.db_name).all().order_by('nombre')
+
+        if db_name is not None:
+            self.fields['producto'].queryset = Producto.objects.using(db_name).all().order_by('nombre')
+        else:
+            # opción segura: evita fallar si no hay db_name
+            self.fields['producto'].queryset = Producto.objects.none()
         
 # valida productos repetidos
 # valida cantidad = 0
@@ -165,12 +171,21 @@ class DetalleMovimientoFormSet(BaseInlineFormSet):
 
             productos_vistos.add(producto)
 
+class BaseDetalleMovimientoFormSet(BaseInlineFormSet):
+    def __init__(self, *args, **kwargs):
+        self.db_name = kwargs.pop('db_name', None)
+        super().__init__(*args, **kwargs)
+
+    def _construct_form(self, i, **kwargs):
+        kwargs['db_name'] = self.db_name
+        return super()._construct_form(i, **kwargs)
+
 # Inline formset
 DetalleMovimientoFormSet = inlineformset_factory(
     parent_model=Movimiento,
     model=DetalleMovimiento,
     form=DetalleMovimientoForm,
-    formset=DetalleMovimientoFormSet,
+    formset=BaseDetalleMovimientoFormSet,   # DetalleMovimientoFormSet,
     fk_name='referencia',
     fields=['producto', 'cantidad', 'costo_unit', 'subtotal'],
     extra=1,
@@ -188,11 +203,17 @@ class RemisionForm(forms.ModelForm):
         }
 
     def __init__(self, *args, **kwargs):
+        db_name = kwargs.pop('db_name', None)
         super().__init__(*args, **kwargs)
-
-        self.fields['cliente'].queryset = Cliente.objects.using(self.db_name).all().order_by('nombre')
-        self.fields['clave_movimiento'].queryset = ClaveMovimiento.objects.using(self.db_name).all().order_by('nombre')
-        self.fields['vendedor'].queryset = Vendedor.objects.using(self.db_name).all().order_by('nombre')
+                
+        if db_name is not None:
+            self.fields['cliente'].queryset = Cliente.objects.using(db_name).all().order_by('nombre')
+            self.fields['clave_movimiento'].queryset = ClaveMovimiento.objects.using(db_name).all().order_by('nombre')
+            self.fields['vendedor'].queryset = Vendedor.objects.using(db_name).all().order_by('nombre')
+        else:
+            self.fields['cliente'].queryset = Cliente.objects.none()
+            self.fields['clave_movimiento'].queryset = ClaveMovimiento.objects.none()
+            self.fields['vendedor'].queryset = Vendedor.objects.none()
 
 class DetalleRemisionForm(forms.ModelForm):
     class Meta:
@@ -213,9 +234,13 @@ class DetalleRemisionForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields['producto'].queryset = Producto.objects.using(self.db_name).all().order_by('nombre')
-
-        
+        db_name = self.request.session.get('alias_tenant')
+        if db_name is not None:
+            self.fields['producto'].queryset = Producto.objects.using(db_name).all().order_by('nombre')
+        else:
+            # opción segura: evita fallar si no hay db_name
+            self.fields['producto'].queryset = Producto.objects.none()
+               
         # Bootstrap para todos los campos
         for field in self.fields.values():
             field.widget.attrs['class'] = 'form-control form-control-sm'
@@ -308,10 +333,16 @@ class CompraForm(forms.ModelForm):
         }
 
     def __init__(self, *args, **kwargs):
+        db_name = kwargs.pop('db_name', None)
         super().__init__(*args, **kwargs)
-
-        self.fields['clave_movimiento'].queryset = ClaveMovimiento.objects.using(self.db_name).all().order_by('nombre')
-        self.fields['proveedor'].queryset = Proveedor.objects.using(self.db_name).all().order_by('nombre')
+                
+        if db_name is not None:
+            self.fields['clave_movimiento'].queryset = ClaveMovimiento.objects.using(db_name).all().order_by('nombre')
+            self.fields['proveedor'].queryset = Proveedor.objects.using(db_name).all().order_by('nombre')
+        else:
+            # opción segura: evita fallar si no hay db_name
+            self.fields['clave_movimiento'].queryset = ClaveMovimiento.objects.none()
+            self.fields['proveedor'].queryset = Proveedor.objects.none()
 
         # Aplica clases a todos los campos visibles
         for field in self.fields.values():
@@ -336,9 +367,16 @@ class DetalleCompraForm(forms.ModelForm):
             'subtotal': forms.NumberInput(attrs={'class': 'form-control form-control-sm', 'readonly': 'readonly'}),
         }
 
+    
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields['producto'].queryset = Producto.objects.using(self.db_name).all().order_by('nombre')
+        db_name = self.request.session.get('alias_tenant')
+        if db_name is not None:
+            self.db_name = db_name
+            self.fields['producto'].queryset = Producto.objects.using(db_name).all().order_by('nombre')
+        else:
+            # opción segura: evita fallar si no hay db_name
+            self.fields['producto'].queryset = Producto.objects.none()
         
 # valida productos repetidos
 # valida cantidad = 0

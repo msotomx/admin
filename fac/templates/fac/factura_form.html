@@ -239,7 +239,9 @@ document.addEventListener('DOMContentLoaded', function () {
     // busca el ultimo numero de factura
 
     function obtenerNumeroFactura() {
-        fetch(`/fac/ajax/numero-factura/`)
+        fetch(`/fac/ajax/numero-factura/`, {
+                    credentials: 'include'
+                })
             .then(response => response.json())
             .then(data => {
                 numero_facturaInput.value = data.numero_factura;
@@ -265,7 +267,9 @@ document.addEventListener('DOMContentLoaded', function () {
     const claveMovInput = document.getElementById('id_clave_remision');
 
     async function verificarFactura(numero_factura) {
-        const response = await fetch(`/fac/verificar-factura/?numero_factura=${numero_factura}`);
+        const response = await fetch(`/fac/verificar-factura/?numero_factura=${numero_factura}`, {
+                    credentials: 'include'
+                });
         const data = await response.json();
         if (data.existe) {
             // alert('Este movimiento ya existe. Se mostrará en modo edición.');
@@ -278,7 +282,9 @@ document.addEventListener('DOMContentLoaded', function () {
     async function verificarRemision(clave,numero) {
         if (!numero || numero === "0000000") return;
 
-        fetch(`/fac/ajax/cargar-remision/?numero_remision=${numero}&clave_movimiento=${clave}`)
+        fetch(`/fac/ajax/cargar-remision/?numero_remision=${numero}&clave_movimiento=${clave}`, {
+                    credentials: 'include'
+                })
         .then(response => {
             if (!response.ok) throw new Error("Remisión no encontrada");
             return response.json();
@@ -450,7 +456,9 @@ document.addEventListener('DOMContentLoaded', function () {
                     //  Tambien obtiene la tasa_iva_empresa, tasa_ieps_empresa, 
                     //                     tasa_retencion_iva_empresa, tasa_retencion_ieps_empresa
 
-                    const tasaResp = await fetch(`/fac/obtener_tasa_empresa/?cliente_id=${clienteId}`);
+                    const tasaResp = await fetch(`/fac/obtener_tasa_empresa/?cliente_id=${clienteId}`, {
+                        credentials: 'include'
+                    });
                     if (!tasaResp.ok) throw new Error('Error al obtener datos del Cliente y Empresa');
                     const data = await tasaResp.json();
                     // Usar como variables globales 
@@ -481,7 +489,9 @@ document.addEventListener('DOMContentLoaded', function () {
                 if (productoId) {
                     try {
                         // 1. Obtener precio 
-                        const precioResp = await fetch(`/inv/obtener_precio_producto/?producto_id=${productoId}`);
+                        const precioResp = await fetch(`/inv/obtener_precio_producto/?producto_id=${productoId}`, {
+                            credentials: 'include'
+                        });
                         if (!precioResp.ok) throw new Error('Error al obtener precio');
                         const data = await precioResp.json();
                         
@@ -674,7 +684,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     'X-CSRFToken': getCookie('csrftoken'),
                     'Accept': 'application/json',
                 },
-                credentials: 'same-origin'
+                credentials: 'include'
             });
 
             // Lee cuerpo una sola vez

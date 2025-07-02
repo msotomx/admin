@@ -65,13 +65,17 @@
                 <label class="form-label small">Reorden</label>
                 {{ form.reorden|add_bootstrap_class }}
             </div>
-            <div class="col-md-2 mb-2">
+            <div class="col-md-1 mb-2">
                 <label class="form-label small">Aplicar IVA</label>
                 {{ form.aplica_iva|add_bootstrap_class }}
             </div>
-            <div class="col-md-2 mb-2">
+            <div class="col-md-1 mb-2">
                 <label class="form-label small">Aplicar IEPS</label>
                 {{ form.aplica_ieps|add_bootstrap_class }}
+            </div>
+            <div class="col-md-2 mb-2">
+                <label class="form-label small">Tasa IEPS</label>
+                {{ form.tasa_ieps|add_bootstrap_class }}
             </div>
 
             <div class="col-md-2 mb-2">
@@ -133,7 +137,9 @@
         if (productoInput && esNuevo) {
             
             // Solo se ejecuta si es un nuevo registro
-            fetch('/inv/ajax/ultimo_producto/')
+            fetch('/inv/ajax/ultimo_producto/', {
+                    credentials: 'include'
+                })
                 .then(response => response.json())
                 .then(data => {
                     productoInput.value = data.producto;

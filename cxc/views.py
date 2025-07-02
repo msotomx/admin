@@ -14,6 +14,7 @@ from django.db.models.deletion import RestrictedError
 from core.mixins import TenantRequiredMixin
 from django.contrib.auth.decorators import login_required
 from core.decorators import tenant_required
+from core._thread_locals import get_current_tenant
 
 # CRUD TIPO DE CLIENTE
 class TipoClienteListView(TenantRequiredMixin, ListView):
@@ -22,7 +23,8 @@ class TipoClienteListView(TenantRequiredMixin, ListView):
     context_object_name = 'tiposcliente'
 
     def get_queryset(self):
-        return TipoCliente.objects.using(self.db_name).all()
+        db_name= get_current_tenant()
+        return TipoCliente.objects.using(db_name).all()
 
 class TipoClienteCreateView(TenantRequiredMixin, CreateView):
     model = TipoCliente
@@ -31,7 +33,7 @@ class TipoClienteCreateView(TenantRequiredMixin, CreateView):
     success_url = reverse_lazy('cxc:tipocliente_list')
 
     def form_valid(self, form):
-        db_name = self.request.session.get('db_config')['NAME']
+        db_name= get_current_tenant()
         # Guarda el objeto en la base de datos del tenant
         form.instance.save(using=db_name)  # Guarda en la base de datos del tenant
         # Redirige al lugar correspondiente después de guardar
@@ -44,12 +46,12 @@ class TipoClienteUpdateView(TenantRequiredMixin, UpdateView):
     success_url = reverse_lazy('cxc:tipocliente_list')
 
     def get_queryset(self):
-        db_name = self.request.session.get('db_config')['NAME']
+        db_name= get_current_tenant()
         return TipoCliente.objects.using(db_name).filter(id=self.kwargs['pk'])  # Filtramos por la ID de la moneda
 
     def form_valid(self, form):
         # Obtenemos el nombre de la base de datos del tenant
-        db_name = self.request.session.get('db_config')['NAME']
+        db_name= get_current_tenant()
         
         # Guarda el objeto en la base de datos del tenant
         form.instance.save(using=db_name)  # Guarda en la base de datos del tenant
@@ -63,13 +65,13 @@ class TipoClienteDeleteView(TenantRequiredMixin, DeleteView):
     success_url = reverse_lazy('cxc:tipocliente_list')
 
     def get_queryset(self):
-        db_name = self.request.session.get('db_config')['NAME']
+        db_name= get_current_tenant()
         return TipoCliente.objects.using(db_name).filter(id=self.kwargs['pk'])
 
     def delete(self, request, *args, **kwargs):
         # Elimina el objeto en la base del tenant
         self.object = self.get_object()
-        db_name = self.request.session.get('db_config')['NAME']
+        db_name= get_current_tenant()
         self.object.delete(using=db_name)
         return super().delete(request, *args, **kwargs)
 
@@ -81,8 +83,9 @@ class ClienteListView(TenantRequiredMixin, ListView):
 
     def get_queryset(self):
         query = self.request.GET.get('q', '').strip()
+        db_name= get_current_tenant()
         # Primero obtenemos todas las facturas
-        clientes = Cliente.objects.using(self.db_name).all()
+        clientes = Cliente.objects.using(db_name).all()
 
         if query:
             # Aplicamos filtros si hay búsqueda
@@ -110,7 +113,7 @@ class ClienteCreateView(TenantRequiredMixin, CreateView):
         cliente = form.cleaned_data['cliente']
 
         form.instance.cliente = str(cliente).zfill(6)
-        db_name = self.request.session.get('db_config')['NAME']
+        db_name= get_current_tenant()
         # Guarda el objeto en la base de datos del tenant
         form.instance.save(using=db_name)  # Guarda en la base de datos del tenant
 
@@ -123,12 +126,12 @@ class ClienteUpdateView(TenantRequiredMixin, UpdateView):
     success_url = reverse_lazy('cxc:cliente_list')
 
     def get_queryset(self):
-        db_name = self.request.session.get('db_config')['NAME']
+        db_name= get_current_tenant()
         return Cliente.objects.using(db_name).filter(id=self.kwargs['pk'])  # Filtramos por la ID de la moneda
 
     def form_valid(self, form):
         # Obtenemos el nombre de la base de datos del tenant
-        db_name = self.request.session.get('db_config')['NAME']
+        db_name= get_current_tenant()
         
         # Guarda el objeto en la base de datos del tenant
         form.instance.save(using=db_name)  # Guarda en la base de datos del tenant
@@ -142,16 +145,16 @@ class ClienteDeleteView(TenantRequiredMixin, DeleteView):
     success_url = reverse_lazy('cxc:cliente_list')
 
     def get_queryset(self):
-        db_name = self.request.session.get('db_config')['NAME']
+        db_name= get_current_tenant()
         return Cliente.objects.using(db_name).filter(id=self.kwargs['pk'])
 
     def delete(self, request, *args, **kwargs):
         # Elimina el objeto en la base del tenant
         self.object = self.get_object()
-        db_name = self.request.session.get('db_config')['NAME']
+        db_name= get_current_tenant()
 
         try:
-            self.object.delete()
+            self.object.delete(using=db_name)
             messages.success(request, "Cliente eliminado con éxito.")
         except RestrictedError:
             messages.error(request, "No se puede eliminar un cliente con movimientos.")
@@ -163,8 +166,8 @@ class ClienteDeleteView(TenantRequiredMixin, DeleteView):
 @login_required
 @tenant_required
 def obtener_ultimo_cliente(request):
-
-    ultimo = Cliente.objects.all().order_by('-cliente').first()
+    db_name= get_current_tenant()
+    ultimo = Cliente.objects.using(db_name).all().order_by('-cliente').first()
     if ultimo:
         siguiente = str(int(ultimo.cliente) + 1).zfill(6)
     else:

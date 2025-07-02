@@ -62,7 +62,9 @@
             // busca el ultimo numero para esa clave_movimiento
         if (vendedorInput && esNuevo) {
             // Solo se ejecuta si es un nuevo registro
-            fetch('/inv/ajax/ultimo_vendedor/')
+            fetch('/inv/ajax/ultimo_vendedor/', {
+                    credentials: 'include'
+                }) 
                 .then(response => response.json())
                 .then(data => {
                     vendedorInput.value = data.vendedor;

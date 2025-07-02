@@ -26,10 +26,11 @@ from decimal import Decimal
 #	   (Remision.fecha_remision >= SaldoInicial.fecha) and (Remision.fecha_remision <= fecha_leida)
 #	   Remision.status = 'R' o 'F'
 
-def calcular_existencia_producto(producto, almacen, fecha_leida):
+def calcular_existencia_producto(request, producto, almacen, fecha_leida):
     # 1. Buscar el saldo inicial más cercano antes de la fecha_leida
+    db_name = request.session.get('alias_tenant')
     saldo = (
-        SaldoInicial.objects
+        SaldoInicial.objects.using(db_name)
         .filter(producto=producto, almacen=almacen, fecha__lte=fecha_leida)
         .order_by('-fecha')
         .first()
@@ -44,7 +45,7 @@ def calcular_existencia_producto(producto, almacen, fecha_leida):
 
     # 2. Calcular entradas
     entradas = (
-        DetalleMovimiento.objects
+        DetalleMovimiento.objects.using(db_name)
         .filter(
             producto=producto,
             referencia__almacen=almacen,
@@ -56,7 +57,7 @@ def calcular_existencia_producto(producto, almacen, fecha_leida):
 
     # 3. Calcular salidas por movimientos
     salidas_mov = (
-        DetalleMovimiento.objects
+        DetalleMovimiento.objects.using(db_name)
         .filter(
             producto=producto,
             referencia__almacen=almacen,
@@ -67,7 +68,7 @@ def calcular_existencia_producto(producto, almacen, fecha_leida):
     )
     # 4. Compras
     compras = (
-        DetalleCompra.objects
+        DetalleCompra.objects.using(db_name)
         .filter(
             producto=producto,
             referencia__almacen=almacen,
@@ -78,7 +79,7 @@ def calcular_existencia_producto(producto, almacen, fecha_leida):
 
     # 5. Calcular salidas por remisiones
     salidas_rem = (
-        DetalleRemision.objects
+        DetalleRemision.objects.using(db_name)
         .filter(
             producto=producto,
             numero_remision__almacen=almacen,
