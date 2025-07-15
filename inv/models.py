@@ -57,13 +57,13 @@ class ClaveMovimiento(models.Model):
 
 class Proveedor(models.Model):
     nombre = models.CharField(max_length=100,blank=False,default=" ")
-    direccion = models.TextField(null=True,default="")
-    contacto = models.CharField(max_length=100,default="")
-    telefono1 = models.CharField(max_length=20,default="")
-    telefono2 = models.CharField(max_length=20,default="")
-    email = models.EmailField(blank=True,default="")
-    plazo_credito = models.SmallIntegerField(default=0)
-    comentarios = models.TextField(blank=True,default="")
+    direccion = models.TextField(blank=True)
+    contacto = models.CharField(max_length=100, blank=False)
+    telefono1 = models.CharField(max_length=20, blank=True)
+    telefono2 = models.CharField(max_length=20, blank=True)
+    email = models.EmailField(blank=True)
+    plazo_credito = models.SmallIntegerField(default=0,null=True, blank=True)
+    comentarios = models.TextField(blank=True)
     
     def __str__(self):
         return self.nombre

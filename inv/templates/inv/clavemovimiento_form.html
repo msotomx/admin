@@ -1,12 +1,41 @@
 {% extends 'base.html' %}
+{% load static %}
+{% load form_tags %}
 
 {% block content %}
 <div class="container mt-4">
-    <h2>{{ view.object.pk|yesno:"Editar Clave de Movimiento, Nueva Clave" }}</h2>
+    <h2>{{ view.object.pk|yesno:"Editar Clave de Movimiento, Nueva Clave de Movimiento de Almacen" }}</h2>
 
     <form method="post">
         {% csrf_token %}
-        {{ form.as_p }}
+
+        <div class="row g-2">
+            <div class="col-md-2 mb-2">
+                <label class="form-label small">Clave Movimiento</label>
+                {{ form.clave_movimiento|add_bootstrap_class }}
+            </div>
+            <div class="col-md-3 mb-2">
+                <label class="form-label small">Nombre</label>
+                {{ form.nombre|add_bootstrap_class }}
+            </div>
+        </div>
+        <div class="row g-2">
+            <div class="col-md-1 mb-2">
+                <label class="form-label small">Tipo (E/S)</label>
+                {{ form.tipo|add_bootstrap_class }}
+            </div>
+        <div class="row g-2">
+            <div class="col-md-2 mb-2">
+                <label class="form-label small">Es Remisión</label>
+                {{ form.es_remision|add_bootstrap_class }}
+            </div>
+        
+            <div class="col-md-2 mb-2">
+                <label class="form-label small">Es Compra</label>
+                {{ form.es_compra|add_bootstrap_class }}
+            </div>
+        </div>
+
         <div class="mt-3">
             <button type="submit" class="btn btn-success">Guardar</button>
             <a href="{% url 'inv:clavemovimiento_list' %}" class="btn btn-secondary">Cancelar</a>

@@ -1,65 +1,11 @@
 from core.models import Empresa, EmpresaDB   
-from core.db_router import set_current_tenant_connection  
 from django.core.exceptions import PermissionDenied
-from core._thread_locals import get_current_empresa_id
+
 import threading
 from threading import local
 
-_thread_locals = threading.local()
-def establecer_conexion_tenant(request):
-    """
-    Establece la conexión al tenant usando la empresa_id de la sesión.
-    Devuelve la empresaDB usada.
-    """
-    empresa_id = get_current_empresa_id  # de _thread_locals.py 
-    print("EN UTILS-ESTABLECER_CONEXION_TENANT - empresa_id:", empresa_id)
-    if not empresa_id:
-        raise PermissionDenied("No se encontró 'empresa_id' en la sesión.")
-
-    try:
-        empresaDB = EmpresaDB.objects.using('default').get(id=empresa_id)
-    except EmpresaDB.DoesNotExist:
-        raise PermissionDenied("Empresa no encontrada en la base default.")
-
-    if not empresaDB.activa:
-        raise PermissionDenied("La empresa está inactiva.")
-    request.session['alias_tenant'] = empresaDB.db_name
-    
-    db_config = {
-        'ALIAS': empresaDB.db_name,
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': empresaDB.db_name,
-        'USER': empresaDB.db_user,
-        'PASSWORD': empresaDB.db_password,
-        'HOST': empresaDB.db_host,
-        'PORT': int(empresaDB.db_port),
-        'TIME_ZONE': 'America/Mexico_City',
-        'CONN_MAX_AGE': 600,
-        'AUTOCOMMIT': True,
-        'ATOMIC_REQUESTS': False,
-        'CONN_HEALTH_CHECKS': False,
-        'OPTIONS': {},
-    }
-    
-    set_current_tenant_connection(db_config)
-    return empresaDB
-
-def get_empresa_actual(request):
-    print("EN UTILS.py GET_EMPRESA_ACTUAL")
-    empresaDB = establecer_conexion_tenant(request)
-    print("EN UTILS.py GET_EMPRESA_ACTUAL empresaBD.nombre:",empresaDB.nombre)
-    try:
-        empresa_fiscal = Empresa.objects.using(empresaDB.db_name).first()
-    except Exception as e:
-        raise PermissionDenied(f"Error al conectar con base tenant: {str(e)}")
-
-    if not empresa_fiscal:
-        raise PermissionDenied("La empresa no está configurada correctamente en la base tenant.")
-
-    return empresa_fiscal
-
 def cargar_datos_iniciales(db_alias):
-    from inv.models import UnidadMedida, ClaveMovimiento, Moneda, Almacen
+    from inv.models import UnidadMedida, ClaveMovimiento, Moneda, Almacen, Categoria
     from fac.models import FormaPago, MetodoPago, UsoCfdi, TipoComprobante, Exportacion
     from cxc.models import RegimenFiscal, TipoCliente
     from core.models import Empresa
@@ -187,4 +133,9 @@ def cargar_datos_iniciales(db_alias):
     if not Almacen.objects.using(db_alias).exists():
         Almacen.objects.using(db_alias).bulk_create([
             Almacen(almacen=1, nombre='ALMACEN 01'),
+        ])
+
+    if not Categoria.objects.using(db_alias).exists():
+        Categoria.objects.using(db_alias).bulk_create([
+            Categoria(categoria=1, nombre='CATEGORIA 1'),
         ])

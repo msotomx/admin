@@ -1,48 +1,9 @@
-from django.shortcuts import redirect, render
+from django.shortcuts import redirect, render   
 from django.urls import reverse
 from core.models import Empresa
 from core.models import PerfilUsuario  
 from django.utils.deprecation import MiddlewareMixin
 from core.db_config import get_db_config_from_empresa
-
-EXEMPT_PATHS = [
-    '/admin/',  # evita interferir con el admin
-    '/core/login/',
-    '/core/logout/',
-    '/core/sin_empresa/',
-    '/core/empresa_inactiva/',
-]
-
-class EmpresaActivaMiddleware22:
-    def __init__(self, get_response):
-        self.get_response = get_response
-
-    def __call__(self, request):
-        # 1. Permitir paso si es superusuario
-        if hasattr(request, 'user') and request.user.is_superuser:
-            return self.get_response(request)
-
-        # 2. Permitir rutas exentas sin validación
-        if any(request.path.startswith(path) for path in EXEMPT_PATHS):
-            return self.get_response(request)
-
-        # 3. Validar solo si el usuario está autenticado
-        if request.user.is_authenticated:
-
-            # Validación defensiva: evitar error si no hay perfil
-            if not hasattr(request.user, 'perfilusuario'):
-                return render(request, 'core/sin_empresa.html')
-
-            try:
-                perfil = request.user.perfilusuario
-                empresa = perfil.empresa
-            except PerfilUsuario.DoesNotExist:
-                return render(request, 'core/sin_empresa.html')
-
-            if empresa is None or not empresa.activa:
-                return render(request, 'core/empresa_inactiva.html', {'empresa': empresa})
-
-        return self.get_response(request)
 
 # SELECCIONAR EL TENANT Y REGISTRAR LA CONEXION DINAMICA
 
@@ -51,31 +12,77 @@ from django.db import connections
 from django.conf import settings
 from core.models import EmpresaDB
 from django.core.exceptions import PermissionDenied
-from django.utils.deprecation import MiddlewareMixin
 from core._thread_locals import set_current_tenant
+from core._thread_locals import get_current_tenant, get_current_empresa_id, get_current_empresa_fiscal
 
 class TenantMiddleware(MiddlewareMixin):
     def process_request(self, request):
-        if not request.user.is_authenticated:
+        print("📦 SESSION CHECK EN MIDDLEWARE:")
+        print("🔍 COOKIES:", request.COOKIES.get('sessionid'))
+        path = request.path
+
+        # Ignorar rutas especiales
+        if path.startswith(('/.well-known/', '/favicon.ico', '/setup-tenant')):
             return
 
+        # Ignorar peticiones no HTML
+        accept_header = request.headers.get('Accept', '')
+        if 'text/html' not in accept_header:
+            print(f"⚠️ Ignorando petición no HTML: {path}")
+            return
+
+        # Asegurar que es desde localhost
+        if not request.get_host().startswith('127.0.0.1'):
+            print("🚫 Petición no permitida desde host:", request.get_host())
+            return
+
+        # Validar autenticación
+        if not request.user.is_authenticated:
+            print("⚠️ Usuario no autenticado")
+            return
+
+        # Leer datos de sesión
         empresa_id = request.session.get('empresa_id')
-        alias = request.session.get('alias_tenant')
-        empresa_fiscal = request.session.get('empresa_fiscal', 'Empresa desconocida')
-        
-        if not empresa_id or not alias:
-            request.alias_tenant = None
-            request.empresa_id = None
-            request.empresa_empresa_fiscal = None
+        empresa_fiscal = request.session.get('empresa_fiscal')
+        print("EN MIDDLEWARE - empresa_id:", empresa_id)
+        print("EN MIDDLEWARE - empresa_fiscal:", empresa_fiscal)
+        if not empresa_id:
+            print("❌ empresa_id no encontrado en sesión")
             set_current_tenant(None, None, None)
             return
 
+        # Usar alias fijo para el tenant
+        alias = 'tenant'
+        print(f"🧪 EN MIDDLEWARE session_key: {request.session.session_key}")
+        print(f"🧪 EN MIDDLEWARE session_data: {request.session.items()}")
+        # Establecer conexión si no existe
+        if alias not in connections.databases:
+            try:
+                db_config = get_db_config_from_empresa(empresa_id)
+                connections.databases[alias] = db_config
+                print(f"✅ EN MIDDLEWARE Conexión '{alias}' registrada exitosamente")
+            except Exception as e:
+                print(f"❌ Error registrando conexión tenant: {e}")
+                return
+
+        # Si no hay nombre fiscal, consultar
+        if not empresa_fiscal:
+            try:
+                empresa = Empresa.objects.using(alias).first()
+                empresa_fiscal = empresa.nombre_comercial if empresa else "Desconocida"
+                request.session['empresa_fiscal'] = empresa_fiscal
+                request.session.modified = True
+            except Exception as e:
+                print(f"⚠️ No se pudo obtener empresa fiscal: {e}")
+                empresa_fiscal = "Desconocida"
+
+        # Guardar en _thread_locals
         set_current_tenant(alias, empresa_id, empresa_fiscal)
-        set_current_tenant_connection(alias)  # Cambiado de set_current_tenant a set_current_tenant_connection
-        
-        # (Opcional) Para acceso directo desde el request
+
+        # Para uso directo en la request
         request.alias_tenant = alias
         request.empresa_id = empresa_id
         request.empresa_fiscal = empresa_fiscal
 
-        print(f"🧵 EN TENANT_Middleware: alias={alias}, empresa_id={empresa_id}, empresa_fiscal={empresa_fiscal}")
+        print(f"🏢 Middleware listo: tenant='{alias}', empresa_id={empresa_id}, empresa_fiscal={empresa_fiscal}")
+

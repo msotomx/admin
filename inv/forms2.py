@@ -1,7 +1,6 @@
 from django import forms
 from django.forms import BaseInlineFormSet, inlineformset_factory
 from django.core.exceptions import ValidationError
-from django.utils.timezone import now, localtime
 from .models import Moneda, Categoria, UnidadMedida, Almacen
 from .models import ClaveMovimiento, Proveedor, Producto, Vendedor
 from .models import Movimiento, DetalleMovimiento
@@ -89,30 +88,45 @@ class VendedorForm(forms.ModelForm):
             'fecha_registro': forms.DateInput(attrs={'type': 'date'}),
         }        
 
-from django import forms
-from django.db import transaction
-from .models import Producto
-#self.fields['fecha_registro'].initial = localtime(now()).date()
-
-from django import forms
-
 class ProductoForm(forms.ModelForm):
     class Meta:
         model = Producto
         fields = '__all__'
         widgets = {
-            'fecha_movimiento': forms.DateInput(attrs={'type': 'date'}),
+            'fecha_registro': forms.DateInput(attrs={'type': 'date'}),
+            'descripcion': forms.Textarea(attrs={'rows': 3}),
+            'imagen': forms.ClearableFileInput(attrs={'class': 'form-control-file'}),
         }
 
     def __init__(self, *args, **kwargs):
-        # como el router maneja la conexion ya no es necesario db_name 
+        db_name = kwargs.pop('db_name', None)
+        self.db_name = db_name
         super().__init__(*args, **kwargs)
         
-        self.fields['fecha_registro'].initial = localtime(now()).date()
-        self.fields['categoria'].queryset = Categoria.objects.using('tenant').order_by('nombre')
-        self.fields['unidad_medida'].queryset = UnidadMedida.objects.using('tenant').order_by('unidad_medida')
-        self.fields['proveedor'].queryset = Proveedor.objects.using('tenant').order_by('nombre')
-        
+
+        if db_name:
+            self.fields['categoria'].queryset = Categoria.objects.using(db_name).all()
+            self.fields['proveedor'].queryset = Proveedor.objects.using(db_name).all()
+            self.fields['unidad_medida'].queryset = UnidadMedida.objects.using(db_name).all()
+        else:
+            self.fields['categoria'].queryset = Categoria.objects.none()
+            self.fields['proveedor'].queryset = Proveedor.objects.none()
+            self.fields['unidad_medida'].queryset = UnidadMedida.objects.none()
+
+        print("👀 Categorías cargadas:", self.fields['categoria'].queryset)
+        self.fields['campo_libre_str'].required = False
+        self.fields['campo_libre_num'].required = False
+
+    def clean_categoria(self):
+        return self.cleaned_data.get('categoria')
+
+    def clean_proveedor(self):
+        return self.cleaned_data.get('proveedor')
+
+    def clean_unidad_medida(self):
+        return self.cleaned_data.get('unidad_medida')
+
+
 # MOVIMIENTOS
 from datetime import date
 class MovimientoForm(forms.ModelForm):
@@ -124,8 +138,14 @@ class MovimientoForm(forms.ModelForm):
         }
 
     def __init__(self, *args, **kwargs):
+        db_name = kwargs.pop('db_name', None)
         super().__init__(*args, **kwargs)
-        self.fields['clave_movimiento'].queryset = ClaveMovimiento.objects.using('tenant').order_by('nombre')
+                
+        if db_name is not None:
+            self.fields['clave_movimiento'].queryset = ClaveMovimiento.objects.using(db_name).order_by('nombre')
+        else:
+            # opción segura: evita fallar si no hay db_name
+            self.fields['clave_movimiento'].queryset = ClaveMovimiento.objects.none()
 
 class DetalleMovimientoForm(forms.ModelForm):
     class Meta:
@@ -139,8 +159,15 @@ class DetalleMovimientoForm(forms.ModelForm):
         }
 
     def __init__(self, *args, **kwargs):
+        db_name = kwargs.pop('db_name', None)
         super().__init__(*args, **kwargs)
-        self.fields['producto'].queryset = Producto.objects.using('tenant').all().order_by('nombre')
+
+
+        if db_name is not None:
+            self.fields['producto'].queryset = Producto.objects.using(db_name).all().order_by('nombre')
+        else:
+            # opción segura: evita fallar si no hay db_name
+            self.fields['producto'].queryset = Producto.objects.none()
         
 # valida productos repetidos
 # valida cantidad = 0

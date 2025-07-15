@@ -31,6 +31,7 @@ from .views import compras_por_proveedor, buscar_compras_por_proveedor
 from .views import registrar_emisor_view, registrar_csd_view
 from .views import obtener_ultimo_producto
 from .views import imprimir_remision, imprimir_movimiento, imprimir_compra
+#from .views import producto_create_view
 
 app_name = 'inv'
 
@@ -67,6 +68,7 @@ urlpatterns = [
          
     path('producto/', ProductoListView.as_view(), name='producto_list'),
     path('producto/nuevo/', ProductoCreateView.as_view(), name='producto_create'),
+    #path('producto/nuevo/', producto_create_view, name='producto_create'),
     path('producto/editar/<int:pk>/', ProductoUpdateView.as_view(), name='producto_update'),
     path('producto/eliminar/<int:pk>/', ProductoDeleteView.as_view(), name='producto_delete'),
     path('ajax/ultimo_producto/', obtener_ultimo_producto, name='ajax_ultimo_producto'),

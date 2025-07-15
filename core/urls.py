@@ -1,7 +1,7 @@
 from django.contrib.auth import views as auth_views
 from django.urls import path
 from . import views
-from .views import CustomLoginView, empresa_detail
+from .views import CustomLoginView
 from django.urls import reverse_lazy
 from .views import sign_inicial_view, logOutUsuario
 from .views import setup_tenant
@@ -45,7 +45,6 @@ urlpatterns = [
     ),
     #path('password_reset_complete/', auth_views.PasswordResetCompleteView.as_view(template_name='core/password_reset_complete.html'), 
     #    name='password_reset_complete'),
-    path('empresa/', views.empresa_detail, name='empresa_detail'),
     path('empresa/inactiva/', views.empresa_inactiva, name='empresa_inactiva'),
     path('empresa/sin_empresa/', views.sin_empresa, name='sin_empresa'),
     path('registro/', sign_inicial_view, name='sign_inicial'),

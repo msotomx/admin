@@ -2,77 +2,82 @@
 
 from django.shortcuts import render,  redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth import login, authenticate, logout    
+from django.contrib.auth import login, authenticate, logout, update_session_auth_hash
 from django.contrib.auth.forms import AuthenticationForm
 from django.urls import reverse
 from django.contrib import messages
-from core.db_config import get_db_config_from_empresa
+from django.http import HttpResponseRedirect
+from django.conf import settings
 # Create your views here.
 from core.models import PerfilUsuario, EmpresaDB, Empresa
-from django.conf import settings
-
-from core._thread_locals import get_current_tenant, set_current_tenant
+from core._thread_locals import get_current_tenant, get_current_empresa_id
 from django.db import connections
 from django.core.exceptions import PermissionDenied
 
+from functools import wraps
+
 def require_tenant_connection(view_func):
+    @wraps(view_func)
     def wrapper(request, *args, **kwargs):
+        print("EN REQUIRE_TENANT_CONNECTION -1")
+        
+        # Verificar que el usuario esté autenticado
         if not request.user.is_authenticated:
             return redirect('core:login')
 
-        # Si ya hay conexión activa, continuar
-        if get_current_tenant():
-            return view_func(request, *args, **kwargs)
-
-        try:
-            # Conexión y objetos desde base de datos DEFAULT
-            perfil = PerfilUsuario.objects.using('default').select_related('empresa').get(user=request.user)
-            empresaDB = perfil.empresa
-
-            if not empresaDB:
-                logout(request)
-                return redirect('core:login')
-
-            if not empresaDB.activa:
-                messages.error(request, "La empresa está desactivada. Envíanos un mensaje a Switchh.")
-                logout(request)
-                return redirect('core:login')
-
-            alias = empresaDB.db_name    
-            set_current_tenant(alias)
-            print(f"✅ EN REQUIERE TENANT-WRAPPER Conexión establecida con la base de datos {empresaDB.db_name}")
-
-        except PerfilUsuario.DoesNotExist:
+        print("EN REQUIRE_TENANT_CONNECTION -2")
+        
+        # Validamos que la sesión tenga la clave 'tenant'
+        if not get_current_tenant() or not get_current_empresa_id():
+            messages.error(request, "La sesión del tenant es inválida o ha expirado.")
             logout(request)
             return redirect('core:login')
 
-        except Exception as e:
-            print(f"❌ EN REQUIERE TENANT-Error al establecer conexión tenant: {e}")
+        # Verificamos si 'tenant' está en la sesión
+        if request.session.get('alias_tenant') != 'tenant':
+            messages.error(request, "La sesión del tenant es inválida o ha expirado.")
             logout(request)
             return redirect('core:login')
 
+        # Continuar con la vista original si todo es válido
         return view_func(request, *args, **kwargs)
 
     return wrapper
 
+
 @login_required
 @require_tenant_connection
 def inicio(request):
-    empresaDB = request.user.perfilusuario.empresa
+    print("EN INICIO")
+    try:
+        # 🔒 Leemos el perfil desde la base 'default'
+        print('EN INICIO: GET_EMPRESA_ID:', get_current_empresa_id())
+        empresa_id = get_current_empresa_id()
+        #perfil = PerfilUsuario.objects.using('default').select_related(None).get(user=request.user)
+        empresaDB = EmpresaDB.objects.using('default').get(pk=empresa_id)
 
-    if not empresaDB.activa:
-        return render(request, 'core/empresa_inactiva.html', {'empresa': empresaDB})
+        if not empresaDB.activa:
+            return render(request, 'core/empresa_inactiva.html', {'empresa': empresaDB})
 
-    empresa_fiscal = Empresa.objects.using(empresaDB.db_name).first()
+        print("EN INICIO -2")
+        # 📦 Leemos la empresa fiscal desde la base del tenant (ya registrada)
+        empresa_fiscal = Empresa.objects.using('tenant').first()
+        print("EN INICIO, empresa_fiscal.nombre_comercial:",empresa_fiscal.nombre_comercial)
+        if not empresa_fiscal:
+            return render(request, 'core/empresa_no_configurada.html', {'empresa': empresaDB})
+        
+        print(" EN INICIO 🧪 request.user.is_authenticated =", request.user.is_authenticated)
+        print(" EN INICIO 🧪 request.session.session_key =", request.session.session_key)
+        print("EN INICIO -3")
+        return render(request, 'core/inicio.html')
     
-    if not empresa_fiscal:
-        return render(request, 'core/empresa_no_configurada.html', {'empresa': empresaDB})
-
-    return render(request, 'core/inicio.html', {
-        'empresaDB': empresaDB,
-        'empresa': empresa_fiscal,
-        'usuario': request.user
-    })
+    except PerfilUsuario.DoesNotExist:
+        print("❌ Perfil de usuario no encontrado en base 'default'")
+        return redirect('core:login')
+    
+    except Exception as e:
+        print(f"❌ Error en inicio: {e}")
+        return redirect('core:login')
 
 def logOutUsuario(request):
     
@@ -81,24 +86,7 @@ def logOutUsuario(request):
 
 from django.contrib.auth import authenticate, login
 from django.shortcuts import redirect
-from core.db_router import set_current_tenant_connection
 from core.models import PerfilUsuario
-
-@login_required
-def empresa_detail(request):
-    try:
-        perfil = request.user.perfilusuario  # Base default
-        empresa = perfil.empresa
-    except PerfilUsuario.DoesNotExist:
-        return render(request, 'core/sin_empresa.html')
-
-    if not empresa.activa:
-        return render(request, 'core/empresa_inactiva.html', {'empresa': empresa})
-
-    if request.session.get('empresa_id') != empresa.id:
-            request.session['empresa_id'] = empresa.id
-
-    return render(request, 'core/empresa_detail.html', {'empresa': empresa})
 
 def empresa_inactiva(request):
     return render(request, 'core/empresa_inactiva.html')
@@ -106,11 +94,12 @@ def empresa_inactiva(request):
 def sin_empresa(request):
     return render(request, 'core/sin_empresa.html')
 
-from django.contrib.auth.views import LoginView
 from django.contrib.auth import login
-from django.shortcuts import redirect
+from django.contrib.auth.views import LoginView
 from django.contrib.auth.forms import AuthenticationForm
+from django.shortcuts import redirect
 from django.urls import reverse
+from core.models import PerfilUsuario
 
 class CustomLoginView(LoginView):
     template_name = 'core/login.html'
@@ -120,77 +109,56 @@ class CustomLoginView(LoginView):
         user = form.get_user()
 
         try:
-            perfil = user.perfilusuario
-            empresa = perfil.empresa
+            perfil = PerfilUsuario.objects.using('default').get(user=user)
+            empresa = EmpresaDB.objects.using('default').get(pk=perfil.empresa_id)
 
             if not empresa or not empresa.activa:
                 form.add_error(None, "Empresa inactiva o no asignada.")
                 return self.form_invalid(form)
-            
-            # 1️⃣ Realizamos el login primero (esto reinicia la sesión)
-            login(self.request, user)
-            
-            # 2️⃣ Redirigimos a una nueva vista para hacer la configuración del tenant
-            #     y la conexión a la base de datos
-            self.request.session['empresa_id'] = empresa.id
-            self.request.session['alias_tenant'] = empresa.db_name
-            self.request.session['empresa_fiscal'] = None
-            # Forzar que Django persista la sesión
-            self.request.session.modified = True
 
-            return redirect(reverse('core:setup_tenant'))  # redirige a una vista específica para el tenant
+            login(self.request, user)  # 🔒 Esto reinicia la sesión
+            update_session_auth_hash(self.request, user)
+
+            # 🔁 Redirige con empresa.id como parámetro
+            return redirect(reverse('core:setup_tenant') + f'?eid={empresa.id}')
 
         except PerfilUsuario.DoesNotExist:
             form.add_error(None, "Usuario o empresa no encontrados.")
             return self.form_invalid(form)
 
-from django.shortcuts import render
-from django.contrib.auth.decorators import login_required
-from core.utils import set_current_tenant_connection
-
 # se llama de Login
 @login_required
 def setup_tenant(request):
-    # Validamos que la sesión contenga los valores necesarios
-    empresa_id = request.session.get('empresa_id')
-    alias_tenant = request.session.get('alias_tenant')
+    print("✅ ENTRANDO A SETUP_TENANT")
 
-    if not empresa_id or not alias_tenant:
-        print("❌ La sesión está incompleta. Redirigiendo al login...")
-        return redirect('login')
-
-    try:
-        # Conexión a la BD principal
-        empresa = EmpresaDB.objects.using('default').get(pk=empresa_id)
-        db_name = empresa.db_name
-
-        # Obtener empresa fiscal desde base de datos tenant
-        empresa_fiscal = Empresa.objects.using(db_name).first()
-        request.session['empresa_fiscal'] = empresa_fiscal.nombre_comercial
-        set_current_tenant(
-            alias=db_name,
-            empresa_id=empresa.id,
-            empresa_fiscal=empresa_fiscal.nombre_comercial
-        )
-
-        print("1-EN VIEWS SETUP_TENANT, empresa:", empresa)
-        print("2-EN VIEWS SETUP_TENANT, empresa.db_name:", db_name)
-        print("3-EN VIEWS SETUP_TENANT, empresa_id:", empresa_id)
-        print("4-EN VIEWS SETUP_TENANT, alias_tenant:", alias_tenant)
-        print("5-EN VIEWS SETUP_TENANT, empresa_fiscal:", empresa_fiscal.nombre_comercial)
-
-        # Establecer conexión del tenant
-        set_current_tenant_connection(db_name)
-
-        print(f"✅ EN SETUP TENANT Conexión con el tenant {alias_tenant} configurada exitosamente")
-        return redirect('core:inicio')
-
-    except EmpresaDB.DoesNotExist:
-        print(f"❌ EmpresaDB con ID {empresa_id} no encontrada")
+    empresa_id = request.GET.get('eid')
+    if not empresa_id:
+        print("⚠️ Sin empresa_id, redirigiendo a login.")
         return redirect('core:login')
 
+    try:
+        # 1️⃣ Leer empresa desde la base default
+        empresa = EmpresaDB.objects.using('default').get(pk=empresa_id)
+        
+        # Asegurarse de que hay sesión activa
+        if not request.session.session_key:
+            request.session.create()
+
+        request.session['empresa_id'] = empresa.id
+        request.session['alias_tenant'] = 'tenant'
+        request.session['empresa_fiscal'] = None
+        request.session.modified = True
+
+        print(f"🧪 EN SETUP_TENANT - session_key: {request.session.session_key}")
+        print(f"🧪 EN SETUP_TENANT - session_data: {request.session.items()}")
+
+        print("EN SETUP_TENANT saliendo a inicio")
+        
+        from django.http import HttpResponseRedirect
+        return HttpResponseRedirect(reverse('core:inicio'))
+
     except Exception as e:
-        print(f"❌ Error general en setup_tenant: {e}")
+        print(f"❌ Error en setup_tenant: {e}")
         return redirect('core:login')
 
 # FUNCION PARA SIGN INICIAL, AQUI SE CREA LA BD DEL CLIENTE, EL USUARIO INICIAL Y 

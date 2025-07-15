@@ -57,7 +57,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'core.middleware.TenantMiddleware',
 ]
-# 'core.middleware.EmpresaActivaMiddleware',
+
 ROOT_URLCONF = 'admin.urls'
 
 TEMPLATES = [
@@ -165,11 +165,14 @@ PAC_URL = 'https://dev.techbythree.com/api/v1/facturacion/timbrar'
 
 # Seguridad para sesiones en desarrollo
 SESSION_ENGINE = 'django.contrib.sessions.backends.db'
+SESSION_COOKIE_DOMAIN = None
 SESSION_COOKIE_NAME = 'sessionid'
-SESSION_COOKIE_SECURE = False          # Solo en desarrollo
+SESSION_COOKIE_SECURE = False  # Solo True si usas HTTPS
 SESSION_COOKIE_SAMESITE = 'Lax'
 SESSION_COOKIE_HTTPONLY = True
-SESSION_SAVE_EVERY_REQUEST = True       # (opcional) para asegurar persistencia
+SESSION_SAVE_EVERY_REQUEST = False
+SESSION_COOKIE_AGE = 3600  # Definir el tiempo que la sesión se mantiene activa.
+SESSION_EXPIRE_AT_BROWSER_CLOSE = False
 
 CSRF_COOKIE_SAMESITE = 'Lax'
 CSRF_TRUSTED_ORIGINS = ['http://127.0.0.1:8000']

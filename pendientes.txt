@@ -1,4 +1,7 @@
 Pendientes:
+en Tabla ClaveMovimiento 
+- agregar es_servicio Boolean
+
 FACTURAS
 - validar que no se repita numero de factura
 - buscar facturas por cliente
@@ -24,7 +27,9 @@ comando para buscar en los archivos:
  grep -r "lo que buscas" .
  grep -r "User =" .
  grep -r "sign_inicial" .
-
+ grep -r "set_current_tenant_connection" .
+ grep -r "request.session" .
+1️⃣ 
 Borra Manualmente las migraciones:
 find . -path "*/migrations/*.py" -not -name "__init__.py" -delete
 find . -path "*/migrations/*.pyc" -delete
@@ -42,4 +47,5 @@ nombre de empresa= empresa_YYYYMMAA_slugy
 
 empresa = EmpresaDB.objects.get(pk=request.session['empresa_id'])
 db_config = get_db_config_from_empresa(empresa)
+
 

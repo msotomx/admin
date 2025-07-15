@@ -26,10 +26,9 @@ def crear_tenant_completo(request, nombre_comercial, username, password, contact
     fecha_str = fecha.strftime('%Y%m%d')
     db_name = db_name + fecha_str
 
-    if EmpresaDB.objects.filter(db_name=db_name).exists():
+    if EmpresaDB.objects.using('default').filter(db_name=db_name).exists():
         raise Exception(f"Ya existe una empresa con nombre '{nombre_comercial}'.")
 
-    # db_config.pop('CONN_HEALTH_CHECKS', None)  
     # 2. Configuración completa para Django y el backend MySQL
     db_config_migracion = {
         'ENGINE': 'django.db.backends.mysql',
@@ -70,14 +69,15 @@ def crear_tenant_completo(request, nombre_comercial, username, password, contact
     db_config_conexion['ALIAS'] = db_name
     
     # 8. Conectar el hilo a la base tenant
-    set_current_tenant_connection(db_config_conexion)
-    
+    #set_current_tenant_connection(db_config_conexion)
+    set_current_tenant_connection(db_name)
+
     # Ahora, actualizar el settings para consultas
     settings.DATABASES[db_name] = db_config_conexion
     connections.databases[db_name] = db_config_conexion
-    
+
     # 9. Registrar empresa en base default
-    empresa_db = EmpresaDB.objects.create(
+    empresa_db = EmpresaDB.objects.using('default').create(
         nombre=nombre_comercial,
         slug=slug,
         db_name    = db_name,
@@ -92,10 +92,10 @@ def crear_tenant_completo(request, nombre_comercial, username, password, contact
         contacto_telefono= contacto_telefono,
         contacto_email   = contacto_email,
     )
-    
+
     # 10. Crear superusuario técnico en tenant
     User = get_user_model()
-    if not User.objects.using(db_name).filter(email='admin@switchh.com').exists():
+    if not User.objects.using('tenant').filter(email='admin@switchh.com').exists():
         User._default_manager.db_manager(db_name).create_superuser(
             username='admin',
             email='admin@switchh.com',
@@ -114,7 +114,7 @@ def crear_tenant_completo(request, nombre_comercial, username, password, contact
         raise Exception("No se encontró ningún régimen fiscal en la base de datos.")
 
     try:
-        Empresa.objects.using(db_name).create(
+        Empresa.objects.using('tenant').create(
             nombre_comercial=nombre_comercial,
             nombre_fiscal=nombre_comercial.upper(),
             fecha_inicio=localtime(now()).date(),
@@ -140,7 +140,7 @@ def crear_tenant_completo(request, nombre_comercial, username, password, contact
 
     # 13. Crear usuario capturado en el formulario, en User default
     UserModel = get_user_model()
-    if UserModel.objects.filter(username=username).exists():
+    if UserModel.objects.using('default').filter(username=username).exists():
         raise Exception(f"Ya existe un usuario registrado con username '{username}' ")
 
     usuario_global = UserModel._default_manager.db_manager('default').create_user(

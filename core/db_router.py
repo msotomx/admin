@@ -1,3 +1,4 @@
+
 # ROUTER PERSONALIZADO PARA BASE DE DATOS
 # Este DatabaseRouter se usará para decidir a qué base de datos se envían las operaciones de cada usuario.
 
@@ -7,76 +8,65 @@ from django.conf import settings
 from django.db import connections
 from copy import deepcopy
 from core.db_config import get_db_config_from_empresa
-from core.models import EmpresaDB
+from core.models import EmpresaDB, Empresa
 from core._thread_locals import get_current_empresa_id, get_current_tenant, get_current_empresa_fiscal
+from core._thread_locals import set_current_tenant
 
-# regresa el db_config, recibe empresaDB
 
 _thread_locals = threading.local()
 def set_current_tenant_connection(alias):
     """
     Establece la conexión con la base de datos correspondiente al alias del tenant.
+    El alias debe ser 'tenant', no se debe modificar la base 'default'.
     """
-    # Verificar si la conexión ya existe, sino crearla
-    empresa_id = get_current_empresa_id()  # regresa la empresa_id de _thread_locals
+    empresa_id = get_current_empresa_id()
     empresa_fiscal = get_current_empresa_fiscal()
+    print("EN SET_CURRENT-TENANT-CONNECTION: empresa_id:", empresa_id)
+    print("EN SET_CURRENT-TENANT-CONNECTION: alias:", alias)
+    print("EN SET_CURRENT-TENANT-CONNECTION: empresa_fiscal:", empresa_fiscal)
 
-    print("EN SET_CURRENT_TENANT_CONNECTION - alias:", alias)
-    if alias not in connections.databases:
-        # Si no está registrada, debemos configurar la base de datos para este alias
-        empresa = EmpresaDB.objects.using('default').get(id=empresa_id)  # Aquí obtenemos la empresa completa
-        print(f"EN SET_CURRENT_TENANT_CONNECTION - Empresa: {empresa.nombre}")
+    if not empresa_id:
+        raise ValueError("No se puede establecer conexión sin empresa_id")
 
-        db_config = get_db_config_from_empresa(empresa)  # Obtener la configuración del tenant
-        connections.databases[alias] = db_config
-        print(f"Conexión con la base de datos {alias} registrada exitosamente.")
+    db_config = get_db_config_from_empresa(empresa_id)
+
+    if not db_config or 'NAME' not in db_config:
+        raise ValueError(f"❌ Configuración inválida para el tenant '{alias}'")
+
+    # Usamos alias fijo 'tenant'
+    if 'tenant' not in connections.databases:
+        connections.databases['tenant'] = db_config
+        print(f"✅ Conexión con base tenant registrada como 'tenant'")
     else:
-        print(f"La conexión con {alias} ya está registrada.")
+        print("ℹ️ Conexión 'tenant' ya registrada")
 
-    # Guardar datos activos en _thread_locals
-    from core._thread_locals import set_current_tenant
-    set_current_tenant(alias, empresa_id, empresa_fiscal)
+    # Si no está seteado, obtener el nombre comercial
+    if not empresa_fiscal:
+        empresa = Empresa.objects.using('tenant').first()
+        empresa_fiscal = empresa.nombre_comercial if empresa else "Desconocida"
 
-# aqui regresa el alias de la base tenant
-def get_current_tenant_connection():
-    return getattr(_thread_locals, 'tenant_db_alias', None)
-
+    # Guardar en _thread_locals
+    set_current_tenant('tenant', empresa_id, empresa_fiscal)
+    print(f"✅ EN SET_CURRENT_TENANT_CONNECTION: alias=tenant, empresa_id={empresa_id}, empresa_fiscal={empresa_fiscal}")
+    
 class TenantDatabaseRouter:
-    GLOBAL_MODELS = [
-        'auth.user',
-        'core.perfilusuario',
-        'core.empresadb',
-        'core.contenttype',  # para ContentType
-        'core.session',      # para sesiones manualmente
-    ]
-
     def db_for_read(self, model, **hints):
-        label = f"{model._meta.app_label}.{model._meta.model_name}"
-        if label in self.GLOBAL_MODELS:
+        if model._meta.app_label in ['auth', 'contenttypes', 'sessions', 'admin']:
             return 'default'
-
-        return get_current_tenant_connection() or 'default'
+        return 'tenant'
     
     def db_for_write(self, model, **hints):
-        label = f"{model._meta.app_label}.{model._meta.model_name}"
-        if label in self.GLOBAL_MODELS:
+        if model._meta.app_label in ['auth', 'contenttypes', 'sessions', 'admin']:
             return 'default'
-
-        return get_current_tenant_connection() or 'default'
+        return 'tenant'
     
     def allow_relation(self, obj1, obj2, **hints):
-        # Relación válida si ambos objetos usan la misma BD
-        db1 = self.db_for_read(obj1)
-        db2 = self.db_for_read(obj2)
-        return db1 == db2
+        db_obj1 = getattr(obj1._state, 'db', None)
+        db_obj2 = getattr(obj2._state, 'db', None)
+        return db_obj1 == db_obj2
 
-def allow_migrate(self, db, app_label, model_name=None, **hints):
-    db_conf = get_current_tenant_connection()
-
-    # Migrar globales en 'default' y también en base tenant si está activa
-    if app_label in ['auth', 'contenttypes', 'admin', 'sessions']:
-        return db == 'default' or (db_conf and db == db_conf['ALIAS'])
-
-    # Migrar las demás apps solo en la base tenant activa
-    return db_conf and db == db_conf['ALIAS']
-
+    def allow_migrate(self, db, app_label, model_name=None, **hints):
+        # Solo migramos auth, admin, etc. en 'default'
+        if app_label in ['auth', 'contenttypes', 'sessions', 'admin']:
+            return db == 'default'
+        return db == 'tenant'

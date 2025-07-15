@@ -3,7 +3,7 @@ from django.contrib.auth.models import User
 
 # TipoCliente del 01 al 06 para asignarle el precio que le corresponde 
 class TipoCliente(models.Model):
-    tipo_cliente = models.SmallIntegerField(default=1)
+    tipo_cliente = models.SmallIntegerField(unique=True, null=False)
     nombre = models.CharField(max_length=30,blank=True)
     
     def __str__(self):
