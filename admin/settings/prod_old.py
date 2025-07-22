@@ -17,6 +17,7 @@ import os
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
+
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
@@ -27,6 +28,7 @@ SECRET_KEY = config('SECRET_KEY')
 DEBUG = config('DEBUG', default=False, cast=bool)
 
 ALLOWED_HOSTS = [config('ALLOWED_HOSTS')]
+
 
 # Application definition
 
@@ -51,10 +53,12 @@ MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'core.middleware.TenantMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'core.middleware.TenantMiddleware',
+    'core.middleware.EmpresaActivaMiddleware',
 ]
+
 
 ROOT_URLCONF = 'admin.urls'
 
@@ -69,7 +73,6 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
-                'core.context_processors.empresa_context',                
             ],
         },
     },
@@ -125,25 +128,21 @@ USE_I18N = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
 
-
-
-STATICFILES_DIRS = [
-    BASE_DIR / "static",
-]
 STATIC_URL = '/static/'
-STATIC_ROOT = BASE_DIR / "staticfiles"  # destino de collectstatic
-#STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')  # Para collectstatic en producción
-
-MEDIA_URL = '/media/'
-# MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
-MEDIA_ROOT = BASE_DIR / "media"
-
+STATIC_ROOT = '/usr/src/app/staticfiles'
+#STATICFILES_DIRS = [
+#    BASE_DIR / "static",
+#]
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
+#MEDIA_ROOT = os.path.join(BASE_DIR,'media')
+#MEDIA_URL = '/media/'
+MEDIA_ROOT = '/usr/src/app/media'
+MEDIA_URL = '/media/'
 
 
 from django.urls import reverse_lazy
@@ -154,49 +153,23 @@ LOGOUT_REDIRECT_URL = reverse_lazy('core:login')
 LOGIN_REDIRECT_URL = reverse_lazy('core:inicio')
 
 # Para desarrollo, usando la consola de Django para pruebas
-EMAIL_BACKEND = config('EMAIL_BACKEND')
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+
+# EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+# EMAIL_HOST = 'smtp.gmail.com'  # Ejemplo, puedes usar otro proveedor
+# EMAIL_PORT = 587
+# EMAIL_USE_TLS = True
+# EMAIL_HOST_USER = 'your_email@example.com'
+# EMAIL_HOST_PASSWORD = 'your_email_password'
+
 EMAIL_HOST = config('EMAIL_HOST')
-EMAIL_PORT = config('EMAIL_PORT')
-EMAIL_USE_TLS = config('EMAIL_USE_TLS') 
 EMAIL_HOST_USER = config('EMAIL_HOST_USER')
 EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD')
-DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
+EMAIL_PORT = config('EMAIL_PORT')
+
+ADMIN_USER_EMAIL = config('ADMIN_USER_EMAIL')
+
 
 PAC_CLIENT_ID = '0ed04e34-760b-41ef-b778-68c35891d7f1'
 PAC_API_TOKEN = 'CyJdHuv41rlHtTGfH1Y9bvwxFH24c4SGbP35WP1M5cc8743a'
 PAC_URL = 'https://dev.techbythree.com/api/v1/facturacion/timbrar'
-
-
-# Seguridad para sesiones en desarrollo
-SESSION_ENGINE = 'django.contrib.sessions.backends.db'
-SESSION_COOKIE_DOMAIN = None
-SESSION_COOKIE_NAME = 'sessionid'
-SESSION_COOKIE_SECURE = True  # Solo True si usas HTTPS
-SESSION_COOKIE_SAMESITE = 'Lax'
-SESSION_COOKIE_HTTPONLY = True
-SESSION_SAVE_EVERY_REQUEST = False
-SESSION_COOKIE_AGE = 3600  # Definir el tiempo que la sesión se mantiene activa.
-SESSION_EXPIRE_AT_BROWSER_CLOSE = False
-
-CSRF_COOKIE_SECURE = True
-CSRF_COOKIE_SAMESITE = 'Lax'
-CSRF_TRUSTED_ORIGINS = [
-    'https://switchh.mx',
-    'https://www.switchh.mx'
-]
-
-SECURE_SSL_REDIRECT = True  # Redirige todo HTTP a HTTPS
-
-# HSTS (HTTP Strict Transport Security)
-SECURE_HSTS_SECONDS = 31536000  # 1 año
-SECURE_HSTS_INCLUDE_SUBDOMAINS = True
-SECURE_HSTS_PRELOAD = True
-
-# Evita que el sitio se muestre en <iframe> (protección clickjacking)
-X_FRAME_OPTIONS = 'DENY'
-
-# Activa el header que impide que los navegadores infieran tipos MIME
-SECURE_CONTENT_TYPE_NOSNIFF = True
-
-# Previene que el navegador cargue scripts inseguros
-SECURE_BROWSER_XSS_FILTER = True

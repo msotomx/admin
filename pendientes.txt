@@ -1,3 +1,5 @@
+IP DROPLET DIGITAL OCEAN:  143.198.59.14
+
 Pendientes:
 en Tabla ClaveMovimiento 
 - agregar es_servicio Boolean
@@ -55,3 +57,34 @@ BASES TENANT
 69- jorge
 4- karen
 5- miguel
+
+
+[21/Jul/2025 22:27:42] "GET /login/ HTTP/1.1" 200 7457                     <-- Se hace Login
+[21/Jul/2025 22:27:50] "POST /login/ HTTP/1.1" 302 0
+[21/Jul/2025 22:27:50] "GET /setup-tenant/?eid=72 HTTP/1.1" 302 0
+[Middleware - Reconfigurar ..] actual_name: None			
+[Middleware - Reconfigurar ..] nueva_config['NAME']: e_paty20250721	   <-- BD Nueva
+[Middleware - Reconfigurar ..] Nueva conexión configurada a e_paty20250721 <-- Se hace la conexion, base correcta
+[Middleware - empresa_f] mike						   <-- Empresa Fiscal es incorrecta
+[Middleware] Base realmente conectada: e_mike20250721			   <-- Base Real es incorrecta
+[Middleware] EmpresaDB.db_name e_paty20250721				   <-- Esta es la base correcta
+[Middleware] Empresa.db_name e_mike20250721				   <-- Empresa Fiscal incorrecta
+ENTRANDO A  INICIO							<-- aqui en inicio se despliega el nombre de la empresa "mike" que es incorrecto
+EN INICIO- empresa_id: 72
+A continuacion selecciono una opcion del menu:
+[Middleware - Reconfigurar ..] actual_name: e_paty20250721                 <-- sale de: actual_name = connections.databases.get(alias, {}).get('NAME')
+[Middleware - Reconfigurar ..] nueva_config['NAME']: e_paty20250721
+[Middleware - empresa_f] paty						   <-- aqui ya se accesa a la empresa fiscal correcta
+[Middleware] Base realmente conectada: e_paty20250721			   <-- Base Real correcta
+[Middleware] EmpresaDB.db_name e_paty20250721				   <-- Base Default apunta a Base Tenant Correcta
+[Middleware] Empresa.db_name e_paty20250721				   <-- Empresa Fiscal Correcta y se despliega el nombre de la empresa correcto en pantalla
+[TenantRequiredMixin] db_name: tenant
+[TenantRequiredMixin] empresa_id: 72
+[TenantRequiredMixin] empresa_fiscal: paty
+🔄 Estableciendo conexión con la base de datos tenant
+[Set_Current_Tenant_Connection] 
+[Set_Current_Tenant_Connection] empresa_id: 72
+ℹ️ Conexión 'tenant' ya registrada
+La conexión 'tenant' está activa con la base: e_paty20250721
+[Set_Current_Tenant_Connection] empresa_fiscal: paty
+[21/Jul/2025 22:29:36] "GET /inv/proveedores/ HTTP/1.1" 200 7257
