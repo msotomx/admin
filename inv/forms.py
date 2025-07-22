@@ -482,7 +482,7 @@ class EmpresaForm(forms.ModelForm):
         exclude = ['empresa','num_empresa','fecha_inicio','fecha_renovacion','factor','activa','directorio',
                    'calle_expedicion','numero_exterior_expedicion','numero_interior_expedicion',
                    'colonia_expedicion','localidad_expedicion','municipio_expedicion','estado_expedicion',
-                   'pais_expedicion']
+                   'pais_expedicion', 'db_name']
         fields = '__all__'  # O puedes listar explícitamente los campos
 
     def __init__(self, *args, **kwargs):
@@ -495,7 +495,7 @@ class EmpresaLugarForm(forms.ModelForm):
         model = Empresa
         fields = ['nombre_comercial', 'calle_expedicion', 'numero_exterior_expedicion',
                   'numero_interior_expedicion','colonia_expedicion','codigo_postal_expedicion',
-                  'localidad_expedicion','municipio_expedicion','estado_expedicion','pais_expedicion']
+                  'localidad_expedicion','municipio_expedicion','estado_expedicion','pais_expedicion', 'db_name']
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

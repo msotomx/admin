@@ -171,6 +171,7 @@ def setup_tenant(request):
 # SE AGREGA LA EMPRESA NUEVA EN LA LISTA DE EMPRESAS
 from django.shortcuts import render, redirect
 from core.services.tenant_setup import crear_tenant_completo
+from django.contrib.auth import get_user_model
 
 def sign_inicial_view(request):
     if request.method == 'POST':
@@ -181,6 +182,34 @@ def sign_inicial_view(request):
         contacto_telefono = request.POST.get('contacto_telefono')
         contacto_email = request.POST.get('contacto_email')
 
+        if not nombre:
+            messages.error(request, f"Se requiere nombre comercial")
+            return redirect('core:sign_inicial')
+
+        if not username:
+            messages.error(request, f"Se requiere nombre de usuario")
+            return redirect('core:sign_inicial')
+        
+        if not password:
+            messages.error(request, f"Se requiere contraseña")
+            return redirect('core:sign_inicial')
+
+        if not contacto_nombre:
+            messages.error(request, f"Se requiere nombre del contacto")
+            return redirect('core:sign_inicial')
+
+        if not contacto_telefono:
+            messages.error(request, f"Se requiere teléfono del contacto")
+            return redirect('core:sign_inicial')
+
+        if not contacto_email:
+            messages.error(request, f"Se requiere email del contacto")
+            return redirect('core:sign_inicial')
+
+        UserModel = get_user_model()
+        if UserModel.objects.using('default').filter(username=username).exists():
+            messages.error(request, f"El nombre de usuario '{username}' ya está en uso.")
+            return redirect('core:sign_inicial')
         try:
             crear_tenant_completo(
                 request, nombre, username, password,
