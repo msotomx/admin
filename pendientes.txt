@@ -49,3 +49,9 @@ empresa = EmpresaDB.objects.get(pk=request.session['empresa_id'])
 db_config = get_db_config_from_empresa(empresa)
 
 
+BASES TENANT
+67- paty
+68- mike
+69- jorge
+4- karen
+5- miguel

@@ -5,7 +5,7 @@
         
         {% if resultados %}
             <div class="print-header">
-                <p>SWITCHH • SISTEMAS</p>
+                <p>{{empresa_actual}}<span style="float:right">SWITCHH • SISTEMAS</span> </p>
                 <p>REMISIONES POR PRODUCTO<span style="float:right">{{ fecha_actual }}</span></p>
                 <p>PRODUCTO: {{ producto.sku }} {{ producto.nombre }}</p>
                 <p>DEL: {{ fecha_ini|date:"d/M/Y"|upper }} AL {{ fecha_fin|date:"d/M/Y"|upper }}</p>

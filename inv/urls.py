@@ -11,13 +11,15 @@ from .views import ProductoListView, ProductoCreateView, ProductoUpdateView, Pro
 from .views import MovimientoListView, MovimientoCreateView, MovimientoUpdateView, MovimientoDeleteView, MovimientoDetailView
 from .views import RemisionListView, RemisionCreateView, RemisionUpdateView, RemisionDeleteView, RemisionDetailView
 from .views import CompraListView, CompraCreateView, CompraUpdateView, CompraDeleteView, CompraDetailView
+from .views import CotizacionListView, CotizacionCreateView, CotizacionUpdateView, CotizacionDeleteView, CotizacionDetailView
 from .views import EmpresaListView, EmpresaCreateView, EmpresaUpdateView
 from .views import EmpresaLugarListView, EmpresaLugarUpdateView
 from .views import verificar_movimiento, obtener_costo_producto
 from .views import verificar_remision, obtener_precio_producto
+from .views import verificar_cotizacion
 from .views import verificar_compra, obtener_dias_plazo, obtener_paridad_moneda
 from .views import obtener_ultimo_numero_remision, obtener_ultimo_movimiento, obtener_ultima_compra
-from .views import obtener_ultimo_vendedor
+from .views import obtener_ultimo_vendedor, obtener_ultima_cotizacion
 from .views import remisiones_por_dia, buscar_remisiones_por_dia
 from .views import remisiones_por_cliente, buscar_remisiones_por_cliente
 from .views import remisiones_por_producto, buscar_remisiones_por_producto
@@ -30,7 +32,9 @@ from .views import compras_por_producto, buscar_compras_por_producto
 from .views import compras_por_proveedor, buscar_compras_por_proveedor
 from .views import registrar_emisor_view, registrar_csd_view
 from .views import obtener_ultimo_producto
-from .views import imprimir_remision, imprimir_movimiento, imprimir_compra
+from .views import imprimir_remision, imprimir_movimiento, imprimir_compra, imprimir_cotizacion
+
+
 #from .views import producto_create_view
 
 app_name = 'inv'
@@ -68,7 +72,6 @@ urlpatterns = [
          
     path('producto/', ProductoListView.as_view(), name='producto_list'),
     path('producto/nuevo/', ProductoCreateView.as_view(), name='producto_create'),
-    #path('producto/nuevo/', producto_create_view, name='producto_create'),
     path('producto/editar/<int:pk>/', ProductoUpdateView.as_view(), name='producto_update'),
     path('producto/eliminar/<int:pk>/', ProductoDeleteView.as_view(), name='producto_delete'),
     path('ajax/ultimo_producto/', obtener_ultimo_producto, name='ajax_ultimo_producto'),
@@ -80,6 +83,16 @@ urlpatterns = [
     path('movimiento/eliminar/<int:pk>/', MovimientoDeleteView.as_view(), name='movimiento_delete'),
     path('movimiento/<int:pk>/', MovimientoDetailView.as_view(), name='movimiento_detail'),
     path('verificar-movimiento/', verificar_movimiento, name='verificar_movimiento'),
+    # cotizaciones
+    path('cotizacion/', CotizacionListView.as_view(), name='cotizacion_list'),
+    path('cotizacion/nuevo/', CotizacionCreateView.as_view(), name='cotizacion_create'),
+    path('cotizacion/editar/<int:pk>/', CotizacionUpdateView.as_view(), name='cotizacion_update'),
+    path('cotizacion/eliminar/<int:pk>/', CotizacionDeleteView.as_view(), name='cotizacion_delete'),
+    path('cotizacion/<int:pk>/', CotizacionDetailView.as_view(), name='cotizacion_detail'),
+    path('verificar-cotizacion/', verificar_cotizacion, name='verificar_cotizacion'),
+    path('ajax/numero-cotizacion/', obtener_ultima_cotizacion, name='ajax_numero_cotizacion'),
+    path('cotizacion/<int:pk>/imprimir/', imprimir_cotizacion, name='imprimir_cotizacion'),
+ 
     path('obtener_costo_producto/', obtener_costo_producto, name='obtener_costo_producto'),
     path('remision/', RemisionListView.as_view(), name='remision_list'),
     path('remision/nuevo/', RemisionCreateView.as_view(), name='remision_create'),

@@ -49,7 +49,7 @@ class Factura(models.Model):
         ('Cancelada','Cancelado'), 
         ('Error','Error') 
             )
-    usuario = models.ForeignKey(User,on_delete=models.SET_NULL, null=True)
+    usuario = models.CharField(max_length=41, blank=True)
     empresa = models.ForeignKey(Empresa,on_delete=models.RESTRICT)
     cliente = models.ForeignKey(Cliente,on_delete=models.RESTRICT)
     clave_remision = models.ForeignKey(ClaveMovimiento,on_delete=models.RESTRICT, blank=True)
@@ -139,7 +139,7 @@ class DetalleFactura(models.Model):
         if self.producto.aplica_iva:
              tasa_iva = (self.factura.empresa.tasa_iva) / Decimal('100')
         if self.producto.aplica_ieps:
-             tasa_ieps = (self.factura.empresa.tasa_ieps) / Decimal('100')
+             tasa_ieps = (self.producto.tasa_ieps) / Decimal('100')
         self.tasa_iva  = tasa_iva
         self.tasa_ieps = tasa_ieps
 

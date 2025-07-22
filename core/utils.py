@@ -9,7 +9,6 @@ def cargar_datos_iniciales(db_alias):
     from fac.models import FormaPago, MetodoPago, UsoCfdi, TipoComprobante, Exportacion
     from cxc.models import RegimenFiscal, TipoCliente
     from core.models import Empresa
-
     if not FormaPago.objects.using(db_alias).exists():
         FormaPago.objects.using(db_alias).bulk_create([
             FormaPago(forma_pago='01', nombre='Efectivo'),

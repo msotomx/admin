@@ -133,24 +133,26 @@ document.addEventListener('DOMContentLoaded', function () {
         claveMovimientoInput.focus();
     }
     // busca el ultimo numero para esa clave_movimiento
-    if (claveMovimientoInput && referenciaInput) {
-        claveMovimientoInput.addEventListener('change', function () {
-            const clave = this.value;
-            if (clave) {
-                fetch(`/inv/ajax/ultima_compra/?clave=${clave}`, {
-                    credentials: 'include'
+    const esCompraNueva = {% if form.instance.pk %}false{% else %}true{% endif %}; 
+    if (esCompraNueva) {
+        if (claveMovimientoInput && referenciaInput) {
+            claveMovimientoInput.addEventListener('change', function () {
+                const clave = this.value;
+                if (clave) {
+                    fetch(`/inv/ajax/ultima_compra/?clave=${clave}`, {
+                        credentials: 'include'
                     })
                     .then(response => response.json())
                     .then(data => {
                         referenciaInput.value = data.referencia;
                     });
-            }
-        });
-
-        //  se lanza el evento manualmente si ya hay un valor precargado
-        if (claveMovimientoInput.value) {
-            claveMovimientoInput.dispatchEvent(new Event('change'));
+                }
+            });
         }
+    }
+    //  se lanza el evento manualmente si ya hay un valor precargado
+    if (claveMovimientoInput.value) {
+        claveMovimientoInput.dispatchEvent(new Event('change'));
     }
     
     // valida si clave_movimiento + Remision existe

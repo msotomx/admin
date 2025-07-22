@@ -6,6 +6,7 @@ from cxc.models import RegimenFiscal
 # Create your models here.
 class Empresa(models.Model):
     nombre_comercial = models.CharField(max_length=50, blank=True)
+    db_name = models.CharField(max_length=100, unique=True)
     activa = models.BooleanField(default=False)
     directorio = models.CharField(max_length=30,blank=True)   # es la ubicacion dentro del servidor
     fecha_inicio = models.DateField()

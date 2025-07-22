@@ -1,4 +1,4 @@
-
+from django.db import connections
 import threading
 
 _thread_locals = threading.local()

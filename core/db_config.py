@@ -2,8 +2,6 @@ from core.models import EmpresaDB
 
 def get_db_config_from_empresa(empresa_id):
     empresa = EmpresaDB.objects.using('default').get(pk=empresa_id)
-    print("EN GET_DB_CONFIG_FROM_EMPRESA db_name:", empresa.db_name)
-    print("EN GET_DB_CONFIG_FROM_EMPRESA empresa_id:", empresa_id)
     return {
         'ALIAS': empresa.db_name,
         'ENGINE': 'django.db.backends.mysql',

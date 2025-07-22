@@ -27,11 +27,10 @@ class ClienteForm(forms.ModelForm):
         }
         
     def __init__(self, *args, **kwargs):
-        db_name = kwargs.pop('db_name', None)
         super().__init__(*args, **kwargs)
 
         self.fields['tipo_cliente'].queryset = TipoCliente.objects.using('tenant')
-        self.fields['regimen_fiscal'].queryset = RegimenFiscal.objects.using('tenant').order_by('nombre')
+        self.fields['regimen_fiscal'].queryset = RegimenFiscal.objects.using('tenant').order_by('regimen_fiscal')
           
         self.fields['campo_libre_str'].required = False
         self.fields['campo_libre_num'].required = False

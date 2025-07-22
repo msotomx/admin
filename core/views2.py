@@ -1,5 +1,5 @@
 # VIEWS - DE CORE
-
+# ANTES DE CAMBIOS A LOGIN 2025-07-19   9.19PM
 from django.shortcuts import render,  redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import login, authenticate, logout, update_session_auth_hash
@@ -11,12 +11,10 @@ from django.conf import settings
 # Create your views here.
 from core.models import PerfilUsuario, EmpresaDB, Empresa
 from core._thread_locals import get_current_tenant, get_current_empresa_id, set_current_tenant
-from core.db_router import set_current_tenant_connection
 from django.db import connections
 from django.core.exceptions import PermissionDenied
 
 from functools import wraps
-from core._thread_locals import _thread_locals
 
 def require_tenant_connection(view_func):
     @wraps(view_func)
@@ -46,10 +44,12 @@ def require_tenant_connection(view_func):
 @login_required
 @require_tenant_connection
 def inicio(request):
+    print("ENTRANDO A  INICIO")
     try:
         # Leemos el perfil desde la base 'default'
         empresa_id = get_current_empresa_id()
-
+        print("EN INICIO- empresa_id:",empresa_id)
+        #perfil = PerfilUsuario.objects.using('default').select_related(None).get(user=request.user)
         empresaDB = EmpresaDB.objects.using('default').get(pk=empresa_id)
 
         if not empresaDB.activa:
@@ -72,25 +72,25 @@ def inicio(request):
 
 from django.db import connections
 def logOutUsuario(request):
-    tenant_aliases = list(connections.databases.keys())
+    # Cierra y elimina la conexión del alias 'tenant'
+    if 'tenant' in connections.databases:
+        # Cierra la conexión si está abierta
+        if hasattr(connections, 'tenant'):
+            connections['tenant'].close()
+        # Elimina el alias del diccionario de conexiones
+        del connections.databases['tenant']
 
-    for alias in tenant_aliases:
-        if alias != 'default':
-            if alias in connections:
-                connections[alias].close()
-            # Elimina el alias del diccionario de conexiones
-            del connections.databases[alias]
+    # Borra también los datos de sesión relacionados
+    request.session.pop('empresa_id', None)
+    request.session.pop('empresa_fiscal', None)
 
-    # Limpia la sesión completamente
-    request.session.flush() 
-    
     # Elimina el tenant actual en thread locals (si usas eso)
     set_current_tenant(None, None, None)
 
     # Realiza logout
     from django.contrib.auth import logout
     logout(request)
-    
+
     # Redirige donde corresponda
     return redirect('core:login')  # o donde necesites
 
@@ -121,7 +121,8 @@ class CustomLoginView(LoginView):
         try:
             perfil = PerfilUsuario.objects.using('default').get(user=user)
             empresa = EmpresaDB.objects.using('default').get(pk=perfil.empresa_id)
-            
+            print("EN LOGIN - empresa.db_name:",empresa.db_name)
+            print("EN LOGIN - empresa.id:",empresa.id)
             if not empresa or not empresa.activa:
                 form.add_error(None, "Empresa inactiva o no asignada.")
                 return self.form_invalid(form)
@@ -156,9 +157,6 @@ def setup_tenant(request):
         request.session['alias_tenant'] = 'tenant'
         request.session['empresa_fiscal'] = None
         request.session.modified = True
-        
-        # Aquí nos aseguramos que no hay conexiones previas activas
-        set_current_tenant('tenant', empresa.id, None)
 
         from django.http import HttpResponseRedirect
         return HttpResponseRedirect(reverse('core:inicio'))

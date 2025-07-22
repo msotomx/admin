@@ -7,7 +7,7 @@
           {% if empresa_actual %}
               {{ empresa_actual|truncatechars:30 }}
           {% else %}
-              SIN EMPRESA
+              SWITCHH
           {% endif %}
       {% else %}
           SWITCHH
@@ -45,10 +45,10 @@
           <ul class="dropdown-menu">
             <li><a class="dropdown-item" href="{% url 'inv:movimiento_list' %}">Movimientos Inventario</a></li>
             <li><a class="dropdown-item" href="{% url 'inv:remision_list' %}">Remisiones</a></li>
-            <!-- 
-            <li><a class="dropdown-item" href="#">Traspasos</a></li>
             <li><a class="dropdown-item" href="#">---------------------------</a></li>
-            <li><a class="dropdown-item" href="#">Cotizaciones</a></li>  -->
+            <li><a class="dropdown-item" href="{% url 'inv:cotizacion_list' %}">Cotizaciones</a></li>
+            <!-- 
+            <li><a class="dropdown-item" href="#">Traspasos</a></li> -->
           </ul>
         </li>
 

@@ -15,7 +15,7 @@ from django.views.generic.edit import CreateView, UpdateView
 
 from .models import Moneda, Categoria, UnidadMedida, Almacen, ClaveMovimiento, Proveedor, Vendedor
 from .models import Producto, Movimiento, DetalleMovimiento, Remision, DetalleRemision
-from .models import Compra, DetalleCompra
+from .models import Compra, DetalleCompra, Cotizacion, DetalleCotizacion
 from .models import SaldoInicial
 from core.models import Empresa
 from cxc.models import Cliente
@@ -26,6 +26,7 @@ from .forms import VendedorForm
 from .forms import RemisionForm,  DetalleRemisionFormSet
 from .forms import CompraForm,  DetalleCompraFormSet
 from .forms import EmpresaForm, EmpresaLugarForm
+from .forms import CotizacionForm,  DetalleCotizacionFormSet
 from datetime import date
 from django.http import JsonResponse
 from django.db.models import Case, When, Value, F, DecimalField
@@ -495,6 +496,7 @@ class MovimientoCreateView(TenantRequiredMixin, CreateView):
     model = Movimiento
     form_class = MovimientoForm
     template_name = 'inv/movimiento_form.html'
+    success_url = reverse_lazy('inv:movimiento_list')
 
     def get_initial(self):
         initial = super().get_initial()
@@ -523,6 +525,8 @@ class MovimientoCreateView(TenantRequiredMixin, CreateView):
         kwargs = {
             'queryset': DetalleMovimiento.objects.using('tenant').none()
         }
+        if self.request.method in ('POST', 'PUT'):
+            kwargs['data'] = self.request.POST
         return kwargs
 
     def get(self, request, *args, **kwargs):
@@ -536,15 +540,11 @@ class MovimientoCreateView(TenantRequiredMixin, CreateView):
 
     def post(self, request, *args, **kwargs):
         form = self.get_form()
-        formset = DetalleMovimientoFormSet(
-            request.POST,
-            **self.get_formset_kwargs()
-        )
+        formset = DetalleMovimientoFormSet(**self.get_formset_kwargs())
 
         if form.is_valid() and formset.is_valid():
             return self.form_valid(form, formset)
-        else:
-            return self.form_invalid(form, formset)
+        return self.form_invalid(form, formset)
 
     def form_valid(self, form, formset):
         referencia = form.cleaned_data.get('referencia')
@@ -553,18 +553,26 @@ class MovimientoCreateView(TenantRequiredMixin, CreateView):
             form.instance.referencia = referencia_formateada
 
         form.instance.usuario = self.request.user.username
-        # Asignar move_s leyendo de la clave_movimiento
+
         clave_movimiento = form.cleaned_data.get('clave_movimiento')
         if clave_movimiento:
             form.instance.move_s = clave_movimiento.tipo 
 
-        self.object = form.save(using='tenant')
+        self.object = form.save(commit=False)
+        self.object.save(using='tenant')
 
-        # Guardar el formset
+        # Asignar la instancia del padre al formset y guardar en la base 'tenant'
         formset.instance = self.object
-        formset.save(using='tenant')
+        for form in formset:
+            if form.cleaned_data:
+                if form.cleaned_data.get('DELETE', False) and form.instance.pk:
+                    form.instance.delete(using='tenant')
+                else:
+                    detalle = form.save(commit=False)
+                    detalle.referencia = self.object
+                    detalle.save(using='tenant')
 
-        return redirect('inv:movimiento_list')
+        return redirect(self.success_url)
 
     def form_invalid(self, form, formset):
         return render(self.request, self.template_name, {'form': form, 'formset': formset})
@@ -601,12 +609,23 @@ class MovimientoUpdateView(TenantRequiredMixin, UpdateView):
         context = self.get_context_data()
         formset = context['formset']
         if formset.is_valid():   
-            self.object = form.save(using='tenant')
+            obj = form.save(commit=False)
+            obj.save(using='tenant')
+            self.object = obj
+
             formset.instance = self.object
-            formset.save(using='tenant')
+            for form in formset:
+                if form.cleaned_data:
+                    if form.cleaned_data.get('DELETE', False):
+                        if form.instance.pk:
+                            form.instance.delete(using='tenant')
+                    else:
+                        detalle = form.save(commit=False)
+                        detalle.referencia = self.object
+                        detalle.save(using='tenant')
+            
             return HttpResponseRedirect(self.get_success_url())
         else:
-            # Añadir depuración de errores en formset
             return self.form_invalid(form)
 
 # DETALLE DE MOVIMIENTO
@@ -712,6 +731,7 @@ class RemisionBaseView:
                 monto_total += subtotal
 
         remision.monto_total = monto_total
+
         remision.save(using='tenant')
 
 class RemisionListView(TenantRequiredMixin, ListView):
@@ -729,7 +749,6 @@ class RemisionCreateView(TenantRequiredMixin, RemisionBaseView, CreateView):
 
     def get_initial(self):
         initial = super().get_initial()
-        empresa_id = get_current_empresa_id
         empresa = Empresa.objects.using('tenant').first()
 
         if empresa and empresa.almacen_actual:
@@ -751,7 +770,7 @@ class RemisionCreateView(TenantRequiredMixin, RemisionBaseView, CreateView):
 
     def post(self, request, *args, **kwargs):
         #form = self.form_class(request.POST) 
-        form = self.form_class(request.POST or None, db_name='tenant')
+        form = self.form_class(request.POST or None)
         
         formset = DetalleRemisionFormSet(
             request.POST,
@@ -796,12 +815,11 @@ class RemisionUpdateView(TenantRequiredMixin, RemisionBaseView, UpdateView):
             queryset=DetalleRemision.objects.using('tenant').filter(numero_remision=self.object),
             prefix='detalles'
         )
-
         return render(request, self.template_name, {'form': form, 'formset': formset})
 
     def post(self, request, *args, **kwargs):
         self.object = self.get_object()
-        form = self.form_class(request.POST or None, db_name='tenant')
+        form = self.form_class(request.POST or None, instance=self.object)
         formset = DetalleRemisionFormSet(
             request.POST,
             instance=self.object,
@@ -810,9 +828,14 @@ class RemisionUpdateView(TenantRequiredMixin, RemisionBaseView, UpdateView):
         )
 
         if form.is_valid() and formset.is_valid():
-            self.object = form.save(using='tenant')
+            obj = form.save(commit=False)
+            obj.save(using='tenant')
+            self.object = obj
+
+            formset.instance = self.object
             self.procesar_formset(formset, self.object)
-            return redirect(self.success_url)
+
+            return redirect('inv:remision_update', pk=self.object.pk)
 
         return render(request, self.template_name, {'form': form, 'formset': formset})
 
@@ -843,7 +866,10 @@ class RemisionDeleteView(TenantRequiredMixin, DeleteView):
         return context
 
     def get_queryset(self):
-        return Remision.objects.using('tenant').filter(id=self.kwargs['pk'])
+        return Remision.objects.using('tenant').all()
+
+    #def get_queryset(self):
+    #    return Remision.objects.using('tenant').filter(id=self.kwargs['pk'])
 
     def delete(self, request, *args, **kwargs):
         self.object = self.get_object()
@@ -884,6 +910,7 @@ def obtener_precio_producto(request):
             'precio1': str(producto.precio1),
             'aplica_iva': aplica_iva,
             'aplica_ieps': aplica_ieps,
+            'tasa_ieps': producto.tasa_ieps,
             'clave_prod_serv': producto.clave_sat,
             'clave_unidad': producto.unidad_medida.unidad_medida,
             'descripcion' : producto.nombre,
@@ -940,6 +967,201 @@ def obtener_ultimo_vendedor(request):
     else:
         siguiente = "001"
     return JsonResponse({'vendedor': siguiente})
+
+@login_required
+@tenant_required
+def obtener_ultima_cotizacion(request):
+    ultima = Cotizacion.objects.using('tenant').all().order_by('-numero_cotizacion').first()
+    if ultima:
+        siguiente = str(int(ultima.numero_cotizacion) + 1).zfill(7)
+    else:
+        siguiente = "0000001"
+    return JsonResponse({'numero_cotizacion': siguiente})
+
+@login_required
+@tenant_required
+def verificar_cotizacion(request):
+    numero_cotizacion = request.GET.get('numero_cotizacion')
+
+    try: 
+        cotizacion = Cotizacion.objects.using('tenant').get(numero_cotizacion=numero_cotizacion)
+        return JsonResponse({'existe': True, 'id': cotizacion.id})
+    except Movimiento.DoesNotExist:
+        return JsonResponse({'existe': False})
+
+@login_required
+@tenant_required
+def imprimir_cotizacion(request, pk):
+    cotizacion = get_object_or_404(Cotizacion.objects.using('tenant'), pk=pk)
+    detalles = DetalleCotizacion.objects.using('tenant').filter(numero_cotizacion=cotizacion)
+    total = 0
+    for det in detalles:
+        total = total + det.cantidad * det.precio
+
+    return render(request, 'inv/cotizacion_print.html', {
+        'cotizacion': cotizacion,
+        'detalles': detalles,
+        'total': total,
+    })
+
+# COTIZACIONES
+class CotizacionListView(TenantRequiredMixin, ListView):
+    model = Cotizacion
+    template_name = 'inv/cotizacion_list.html'
+    context_object_name = 'cotizaciones'
+    ordering = ['-fecha_cotizacion', '-numero_cotizacion']  # Orden descendente por fecha
+    paginate_by = 10  # Número de movimientos por página
+ 
+class CotizacionCreateView(TenantRequiredMixin, CreateView):
+    model = Cotizacion
+    form_class = CotizacionForm
+    template_name = 'inv/cotizacion_form.html'
+    success_url = reverse_lazy('inv:cotizacion_list')
+
+    def get_initial(self):
+        initial = super().get_initial()
+               
+        # Asignar la fecha de hoy
+        initial['fecha_cotizacion'] = date.today()
+
+        return initial
+    
+    def get_formset_kwargs(self):
+        kwargs = {
+            'queryset': DetalleCotizacion.objects.using('tenant').none()
+        }
+        if self.request.method in ('POST', 'PUT'):
+            kwargs['data'] = self.request.POST
+        return kwargs
+
+    def get(self, request, *args, **kwargs):
+        form = self.get_form()
+        formset = DetalleCotizacionFormSet(**self.get_formset_kwargs())
+
+        # Asignar el valor inicial de 'almacen'
+        initial = self.get_initial()  # Llamamos a get_initial() para obtener los valores iniciales del formulario
+        form.initial = initial  # Asignamos esos valores iniciales al formulario
+        return render(request, self.template_name, {'form': form, 'formset': formset})
+
+    def post(self, request, *args, **kwargs):
+        form = self.get_form()
+        formset = DetalleCotizacionFormSet(**self.get_formset_kwargs())
+
+        if form.is_valid() and formset.is_valid():
+            return self.form_valid(form, formset)
+        return self.form_invalid(form, formset)
+
+    def form_valid(self, form, formset):
+        numero_cotizacion = form.cleaned_data.get('numero_cotizacion')
+        if numero_cotizacion:
+            numero_cotizacion_formateada = str(numero_cotizacion).zfill(7)
+            form.instance.numero_cotizacion = numero_cotizacion_formateada
+
+        form.instance.usuario = self.request.user.username
+        self.object = form.save(commit=False)
+        self.object.save(using='tenant')
+
+        # Asignar la instancia del padre al formset y guardar en la base 'tenant'
+        formset.instance = self.object
+        for form in formset:
+            if form.cleaned_data:
+                if form.cleaned_data.get('DELETE', False) and form.instance.pk:
+                    form.instance.delete(using='tenant')
+                else:
+                    detalle = form.save(commit=False)
+                    detalle.numero_cotizacion = self.object
+                    detalle.save(using='tenant')
+
+        return redirect(self.success_url)
+
+    def form_invalid(self, form, formset):
+        return render(self.request, self.template_name, {'form': form, 'formset': formset})
+
+class CotizacionUpdateView(TenantRequiredMixin, UpdateView):
+    model = Cotizacion
+    form_class = CotizacionForm
+    template_name = 'inv/cotizacion_form.html'
+    success_url = reverse_lazy('inv:cotizacion_list')
+
+    def get_form(self, form_class=None):
+        form = super().get_form(form_class)
+        form.fields['numero_cotizacion'].widget.attrs['readonly'] = True
+        return form
+
+    def get_context_data(self, **kwargs):
+        data = super().get_context_data(**kwargs)
+        if self.request.POST:   
+            data['formset'] = DetalleCotizacionFormSet(
+                self.request.POST,
+                instance=self.object,
+                queryset=DetalleCotizacion.objects.using('tenant').filter(numero_cotizacion=self.object),
+                prefix='detalles'
+            )
+        else:
+            data['formset'] = DetalleCotizacionFormSet(
+                instance=self.object, 
+                queryset=DetalleCotizacion.objects.using('tenant').filter(numero_cotizacion=self.object),
+                prefix='detalles'
+        )
+        return data
+    
+    def form_valid(self, form):
+        context = self.get_context_data()
+        formset = context['formset']
+        if formset.is_valid():   
+            obj = form.save(commit=False)
+            obj.save(using='tenant')
+            self.object = obj
+
+            formset.instance = self.object
+            for form in formset:
+                if form.cleaned_data:
+                    if form.cleaned_data.get('DELETE', False):
+                        if form.instance.pk:
+                            form.instance.delete(using='tenant')
+                    else:
+                        detalle = form.save(commit=False)
+                        detalle.numero_cotizacion = self.object
+                        detalle.save(using='tenant')
+            
+            return HttpResponseRedirect(self.get_success_url())
+        else:
+            return self.form_invalid(form)
+
+# DETALLE DE COTIZACIONES
+class CotizacionDetailView(TenantRequiredMixin, DetailView):
+    model = Cotizacion
+    template_name = 'inv/cotizacion_detail.html'
+    context_object_name = 'cotizacion'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['detalles'] = DetalleCotizacion.objects.using('tenant').filter(numero_cotizacion=self.object)
+        return context
+
+class CotizacionDeleteView(TenantRequiredMixin, DeleteView):
+    model = Cotizacion
+    template_name = 'inv/cotizacion_confirm_delete.html'
+    success_url = reverse_lazy('inv:cotizacion_list')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['detalles'] = self.object.detalles.using('tenant').all()
+        return context
+
+    def get_queryset(self):
+        return Cotizacion.objects.using('tenant').filter(id=self.kwargs['pk'])
+
+    def delete(self, request, *args, **kwargs):
+        self.object = self.get_object()
+
+        # Eliminar detalles explícitamente
+        self.object.detallecotizacion_set.using('tenant').all().delete()
+
+        # Eliminar Encabezado - MOvimiento
+        self.object.delete(using='tenant')
+
+        return HttpResponseRedirect(self.get_success_url())
 
 
 # CONSULTAS
@@ -1473,26 +1695,33 @@ class CompraBaseView:
                         'subtotal': subtotal,
                     }
 
+        # Borrar detalles existentes
         compra.detalles.using('tenant').all().delete()
 
+        # Crear nuevos detalles
+        detalles_nuevos = []
         for detalle in detalles_dict.values():
-            DetalleCompra.objects.using('tenant').create(
+            detalles_nuevos.append(DetalleCompra(
                 referencia=compra,
                 producto=detalle['producto'],
                 cantidad=detalle['cantidad'],
                 costo_unit=detalle['costo_unit'],
                 descuento=detalle['descuento'],
                 subtotal=detalle['subtotal'],
-            )
-            # Actualizar el costo de reposición del producto
+            ))
+
+            # Actualizar costo de reposición
             producto = detalle['producto']
             producto.costo_reposicion = detalle['costo_unit']
             producto.save(using='tenant')
 
             monto_total += detalle['subtotal']
 
+        DetalleCompra.objects.using('tenant').bulk_create(detalles_nuevos)
+
+        # Actualizar encabezado
         compra.monto_total = monto_total
-        compra.save(using='tenant') 
+        compra.save(using='tenant')
 
 class CompraListView(TenantRequiredMixin, ListView):
     model = Compra
@@ -1500,9 +1729,6 @@ class CompraListView(TenantRequiredMixin, ListView):
     context_object_name = 'compras'
     ordering = ['-fecha_compra', '-clave_movimiento', '-referencia']  # Orden descendente por fecha
     paginate_by = 10  # Número de movimientos por página
-
-    def get_queryset(self):
-        return Empresa.objects.using('tenant').all()
 
 from decimal import Decimal
 class CompraCreateView(TenantRequiredMixin, CompraBaseView, CreateView):
@@ -1512,13 +1738,11 @@ class CompraCreateView(TenantRequiredMixin, CompraBaseView, CreateView):
 
     def get_initial(self):
         initial = super().get_initial()
-        empresa_id = get_current_empresa_id
-        empresa = EmpresaDB.objects.using('default').get(pk=empresa_id)
+        empresa = Empresa.objects.using('tenant').first()
 
         if empresa and empresa.almacen_actual:
             try:
                 almacen = Almacen.objects.using('tenant').get(id=empresa.almacen_actual)
-                moneda = Moneda.objects.using('tenant').all()
                 initial['almacen'] = almacen.id
             except Almacen.DoesNotExist:
                 print("No se encontró el almacén", empresa.almacen_actual)
@@ -1534,13 +1758,16 @@ class CompraCreateView(TenantRequiredMixin, CompraBaseView, CreateView):
         return initial
 
     def get(self, request, *args, **kwargs):
-        form = self.form_class(initial=self.get_initial())
-        formset = DetalleCompraFormSet(queryset=DetalleCompra.using('tenant').objects.none(), 
-                    prefix='detalles')
+        form = self.get_form()
+        form.initial = self.get_initial()
+        formset = DetalleCompraFormSet(
+            queryset=DetalleCompra.objects.using('tenant').none(), 
+            prefix='detalles'
+        )
         return render(request, self.template_name, {'form': form, 'formset': formset})
 
     def post(self, request, *args, **kwargs):
-        form = self.form_class(request.POST or None, db_name='tenant')
+        form = self.get_form()
         formset = DetalleCompraFormSet(
             request.POST,
             queryset=DetalleCompra.objects.using('tenant').none(),
@@ -1551,16 +1778,14 @@ class CompraCreateView(TenantRequiredMixin, CompraBaseView, CreateView):
             self.object = form.save(commit=False)
             self.object.usuario = self.request.user.username
             self.object.pedido = ''
-            self.object.fecha_pagada = '1900-01-01'
+            self.object.fecha_pagada = date(1900, 1, 1)
             self.object.descuento_pp = 0
-            referencia = form.cleaned_data.get('referencia')
 
+            referencia = form.cleaned_data.get('referencia')
             if referencia:
                 self.object.referencia = str(referencia).zfill(7)
 
             self.object.save(using='tenant')
-            
-            # Aquí se usa la lógica compartida
             self.procesar_formset(formset, self.object)
 
             return redirect('inv:compra_list')
@@ -1569,13 +1794,12 @@ class CompraCreateView(TenantRequiredMixin, CompraBaseView, CreateView):
 
     def form_invalid(self, form, formset):
         print("Errores del form principal:", form.errors)
-        print("Errores del formset:")
         for i, f in enumerate(formset):
             if f.errors:
                 print(f"Errores en el formulario #{i}:", f.errors.as_data())
 
         return render(self.request, self.template_name, {'form': form, 'formset': formset})
-    
+
 class CompraUpdateView(TenantRequiredMixin, CompraBaseView, UpdateView):
     model = Compra
     form_class = CompraForm
@@ -1584,27 +1808,33 @@ class CompraUpdateView(TenantRequiredMixin, CompraBaseView, UpdateView):
 
     def get(self, request, *args, **kwargs):
         self.object = self.get_object()
-        form = self.form_class(instance=self.object)
+        form = self.get_form()
         formset = DetalleCompraFormSet(
             instance=self.object,
             queryset=DetalleCompra.objects.using('tenant').filter(referencia=self.object),
             prefix='detalles'
         )
-
         return render(request, self.template_name, {'form': form, 'formset': formset})
 
     def post(self, request, *args, **kwargs):
         self.object = self.get_object()
-        form = self.form_class(request.POST or None, db_name='tenant')
+        form = self.get_form()
         formset = DetalleCompraFormSet(
             request.POST,
             instance=self.object,
             queryset=DetalleCompra.objects.using('tenant').filter(referencia=self.object),
             prefix='detalles'
         )
-
+            
         if form.is_valid() and formset.is_valid():
-            self.object = form.save(using='tenant')
+            self.object = form.save(commit=False)
+            self.object.usuario = self.request.user.username
+            self.object.pedido = ''
+            self.object.fecha_pagada = date(1900, 1, 1)
+            self.object.descuento_pp = 0
+
+            self.object.save(using='tenant')
+
             self.procesar_formset(formset, self.object)
             return redirect(self.success_url)
 

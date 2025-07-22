@@ -14,7 +14,7 @@
     <h4>{% if form.instance.pk %}Consultar{% else %}Nueva{% endif %} Factura</h4>
     <form id="factura-form" method="post">
         {% csrf_token %}
-        {{ formset.management_form }}  
+        {{ formset.management_form }}
 
         <div class="card mb-2">
             <div class="card-header">Encabezado</div>
@@ -62,7 +62,7 @@
                 <div class="col-md-1 mb-2">
                     <label class="form-label small">Usuario</label>
                     <input type="text" class="form-control form-control-sm" value="{{ request.user.username }}" readonly disabled>
-                    <input type="hidden" name="usuario" value="{{ request.user.id }}">
+                    <input type="hidden" name="usuario" value="{{ request.user.username }}">
                 </div>
             </div>
         </div>
@@ -500,8 +500,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         const aplica_ieps = parseFloat(data.aplica_ieps);  // convierte a numerico 1 o 0
                         const clave_unidad = data.clave_unidad;
                         const descripcion  = data.descripcion;
-                        console.log("EN A, clave_Unidad:", clave_unidad)
-                        console.log("EN A, descripcion :", descripcion)
+                        const tasa_ieps    = parseFloat(data.tasa_ieps);
                         
                         // pasa clave_prod_serv al campo en el formulario
                         const clave_prod_servInput = row.querySelector("input[name$='-clave_prod_serv']");
@@ -521,10 +520,10 @@ document.addEventListener('DOMContentLoaded', function () {
                         const tasa_retencion_isrInput = row.querySelector("input[name$='-tasa_retencion_isr']");
 
                         const tasa_iva_producto  = (window.tasasEmpresa.tasa_iva / 100) * aplica_iva;
-                        const tasa_ieps_producto = (window.tasasEmpresa.tasa_ieps / 100) * aplica_ieps;
+                        const tasa_ieps_producto = tasa_ieps * aplica_ieps /100;
                         const tasa_retencion_iva = (window.tasasEmpresa.tasa_retencion_iva / 100);
                         const tasa_retencion_isr = (window.tasasEmpresa.tasa_retencion_isr / 100);
-
+                        
                         // pasa los valores a los campos del formulario 
                         if (tasa_ivaInput) {
                             tasa_ivaInput.value = tasa_iva_producto.toFixed(6);   // convierte a string
@@ -577,7 +576,7 @@ document.addEventListener('DOMContentLoaded', function () {
             const ieps = importe * tasa_ieps;
             const retencion_iva = iva * tasa_retencion_iva;
             const retencion_isr = importe * tasa_retencion_isr;
-
+            
             // pasar valores al formulario
             row.querySelector('input[name$="-iva_producto"]').value   = iva.toFixed(2);
             row.querySelector('input[name$="-ieps_producto"]').value   = ieps.toFixed(2);

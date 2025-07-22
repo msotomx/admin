@@ -107,12 +107,16 @@
                 <label class="form-check-label small">Retención ISR</label>
             </div>
 
-            <input type="hidden" name="campo_libre_str" id="moneda" value="{{ form.campo_libre_str.value|default:'' }}">
             <input type="hidden" name="campo_libre_num" id="moneda" value="{{ form.campo_libre_num.value|default:'' }}">
-            <div class="col-md-12 mb-2">
+            <div class="col-md-9 mb-2">
                 <label class="form-label small">Comentarios</label>
                 {{ form.comentarios|add_bootstrap_class }}
             </div>
+            <div class="col-md-3 mb-2">
+                <label class="form-label small">Nombre del Contacto</label>
+                {{ form.campo_libre_str|add_bootstrap_class }}
+            </div>
+
         </div>
 
         <div class="mt-4">

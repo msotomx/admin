@@ -1,6 +1,6 @@
 from django import forms
 from fac.models import Factura, DetalleFactura, TipoComprobante, Exportacion
-from inv.models import Moneda, Producto
+from inv.models import Moneda, Producto, ClaveMovimiento
 from cxc.models import Cliente
 
 from django.forms import inlineformset_factory
@@ -39,7 +39,7 @@ class FacturaForm(forms.ModelForm):
         exclude = ['serie_emisor',
                    'lugar_expedicion', 'tipo_cambio',  
                    'xml', 'pdf', 'uuid', 'fecha_timbrado',
-                   'sello_cfdi', 'no_certificado_sat', 'empresa']
+                   'sello_cfdi', 'no_certificado_sat', 'empresa', 'usuario']
         widgets = {
             'fecha_emision': forms.DateInput(attrs={'type': 'date'}),
             'fecha_creacion': forms.DateInput(attrs={'type': 'date'}),
@@ -56,7 +56,8 @@ class FacturaForm(forms.ModelForm):
                 'class': 'form-control form-control-sm text-end bg-light'
             })
 
-        self.fields['cliente'].queryset = Cliente.objects.all().order_by('nombre')
+        self.fields['cliente'].queryset = Cliente.objects.using('tenant').all().order_by('nombre')
+        self.fields['clave_remision'].queryset = ClaveMovimiento.objects.using('tenant').filter(es_remision=True).order_by('nombre')
 
         # Ocultar campos
         self.fields['descuento_factura'].widget = forms.HiddenInput()
@@ -85,7 +86,7 @@ class DetalleFacturaForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        self.fields['producto'].queryset = Producto.objects.all().order_by('nombre')
+        self.fields['producto'].queryset = Producto.objects.using('tenant').all().order_by('nombre')
         self.fields['objeto_impuesto'].required = False
         
         # Bootstrap para todos los campos

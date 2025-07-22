@@ -159,14 +159,14 @@
 </div>
 <script>
 document.addEventListener('DOMContentLoaded', function () {
-    const addBtn = document.getElementById('add-linea');
-    const formsetBody = document.getElementById('formset-body');
+    const addBtn = document.getElementById('add-linea');   
+    const formsetBody = document.getElementById('formset-body');   
     const totalFormsInput = document.getElementById('id_detalles-TOTAL_FORMS');
     const totalGeneral = document.getElementById('total-general'); 
     const claveMovimientoInput = document.getElementById('id_clave_movimiento');
     const numero_remisionInput = document.getElementById('id_numero_remision');
 
-    if (claveMovimientoInput) {
+    if (claveMovimientoInput) {  
         claveMovimientoInput.focus();
     }
     // busca el ultimo numero para esa clave_movimiento
@@ -238,7 +238,7 @@ document.addEventListener('DOMContentLoaded', function () {
     // termina verificar si existe movimiento  
 
     // CHANGE DE CLIENTE
-    const remisionForm = document.querySelector('#remision-form'); // o el selector que uses
+    const remisionForm = document.querySelector('#remision-form');
 
     if (remisionForm) {
         remisionForm.addEventListener('change', async function (e) {
@@ -361,10 +361,6 @@ document.addEventListener('DOMContentLoaded', function () {
                         const tasa_retencion_iva = (window.tasasEmpresa.tasa_retencion_ivaG / 100);
                         const tasa_retencion_isr = (window.tasasEmpresa.tasa_retencion_isrG / 100);
                         
-                        console.log("EN BB aplica_iva:", aplica_iva);
-                        console.log("EN BB window.tasasEmpresa.tasa_ivaG:", window.tasasEmpresa.tasa_ivaG);
-                        console.log("EN BB tasaIva_producto:", tasaIva_producto);
-
                         // pasa los valores a los campos del formulario 
                         if (tasa_ivaInput) {
                             tasa_ivaInput.value = tasaIva_producto.toFixed(6);   // convierte a string
@@ -380,8 +376,6 @@ document.addEventListener('DOMContentLoaded', function () {
                         if (tasa_retencion_isrInput) {
                             tasa_retencion_isrInput.value = tasa_retencion_isr.toFixed(6);
                         }
-
-                        console.log("BB) TASA_IVA desde el campo:", row.querySelector("input[name$='-tasa_iva']").value);
 
                         actualizarTotal();                                             
 
@@ -419,14 +413,6 @@ document.addEventListener('DOMContentLoaded', function () {
             const retencion_isr = subtotal * tasa_retencion_isr;
 
             // pasar valores al formulario
-            console.log("SUBTOTAL:", subtotal);
-            console.log("EN A) IVA:",iva);
-            console.log("EN A) tasa_iva_producto:",tasa_iva_producto);
-            console.log("EN A) tasa_retencion_iva:",tasa_retencion_iva);
-            console.log("EN A) tasa_retencion_isr:",tasa_retencion_isr);
-            console.log("EN A) retencion_iva:",retencion_iva);
-            console.log("EN A) retencion_isr:",retencion_isr);
-            
             row.querySelector('input[name$="-iva_producto"]').value    = iva.toFixed(2);
             row.querySelector('input[name$="-ieps_producto"]').value   = ieps.toFixed(2);
             row.querySelector('input[name$="-retencion_iva"]').value   = retencion_iva.toFixed(2);

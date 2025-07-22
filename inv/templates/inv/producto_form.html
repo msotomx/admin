@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% load static %}
 {% load form_tags %}
-
+{% load widget_tweaks %}
 {% block content %}
 <div class="container mt-4">
     <div data-producto-es-nuevo="{% if form.instance.pk %}false{% else %}true{% endif %}"></div>
@@ -23,7 +23,7 @@
             </div>
             <div class="col-md-6 mb-2">
                 <label class="form-label small">Descripción</label>
-                {{ form.descripcion|add_bootstrap_class }}
+                {{ form.descripcion|add_class:"form-control"|attr:"rows:3" }}
             </div>
             <div class="col-md-5 mb-2">
                 <label class="form-label small">Imagen</label>
