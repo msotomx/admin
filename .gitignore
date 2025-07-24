@@ -2,6 +2,10 @@
 # Edit at https://www.toptal.com/developers/gitignore?templates=django
 
 ### Django ###
+*.txt
+*.pub
+*.pptx
+*.pdf
 *.log
 *.pot
 *.pyc

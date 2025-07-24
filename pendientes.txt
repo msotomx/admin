@@ -88,3 +88,6 @@ A continuacion selecciono una opcion del menu:
 La conexión 'tenant' está activa con la base: e_paty20250721
 [Set_Current_Tenant_Connection] empresa_fiscal: paty
 [21/Jul/2025 22:29:36] "GET /inv/proveedores/ HTTP/1.1" 200 7257
+
+
+python manage.py migrate cxc --database=default

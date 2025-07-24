@@ -1,8 +1,7 @@
 django==4.2
-Pillow  # manejo de imagenes
+Pillow            # manejo de imágenes
 mysqlclient
 django-widget-tweaks
 requests
 python-decouple
-sudo apt install libpq-dev
-pip install psycopg
+psycopg[binary]           # o mejor: psycopg[binary]

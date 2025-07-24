@@ -1,0 +1,17 @@
+SECRET_KEY='django-insecure-fk+l6%ye8-b=_2*$*af41p!=e_#-cxt3_^k%v9_2=51visu$85'
+DEBUG=False
+ALLOWED_HOSTS = ['*']
+DATABASE_NAME="db_admin"
+DATABASE_USER="root"
+DATABASE_PASSWORD=""
+DATABASE_HOST="127.0.0.1"
+DATABASE_PORT="3306"
+TENANT_DB_USER="root"
+TENANT_DB_PASSWORD=""
+TENANT_DB_HOST="127.0.0.1"
+TENANT_DB_PORT="3306"
+EMAIL_HOST = 'smtp.gmail.com' 
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'switchh.mensajes@gmail.com'
+EMAIL_HOST_PASSWORD = 'Switchh20252714'
