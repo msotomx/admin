@@ -49,15 +49,15 @@ def inicio(request):
     try:
         # Leemos el perfil desde la base 'default'
         empresa_id = get_current_empresa_id()
-
+        
         empresaDB = EmpresaDB.objects.using('default').get(pk=empresa_id)
-
+                
         if not empresaDB.activa:
             return render(request, 'core/empresa_inactiva.html', {'empresa': empresaDB})
-
+        
         # Leemos la empresa fiscal desde la base del tenant (ya registrada)
         empresa_fiscal = Empresa.objects.using('tenant').first()
-
+        
         if not empresa_fiscal:
             return render(request, 'core/empresa_no_configurada.html', {'empresa': empresaDB})
         
@@ -159,7 +159,7 @@ def setup_tenant(request):
         
         # Aquí nos aseguramos que no hay conexiones previas activas
         set_current_tenant('tenant', empresa.id, None)
-
+        
         from django.http import HttpResponseRedirect
         return HttpResponseRedirect(reverse('core:inicio'))
 
@@ -172,6 +172,7 @@ def setup_tenant(request):
 from django.shortcuts import render, redirect
 from core.services.tenant_setup import crear_tenant_completo
 from django.contrib.auth import get_user_model
+import traceback
 
 def sign_inicial_view(request):
     if request.method == 'POST':
@@ -217,7 +218,10 @@ def sign_inicial_view(request):
             )
             
             return redirect(f"{reverse('core:login')}?nueva_empresa=1")
-        except Exception as e:
-            return render(request, 'core/sign_inicial.html', {'error': str(e)})
         
+        except Exception as e:
+            print("ERROR EN CREACIÓN DE TENANT:")
+            traceback.print_exc()  # Esto imprimirá el error en los logs de docker
+            return render(request, 'core/sign_inicial.html', {'error': str(e)})
+
     return render(request, 'core/sign_inicial.html')

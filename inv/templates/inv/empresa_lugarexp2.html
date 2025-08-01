@@ -4,14 +4,14 @@
 
 {% block content %}
 <div class="container mt-4">
-    <h2>Datos Fiscales</h2>
+    <h2>Lugar Expedición para Facturas</h2>
     
     <form method="POST" enctype="multipart/form-data">
         {% csrf_token %}
         <div class="row g-2">
             <div class="col-md-4 mb-2">
-                <label class="form-label small">Nombre Fiscal</label>
-                {{ form.nombre_fiscal|add_bootstrap_class }}
+                <label class="form-label small">Nombre Comercial</label>
+                {{ form.nombre_comercial|add_bootstrap_class }}
             </div>
             <div class="col-md-4 mb-2">
                 <label class="form-label small">Calle</label>
@@ -49,11 +49,6 @@
                 <label class="form-label small">Pais</label>
                 {{ form.pais_expedicion|add_bootstrap_class }}
             </div>
-            <div class="col-md-3 mb-2">
-                <label class="form-label small">Regimen Fiscal</label>
-                {{ form.regimen_fiscal|add_bootstrap_class }}
-            </div>
-
         </div>
         
         <div class="mt-4">

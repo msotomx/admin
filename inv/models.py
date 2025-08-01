@@ -51,6 +51,7 @@ class ClaveMovimiento(models.Model):
     tipo        = models.CharField(max_length=1,default='',blank=False)  # E o S 
     es_remision = models.BooleanField(blank=True)   # True - clave para remisiones
     es_compra   = models.BooleanField(blank=True)   # True - clave para compras
+    es_servicio = models.BooleanField(blank=True)   # True - clave para servicios
     
     def __str__(self):
         return self.nombre 

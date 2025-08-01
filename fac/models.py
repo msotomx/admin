@@ -4,6 +4,8 @@ from cxc.models import Cliente
 from inv.models import Moneda, Producto, ClaveMovimiento
 from core.models import Empresa
 from decimal import Decimal
+from django.conf import settings
+from django.utils import timezone
 
 # Create your models here.
 
@@ -176,3 +178,33 @@ class DetalleFactura(models.Model):
 
     def __str__(self):
         return f'{self.descripcion} ({self.cantidad})'
+
+class TimbresCliente(models.Model):
+    codigo_empresa = models.CharField(max_length=7)
+    empresa = models.ForeignKey('Empresa', on_delete=models.CASCADE)
+    total_asignados = models.BigIntegerField(default=0)
+    utilizados = models.BigIntegerField(default=0)
+    fecha_asignacion = models.DateField(blank=False)
+
+    @property
+    def disponibles(self):
+        return self.total_asignados - self.utilizados
+
+    def __str__(self):
+        return f"{self.empresa.nombre_comercial} - {self.disponibles} disponibles"
+    
+class MovimientoTimbresCliente(models.Model):
+    referencia = models.CharField(max_length=7)
+    empresa = models.ForeignKey('Empresa', on_delete=models.CASCADE)
+    usuario = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True)
+    fecha = models.DateTimeField(default=timezone.now)
+    cantidad = models.PositiveIntegerField()
+    importe = models.DecimalField(max_digits=12, decimal_places=2)
+
+    class Meta:
+        verbose_name = "Movimiento de timbres"
+        verbose_name_plural = "Movimientos de timbres"
+        ordering = ['-fecha']
+
+    def __str__(self):
+        return f"{self.fecha.strftime('%Y-%m-%d')} - {self.empresa.nombre_comercial} (+{self.cantidad})"

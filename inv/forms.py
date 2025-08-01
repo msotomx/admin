@@ -8,7 +8,7 @@ from .models import Movimiento, DetalleMovimiento
 from .models import Traspaso, DetalleTraspaso, Remision, DetalleRemision, SaldoInicial
 from .models import Compra, DetalleCompra, Cotizacion, DetalleCotizacion
 from core.models import Empresa
-from cxc.models import Cliente
+from cxc.models import Cliente, RegimenFiscal
 from core.models import CertificadoCSD
 
 from decimal import Decimal
@@ -125,7 +125,7 @@ class MovimientoForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields['clave_movimiento'].queryset = ClaveMovimiento.objects.using('tenant').order_by('nombre')
+        self.fields['clave_movimiento'].queryset = ClaveMovimiento.objects.using('tenant').filter(es_remision=False, es_compra=False, es_servicio=False).order_by('nombre')
 
 class DetalleMovimientoForm(forms.ModelForm):  
     class Meta:
@@ -479,11 +479,13 @@ DetalleCompraFormSet = inlineformset_factory(
 class EmpresaForm(forms.ModelForm):
     class Meta:
         model = Empresa
+        fields = '__all__'
         exclude = ['empresa','num_empresa','fecha_inicio','fecha_renovacion','factor','activa','directorio',
                    'calle_expedicion','numero_exterior_expedicion','numero_interior_expedicion',
                    'colonia_expedicion','localidad_expedicion','municipio_expedicion','estado_expedicion',
-                   'pais_expedicion', 'db_name']
-        fields = '__all__'  # O puedes listar explícitamente los campos
+                   'pais_expedicion', 'db_name','ruta_xml', 'calle','numero_exterior','numero_interior',
+                   'colonia','codigo_postal','localidad','municipio','estado','pais']
+
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -491,16 +493,23 @@ class EmpresaForm(forms.ModelForm):
             field.widget.attrs['class'] = 'form-control form-control-sm'
 
 class EmpresaLugarForm(forms.ModelForm):
+    regimen_fiscal = forms.ChoiceField(label='Regimen Fiscal') 
     class Meta:
         model = Empresa
         fields = ['nombre_comercial', 'calle_expedicion', 'numero_exterior_expedicion',
                   'numero_interior_expedicion','colonia_expedicion','codigo_postal_expedicion',
-                  'localidad_expedicion','municipio_expedicion','estado_expedicion','pais_expedicion', 'db_name']
+                  'localidad_expedicion','municipio_expedicion','estado_expedicion','pais_expedicion']
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         for field in self.fields.values():
             field.widget.attrs['class'] = 'form-control form-control-sm'            
+        try:
+            opciones = RegimenFiscal.objects.using('tenant').all()
+            self.fields['regimen_fiscal'].choices = [(r.regimen_fiscal, f"{r.regimen_fiscal}: {r.nombre}") for r in opciones]
+        except Exception as e:
+            print("Error cargando régimen fiscal:", e)
+            self.fields['regimen_fiscal'].choices = []
 
 class CertificadoCSDForm(forms.ModelForm):
     class Meta:

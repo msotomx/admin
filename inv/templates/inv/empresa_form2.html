@@ -1,3 +1,5 @@
+<!-- COPIA ANTES DE QUITAR CAMPOS DE DIRECCION FISCAL 
+     LOS CAMPOS FISCALES SON LOS DE EXPEDICION -->
 {% extends 'base.html' %}
 {% load static %}
 {% load form_tags %}
@@ -26,6 +28,10 @@
                 {{ form.rfc|add_bootstrap_class }}
             </div>
             <div class="col-md-3 mb-2">
+                <label class="form-label small">Regimen Fiscal</label>
+                {{ form.regimen_fiscal|add_bootstrap_class }}
+            </div>
+            <div class="col-md-3 mb-2">
                 <label class="form-label small">Representante</label>
                 {{ form.representante|add_bootstrap_class }}
             </div>
@@ -36,6 +42,42 @@
             <div class="col-md-2 mb-2">
                 <label class="form-label small">Email</label>
                 {{ form.email|add_bootstrap_class }}
+            </div>
+            <div class="col-md-3 mb-2">
+                <label class="form-label small">Calle</label>
+                {{ form.calle|add_bootstrap_class }}
+            </div>
+            <div class="col-md-2 mb-2">
+                <label class="form-label small">Numero Exterior</label>
+                {{ form.numero_exterior|add_bootstrap_class }}
+            </div>
+            <div class="col-md-2 mb-2">
+                <label class="form-label small">Numero Interior</label>
+                {{ form.numero_interior|add_bootstrap_class }}
+            </div>
+            <div class="col-md-3 mb-2">
+                <label class="form-label small">Colonia</label>
+                {{ form.colonia|add_bootstrap_class }}
+            </div>
+            <div class="col-md-2 mb-2">
+                <label class="form-label small">Código Postal</label>
+                {{ form.codigo_postal|add_bootstrap_class }}
+            </div>
+            <div class="col-md-3 mb-2">
+                <label class="form-label small">Localidad</label>
+                {{ form.localidad|add_bootstrap_class }}
+            </div>
+            <div class="col-md-3 mb-2">
+                <label class="form-label small">Municipio</label>
+                {{ form.municipio|add_bootstrap_class }}
+            </div>
+            <div class="col-md-2 mb-2">
+                <label class="form-label small">Estado</label>
+                {{ form.estado|add_bootstrap_class }}
+            </div>
+            <div class="col-md-2 mb-2">
+                <label class="form-label small">Pais</label>
+                {{ form.pais|add_bootstrap_class }}
             </div>
             <div class="col-md-2 mb-2">
                 <label class="form-label small">Página Web</label>
@@ -77,10 +119,6 @@
             <div class="col-md-2 mb-2">
                 <label class="form-label small">Tasa IEPS</label>
                 {{ form.tasa_ieps|add_bootstrap_class }}
-            </div>
-            <div class="col-md-3 mb-2">
-                <label class="form-label small">Ruta XML</label>
-                {{ form.ruta_xml|add_bootstrap_class }}
             </div>
         </div>
         

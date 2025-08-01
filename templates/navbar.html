@@ -79,18 +79,18 @@
         <li class="nav-item dropdown">
           <a class="nav-link dropdown-toggle" href="#" id="cfdiDropdown" role="button" data-bs-toggle="dropdown">Generar CFDI</a>
           <ul class="dropdown-menu">
-            <li><a class="dropdown-item" href="{% url 'fac:factura_list' %}">Generar CFDI</a></li>
+            <li><a class="dropdown-item" href="{% url 'fac:factura_list' %}">Generar Facturas y CFDI</a></li>
             <li><a class="dropdown-item" href="#">CFDI por Cliente</a></li>
           </ul>
         </li>
 
         <!-- Información general -->
         <li class="nav-item dropdown">
-          <a class="nav-link dropdown-toggle" href="#" id="informacionDropdown" role="button" data-bs-toggle="dropdown">Información Empresa</a>
+          <a class="nav-link dropdown-toggle" href="#" id="informacionDropdown" role="button" data-bs-toggle="dropdown">Configuración</a>
           <ul class="dropdown-menu">
-            <li><a class="dropdown-item" href="{% url 'inv:empresa_list' %}">General</a></li>
-            <li><a class="dropdown-item" href="{% url 'inv:empresa_lugarexp_list' %}">Lugar Expedición-Facturas</a></li>
-            <li><a class="dropdown-item" href="{% url 'inv:cfdi_registrar_emisor' %}">Registrar Emisor</a></li>
+            <li><a class="dropdown-item" href="{% url 'inv:empresa_list' %}">Datos Generales</a></li>
+            <li><a class="dropdown-item" href="{% url 'inv:empresa_lugarexp_list' %}">Información Fiscal</a></li>
+            <li><a class="dropdown-item" href="{% url 'inv:cfdi_registrar_emisor' %}">Registrar Sellos Fiscales</a></li>
           </ul>
         </li>
 

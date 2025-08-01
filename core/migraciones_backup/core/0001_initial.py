@@ -1,0 +1,109 @@
+from django.conf import settings
+from django.db import migrations, models
+import django.db.models.deletion
+
+
+class Migration(migrations.Migration):
+
+    initial = True
+
+    dependencies = [
+        migrations.swappable_dependency(settings.AUTH_USER_MODEL),
+    ]
+
+    operations = [
+        migrations.CreateModel(
+            name='Empresa',
+            fields=[
+                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('nombre_comercial', models.CharField(blank=True, max_length=50)),
+                ('db_name', models.CharField(max_length=100, unique=True)),
+                ('activa', models.BooleanField(default=False)),
+                ('directorio', models.CharField(blank=True, max_length=30)),
+                ('fecha_inicio', models.DateField()),
+                ('fecha_renovacion', models.DateField()),
+                ('almacen_actual', models.IntegerField(default=1)),
+                ('almacen_facturacion', models.IntegerField(blank=True, default=1)),
+                ('decimales_unidades', models.SmallIntegerField(blank=True, default=2)),
+                ('decimales_importe', models.SmallIntegerField(blank=True, default=2)),
+                ('cuenta_iva', models.CharField(blank=True, max_length=24)),
+                ('clave_compras', models.CharField(default='CO', max_length=2)),
+                ('clave_traspasos', models.CharField(default='TR', max_length=2)),
+                ('clave_remision', models.CharField(default='R1', max_length=2)),
+                ('tasa_iva', models.DecimalField(decimal_places=2, max_digits=9)),
+                ('tasa_ieps', models.DecimalField(decimal_places=5, max_digits=9)),
+                ('tasa_retencion_iva', models.DecimalField(decimal_places=5, max_digits=9)),
+                ('tasa_retencion_isr', models.DecimalField(decimal_places=5, max_digits=9)),
+                ('ip', models.CharField(blank=True, max_length=24)),
+                ('comentarios', models.TextField(blank=True)),
+                ('factor', models.DecimalField(blank=True, decimal_places=5, max_digits=10)),
+                ('nombre_fiscal', models.CharField(blank=True, max_length=80)),
+                ('rfc', models.CharField(blank=True, max_length=13)),
+                ('regimen_de_sociedad', models.CharField(blank=True, max_length=25)),
+                ('regimen_fiscal', models.CharField(blank=True, max_length=3)),
+                ('representante', models.CharField(blank=True, max_length=50)),
+                ('telefono', models.CharField(blank=True, max_length=12)),
+                ('email', models.EmailField(blank=True, default='', max_length=254)),
+                ('calle', models.CharField(blank=True, max_length=50)),
+                ('numero_exterior', models.CharField(blank=True, max_length=6)),
+                ('numero_interior', models.CharField(blank=True, max_length=6)),
+                ('colonia', models.CharField(blank=True, max_length=40)),
+                ('codigo_postal', models.CharField(blank=True, max_length=5)),
+                ('localidad', models.CharField(blank=True, max_length=30)),
+                ('municipio', models.CharField(blank=True, max_length=40)),
+                ('estado', models.CharField(blank=True, max_length=20)),
+                ('pais', models.CharField(blank=True, max_length=20)),
+                ('ruta_xml', models.CharField(blank=True, max_length=100)),
+                ('pagina_web', models.CharField(blank=True, max_length=50)),
+                ('calle_expedicion', models.CharField(blank=True, max_length=50)),
+                ('numero_exterior_expedicion', models.CharField(blank=True, max_length=6)),
+                ('numero_interior_expedicion', models.CharField(blank=True, max_length=6)),
+                ('colonia_expedicion', models.CharField(blank=True, max_length=40)),
+                ('codigo_postal_expedicion', models.CharField(blank=True, max_length=5)),
+                ('localidad_expedicion', models.CharField(blank=True, max_length=30)),
+                ('municipio_expedicion', models.CharField(blank=True, max_length=40)),
+                ('estado_expedicion', models.CharField(blank=True, max_length=20)),
+                ('pais_expedicion', models.CharField(blank=True, max_length=20)),
+            ],
+        ),
+        migrations.CreateModel(
+            name='EmpresaDB',
+            fields=[
+                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('nombre', models.CharField(max_length=100)),
+                ('slug', models.SlugField(unique=True)),
+                ('db_name', models.CharField(max_length=100, unique=True)),
+                ('db_user', models.CharField(default='admin_user', max_length=100)),
+                ('db_password', models.CharField(default='admin_pass', max_length=100)),
+                ('db_host', models.CharField(default='localhost', max_length=100)),
+                ('db_port', models.CharField(default='3306', max_length=10)),
+                ('activa', models.BooleanField(default=True)),
+                ('fecha_inicio', models.DateField(auto_now_add=True)),
+                ('fecha_renovacion', models.DateField(blank=True, null=True)),
+                ('contacto_nombre', models.CharField(max_length=100)),
+                ('contacto_telefono', models.CharField(max_length=20)),
+                ('contacto_email', models.EmailField(max_length=254)),
+            ],
+        ),
+        migrations.CreateModel(
+            name='PerfilUsuario',
+            fields=[
+                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('tipo_usuario', models.CharField(blank=True, max_length=1)),
+                ('empresa', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='core.empresadb')),
+                ('user', models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL)),
+            ],
+        ),
+        migrations.CreateModel(
+            name='CertificadoCSD',
+            fields=[
+                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('rfc', models.CharField(max_length=13)),
+                ('cer_archivo', models.FileField(upload_to='csd/')),
+                ('key_archivo', models.FileField(upload_to='csd/')),
+                ('password', models.CharField(max_length=100)),
+                ('fecha_registro', models.DateTimeField(auto_now_add=True)),
+                ('empresa', models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, to='core.empresa')),
+            ],
+        ),
+    ]

@@ -2085,7 +2085,7 @@ class EmpresaUpdateView(TenantRequiredMixin, UpdateView):
     success_url = reverse_lazy('inv:empresa_list')
 
     def get_queryset(self):
-        return Empresa.objects.using('tenant').filter(id=self.kwargs['pk'])  # Filtramos por la ID de la moneda
+        return Empresa.objects.using('tenant').filter(id=self.kwargs['pk'])
 
     def form_valid(self, form):
         # Guarda el objeto en la base de datos del tenant
@@ -2095,6 +2095,7 @@ class EmpresaUpdateView(TenantRequiredMixin, UpdateView):
         return HttpResponseRedirect(self.get_success_url())
 
     def form_invalid(self, form):
+        print("Errores del form principal:", form.errors)
         return super().form_invalid(form)
 
 # CRUD INFORMACION GENERAL - LUGAR DE EXPEDICION 
@@ -2105,6 +2106,8 @@ class EmpresaLugarListView(TenantRequiredMixin, ListView):
 
     def get_queryset(self):
         return Empresa.objects.using('tenant').all()
+
+# *** regimen = RegimenFiscal.objects.using('tenant').filter(clave=empresa.regimen_fiscal_clave).first()
 
 class EmpresaLugarUpdateView(TenantRequiredMixin, UpdateView):
     model = Empresa
@@ -2123,6 +2126,7 @@ class EmpresaLugarUpdateView(TenantRequiredMixin, UpdateView):
         return HttpResponseRedirect(self.get_success_url())
 
     def form_invalid(self, form):
+        print("Errores del form principal:", form.errors)
         return super().form_invalid(form)
 
 # REGISTRO DEL EMISOR DE CFDI

@@ -3,13 +3,20 @@ FROM python:3.11-slim
 ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
 
-WORKDIR /code
+WORKDIR /admin
+
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    libpq-dev \
+    curl && \
+    pip install --upgrade pip && \
+    rm -rf /var/lib/apt/lists/*
 
 COPY requirements.txt .
-RUN pip install --upgrade pip
 RUN pip install -r requirements.txt
 
 COPY . .
 
-# Collect static on build
-RUN python manage.py collectstatic --noinput
+COPY docker/entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+ENTRYPOINT ["/entrypoint.sh"]

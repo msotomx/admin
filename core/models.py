@@ -23,14 +23,14 @@ class Empresa(models.Model):
     tasa_ieps = models.DecimalField(max_digits=9,decimal_places=5)  # Tasa de IEPS
     tasa_retencion_iva = models.DecimalField(max_digits=9,decimal_places=5)  #Tasa de Retencion 16% = 16, 8% = 8 se usa al facturar
     tasa_retencion_isr = models.DecimalField(max_digits=9,decimal_places=5)  
-    ip = models.CharField(max_length=24,blank=True)  #direccion ip de la app en el servidor
+    codigo_empresa = models.CharField(max_length=7,unique=True,blank=False)  #identificador numerico de la empresa, usado en la asignacion de timbres
     comentarios = models.TextField(blank=True)
     factor = models.DecimalField(max_digits=10,decimal_places=5,blank=True) # campo extra
     #DATOS FISCALES
     nombre_fiscal = models.CharField(max_length=80, blank=True)
     rfc = models.CharField(max_length=13,blank=True)
     regimen_de_sociedad = models.CharField(max_length=25, blank=True)
-    regimen_fiscal = models.ForeignKey(RegimenFiscal,on_delete=models.RESTRICT, blank=True,null=True)
+    regimen_fiscal = models.CharField(max_length=3, blank=True)
     representante = models.CharField(max_length=50, blank=True)
     telefono = models.CharField(max_length=12, blank=True)
     email = models.EmailField(blank=True,default="")
@@ -108,3 +108,16 @@ class CertificadoCSD(models.Model):
     def __str__(self):
         return f"CSD de {self.empresa.nombre_comercial} - {self.rfc}"
 
+class MovimientoTimbresGlobal(models.Model):
+    referencia = models.CharField(max_length=7)
+    tipo = models.CharField(max_length=1)
+    fecha = models.DateTimeField(default=timezone.now)
+    cantidad = models.PositiveIntegerField()
+    precio_unit = models.DecimalField(max_digits=10, decimal_places=2)
+    importe = models.DecimalField(max_digits=12, decimal_places=2)
+
+    class Meta:
+        ordering = ['-fecha']
+
+    def __str__(self):
+        return f"{self.referencia} - {self.fecha.strftime('%Y-%m-%d')} - (+{self.cantidad})"

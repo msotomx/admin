@@ -1,5 +1,6 @@
 from django import forms
 from fac.models import Factura, DetalleFactura, TipoComprobante, Exportacion
+from fac.models import TimbresCliente, MovimientoTimbresCliente
 from inv.models import Moneda, Producto, ClaveMovimiento
 from cxc.models import Cliente
 
@@ -138,3 +139,20 @@ DetalleFacturaFormSet = inlineformset_factory(
     extra=1,
     can_delete=True
 )
+
+class TimbresForm(forms.ModelForm):
+    class Meta:
+        model = TimbresCliente
+        fields = '__all__'
+        widgets = {
+            'codigo_empresa': forms.TextInput(attrs={'class': 'form-control'}),
+            'empresa': forms.TextInput(attrs={'class': 'form-control'}),
+            'total_asignados': forms.TextInput(attrs={'class': 'form-control'}),
+            'utilizados': forms.TextInput(attrs={'class': 'form-control'}),
+            'fecha_asignacion': forms.DateInput(attrs={'type': 'date'}),
+        }        
+
+class AsignarTimbresForm(forms.Form):
+    codigo_empresa = forms.TextInput(attrs={'class': 'form-control'})
+    cantidad = forms.IntegerField(min_value=1, label="Cantidad de timbres")
+    importe = forms.DecimalField(max_digits=12, decimal_places=2, min_value=0, label="Importe")

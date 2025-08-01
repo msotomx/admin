@@ -42,7 +42,6 @@ from core.models import EmpresaDB  # o como se llame tu app
 class TenantMiddleware(MiddlewareMixin):
     def process_request(self, request):
         path = request.path
-
         # Ignorar rutas especiales
         if path.startswith(('/.well-known/', '/favicon.ico', '/setup-tenant', '/logout')):
             return
@@ -56,28 +55,25 @@ class TenantMiddleware(MiddlewareMixin):
         if 'text/html' not in accept_header:
             return
 
-        # Asegurar que es desde localhost
-        if not request.get_host().startswith('127.0.0.1'):
-            return
-
         # Validar autenticación
         if not request.user.is_authenticated:
             return
-
+        
         empresa_id = request.session.get('empresa_id')
         alias = 'tenant'
-
+        
         if not empresa_id:
             return  # No hay sesión activa aún
 
         empresa = EmpresaDB.objects.using('default').filter(id=empresa_id).first()
+        
         if not empresa:
             return
 
         db_name = empresa.db_name
 
         nueva_config = {
-            'ENGINE': 'django.db.backends.mysql',
+            "ENGINE": "django.db.backends.postgresql",
             'NAME': db_name,
             'USER': empresa.db_user,
             'PASSWORD': empresa.db_password,

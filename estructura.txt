@@ -75,6 +75,7 @@ admin/
 │   ├── navbar.html
 │   └── other_shared_templates.html
 │
+├── media/
 ├── static/
 │   ├── inv/
 │   │   ├── css/

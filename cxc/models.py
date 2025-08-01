@@ -49,7 +49,7 @@ class Cliente(models.Model):
     cuenta_cnt = models.CharField(max_length=24, blank=True,default="")
     aplica_retencion_iva = models.BooleanField(blank=True)   # False - No se aplica, True - Se aplica al facturar
     aplica_retencion_isr = models.BooleanField(blank=True)   # False - No se aplica, True - Se aplica al facturar
-    regimen_fiscal = models.ForeignKey(RegimenFiscal,on_delete=models.RESTRICT, blank=True,null=True)
+    regimen_fiscal = models.ForeignKey(RegimenFiscal,on_delete=models.RESTRICT)
     campo_libre_str = models.CharField(max_length=50,blank=True,default="")  # contacto
     campo_libre_num = models.FloatField(null=True,default=0, blank=True) 
     comentarios = models.TextField(blank=True,default="")
@@ -58,7 +58,7 @@ class Cliente(models.Model):
         return self.nombre
 
 class Cargo(models.Model):
-    usuario = models.ForeignKey(User,on_delete=models.SET_NULL, null=True)
+    usuario = models.ForeignKey(User,on_delete=models.RESTRICT)
     clave_movimiento = models.ForeignKey(ClaveMovimientoCxC,on_delete=models.RESTRICT)
     referencia_cargo = models.CharField(max_length=8, blank=False)
     cliente = models.ForeignKey(Cliente,on_delete=models.RESTRICT)
@@ -70,10 +70,10 @@ class Cargo(models.Model):
     almacen = models.ForeignKey('inv.Almacen',on_delete=models.RESTRICT)
 
     def __str__(self): 
-        return self.referencia
+        return self.referencia_cargo
     
 class Abono(models.Model):
-    usuario = models.ForeignKey(User,on_delete=models.SET_NULL, null=True)
+    usuario = models.ForeignKey(User,on_delete=models.RESTRICT)
     cliente = models.ForeignKey(Cliente,on_delete=models.RESTRICT)
     clave_movimiento = models.ForeignKey(ClaveMovimientoCxC,on_delete=models.RESTRICT)
     referencia = models.CharField(max_length=8, blank=False)
@@ -93,4 +93,4 @@ class SaldoInicialCxC(models.Model):
     fecha = models.DateField(blank=False)
     
     def __str__(self):
-        return self.producto.nombre
+        return self.cliente.nombre

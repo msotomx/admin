@@ -5,3 +5,4 @@ django-widget-tweaks
 requests
 python-decouple
 psycopg[binary]           # o mejor: psycopg[binary]
+gunicorn

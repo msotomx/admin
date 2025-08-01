@@ -4,7 +4,7 @@ def get_db_config_from_empresa(empresa_id):
     empresa = EmpresaDB.objects.using('default').get(pk=empresa_id)
     return {
         'ALIAS': empresa.db_name,
-        'ENGINE': 'django.db.backends.mysql',
+        "ENGINE": "django.db.backends.postgresql",
         'NAME': empresa.db_name,
         'USER': empresa.db_user,
         'PASSWORD': empresa.db_password,

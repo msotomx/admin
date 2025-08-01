@@ -9,6 +9,7 @@ def cargar_datos_iniciales(db_alias):
     from fac.models import FormaPago, MetodoPago, UsoCfdi, TipoComprobante, Exportacion
     from cxc.models import RegimenFiscal, TipoCliente
     from core.models import Empresa
+    print("EN CARGAR DATOS INICIALES")
     if not FormaPago.objects.using(db_alias).exists():
         FormaPago.objects.using(db_alias).bulk_create([
             FormaPago(forma_pago='01', nombre='Efectivo'),
@@ -34,13 +35,13 @@ def cargar_datos_iniciales(db_alias):
             FormaPago(forma_pago='31', nombre='Intemediario pagos'),
             FormaPago(forma_pago='99', nombre='Por definir'),
         ])
-
+    print("EN CARGAR DATOS INICIALES -1")
     if not MetodoPago.objects.using(db_alias).exists():
         MetodoPago.objects.using(db_alias).bulk_create([
             MetodoPago(metodo_pago='PUE', nombre='Pago en una sola exhibición'),
             MetodoPago(metodo_pago='PDD', nombre='Pago en parcialidades o diferido'),
         ])
-
+    print("EN CARGAR DATOS INICIALES -2")
     if not UsoCfdi.objects.using(db_alias).exists():
         UsoCfdi.objects.using(db_alias).bulk_create([
             UsoCfdi(uso_cfdi='G01', nombre='Adquisición de mercancías'),
@@ -67,7 +68,7 @@ def cargar_datos_iniciales(db_alias):
             UsoCfdi(uso_cfdi='S01', nombre='Sin efectos fiscales'),
             UsoCfdi(uso_cfdi='P01', nombre='Por definir'),
         ])
-
+    print("EN CARGAR DATOS INICIALES -3")
     if not RegimenFiscal.objects.using(db_alias).exists():
         RegimenFiscal.objects.using(db_alias).bulk_create([
             RegimenFiscal(regimen_fiscal='601', nombre='General de Ley Personas Morales'),
@@ -90,7 +91,7 @@ def cargar_datos_iniciales(db_alias):
             RegimenFiscal(regimen_fiscal='625', nombre='Régimen de las Actividades Empresariales con ingresos a través de Plataformas Tecnológicas'),
             RegimenFiscal(regimen_fiscal='626', nombre='Régimen Simplificado de Confianza'),
         ])
-
+    print("EN CARGAR DATOS INICIALES -4")
     if not UnidadMedida.objects.using(db_alias).exists():
         UnidadMedida.objects.using(db_alias).bulk_create([
             UnidadMedida(unidad_medida='H87', descripcion='Pieza'),
@@ -99,42 +100,43 @@ def cargar_datos_iniciales(db_alias):
             UnidadMedida(unidad_medida='LTR', descripcion='Litro'),
             UnidadMedida(unidad_medida='MTR', descripcion='Metro'),            
         ])
-
+    print("EN CARGAR DATOS INICIALES -5")
     if not Moneda.objects.using(db_alias).exists():
         Moneda.objects.using(db_alias).bulk_create([
             Moneda(nombre='PESO MEXICANO', clave='MXN', simbolo='$', activa=True, paridad=1),
             Moneda(nombre='DOLAR AMERICANO', clave='USD', simbolo='USD', activa=True, paridad=20.1234),
         ])
-
+    print("EN CARGAR DATOS INICIALES -6")
     if not ClaveMovimiento.objects.using(db_alias).exists():
         ClaveMovimiento.objects.using(db_alias).bulk_create([
             ClaveMovimiento(clave_movimiento='CO', nombre='COMPRAS', tipo= 'E', es_remision=False, es_compra=True),
             ClaveMovimiento(clave_movimiento='R1', nombre='REMISIONES', tipo= 'S', es_remision=True, es_compra=False),
         ])
-
+    print("EN CARGAR DATOS INICIALES -7")
     if not TipoCliente.objects.using(db_alias).exists():
         TipoCliente.objects.using(db_alias).bulk_create([
             TipoCliente(tipo_cliente=1, nombre='CONTADO'),
         ])
-
+    print("EN CARGAR DATOS INICIALES -8")
     if not Exportacion.objects.using(db_alias).exists():
         Exportacion.objects.using(db_alias).bulk_create([
             Exportacion(exportacion='01', nombre='NO APLICA'),
         ])
-
+    print("EN CARGAR DATOS INICIALES -9")
     if not TipoComprobante.objects.using(db_alias).exists():
         TipoComprobante.objects.using(db_alias).bulk_create([
             TipoComprobante(tipo_comprobante='I', nombre='INGRESO'),
             TipoComprobante(tipo_comprobante='E', nombre='EGRESO'),
             TipoComprobante(tipo_comprobante='T', nombre='TRASLADO'),
         ])
-
+    print("EN CARGAR DATOS INICIALES -10")
     if not Almacen.objects.using(db_alias).exists():
         Almacen.objects.using(db_alias).bulk_create([
             Almacen(almacen=1, nombre='ALMACEN 01'),
         ])
-
+    print("EN CARGAR DATOS INICIALES -11")
     if not Categoria.objects.using(db_alias).exists():
         Categoria.objects.using(db_alias).bulk_create([
             Categoria(categoria=1, nombre='CATEGORIA 1'),
         ])
+        print("EN CARGAR DATOS INICIALES -12")

@@ -25,7 +25,7 @@ def set_current_tenant_connection(alias):
 
     if not empresa_id:
         raise ValueError("No se puede establecer conexión sin empresa_id")
-
+    
     db_config = get_db_config_from_empresa(empresa_id)
 
     if not db_config or 'NAME' not in db_config:
@@ -80,5 +80,7 @@ class TenantDatabaseRouter:
             # Solo migramos auth, admin y core en la base default
             return app_label in ['auth', 'contenttypes', 'admin', 'sessions', 'core']
         else:
-            # Migramos todo en la base tenant, incluidas las apps de Django
-            return True
+            # Permitir migrar aplicaciones de tenant en la base 'tenant'
+            tenant_apps = ['core', 'cxc', 'inv', 'fac', 'auth', 'contenttypes', 'sessions', 'admin']
+            return app_label in tenant_apps
+    

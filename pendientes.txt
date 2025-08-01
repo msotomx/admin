@@ -1,8 +1,17 @@
-IP DROPLET DIGITAL OCEAN:  143.198.59.14
+IP DROPLET DIGITAL OCEAN:  24.199.106.186
 
 Pendientes:
-en Tabla ClaveMovimiento 
-- agregar es_servicio Boolean
+- navbar.html: cambio en menu
+- inv.models : en Tabla ClaveMovimiento, se agrego es_servicio Boolean
+- inv.forms  : en ClaveMovimiento, queryset, elimina es_compra, es_servicio, es_remision
+- inv.empresa_form.html : cambio del template, eliminacion de campos fiscales.
+			  se elimino regimen_fiscal de este template y se paso a empresa_lugarexp.html
+- inv.empresa_lugarexp.html: se agregaron campo de Regimen Fiscal.
+		  	     se cambio regimen_fiscal para este template
+- admin/settings/prod.py
+- inv.views.py
+- fac.views.py
+- falta modificar sign_inicial, para generar el codigo_empresa
 
 FACTURAS
 - validar que no se repita numero de factura
@@ -31,6 +40,7 @@ comando para buscar en los archivos:
  grep -r "sign_inicial" .
  grep -r "set_current_tenant_connection" .
  grep -r "request.session" .
+ grep -r "0002_initial.py" .
 1️⃣ 
 Borra Manualmente las migraciones:
 find . -path "*/migrations/*.py" -not -name "__init__.py" -delete
