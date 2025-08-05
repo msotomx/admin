@@ -51,8 +51,9 @@ def set_current_tenant_connection(alias):
     set_current_tenant('tenant', empresa_id, empresa_fiscal)
     
 class TenantDatabaseRouter:
-    DEFAULT_MODELS = ['EmpresaDB', 'PerfilUsuario']
-    DEFAULT_APPS = ['auth', 'contenttypes', 'sessions', 'admin']
+    DEFAULT_MODELS = ['EmpresaDB', 'PerfilUsuario', 'CertificadoCSD',
+                      'MovimientoTimbresGlobal','TimbresCliente'] 
+    DEFAULT_APPS = ['auth', 'contenttypes', 'sessions', 'admin','timbres']
 
     def db_for_read(self, model, **hints):
         if model._meta.model_name in [m.lower() for m in self.DEFAULT_MODELS]:
@@ -78,7 +79,7 @@ class TenantDatabaseRouter:
     def allow_migrate(self, db, app_label, model_name=None, **hints):
         if db == 'default':
             # Solo migramos auth, admin y core en la base default
-            return app_label in ['auth', 'contenttypes', 'admin', 'sessions', 'core']
+            return app_label in ['auth', 'contenttypes', 'admin', 'sessions', 'core', 'cxc', 'inv', 'fac','timbres']
         else:
             # Permitir migrar aplicaciones de tenant en la base 'tenant'
             tenant_apps = ['core', 'cxc', 'inv', 'fac', 'auth', 'contenttypes', 'sessions', 'admin']

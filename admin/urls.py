@@ -27,4 +27,5 @@ urlpatterns = [
     path('inv/', include('inv.urls', namespace='inv')),
     path('cxc/', include('cxc.urls', namespace='cxc')),
     path('fac/', include('fac.urls', namespace='fac')),
+    path('timbres/', include('timbres.urls', namespace='timbres')),
 ] + static(settings.MEDIA_URL,document_root=settings.MEDIA_ROOT)

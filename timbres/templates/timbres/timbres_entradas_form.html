@@ -6,6 +6,6 @@
   {% csrf_token %}
   {{ form.as_p }}
   <button type="submit" class="btn btn-primary">Guardar</button>
-  <a href="{% url 'movimientos_timbres_global' %}" class="btn btn-secondary">Cancelar</a>
+  <a href="{% url 'tibres:timbres_movimiento_list' %}" class="btn btn-secondary">Cancelar</a>
 </form>
 {% endblock %}

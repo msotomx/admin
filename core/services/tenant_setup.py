@@ -16,6 +16,16 @@ from decouple import config
 from cxc.models import RegimenFiscal
 import traceback
 
+def obtener_ultimo_codigo_empresa():
+    ultimo = EmpresaDB.objects.using('default').all().order_by('-codigo_empresa').first()
+    if ultimo and ultimo.codigo_empresa.isdigit():
+        siguiente = str(int(ultimo.codigo_empresa) + 1).zfill(7)
+    else:
+        siguiente = "0000701"
+    
+    return siguiente
+
+
 def crear_tenant_completo(request, nombre_comercial, username, password, contacto_nombre, contacto_telefono, contacto_email):
     # Paso 1: Normalizar nombre
     slug = slugify(nombre_comercial)
@@ -75,8 +85,9 @@ def crear_tenant_completo(request, nombre_comercial, username, password, contact
 
     # Paso 6: Activar zona horaria y establecer conexión
     activate(settings.TIME_ZONE)
-
+    
     # Paso 7: Registrar la empresa en la base default
+    codigo_empresa = obtener_ultimo_codigo_empresa()
     empresa_db = EmpresaDB.objects.using('default').create(
         nombre=nombre_comercial,
         slug=slug,
@@ -91,6 +102,7 @@ def crear_tenant_completo(request, nombre_comercial, username, password, contact
         contacto_nombre  = contacto_nombre,
         contacto_telefono= contacto_telefono,
         contacto_email   = contacto_email,
+        codigo_empresa   = codigo_empresa,
     )
 
     # paso 8: Crear usuario capturado en el formulario, en User default
@@ -125,6 +137,7 @@ def crear_tenant_completo(request, nombre_comercial, username, password, contact
     try:
         Empresa.objects.using(db_name).create(
             nombre_comercial=nombre_comercial,
+            codigo_empresa = codigo_empresa,
             db_name = db_name,
             nombre_fiscal=nombre_comercial.upper(),
             fecha_inicio=localtime(now()).date(),

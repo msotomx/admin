@@ -6,6 +6,7 @@ from django.urls import reverse_lazy
 from .views import sign_inicial_view, logOutUsuario
 from .views import setup_tenant
 
+
 app_name = 'core'
 
 urlpatterns = [

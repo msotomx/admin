@@ -1,7 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import User
 from datetime import date
-from cxc.models import RegimenFiscal
+from django.conf import settings
 
 # Create your models here.
 class Empresa(models.Model):
@@ -68,6 +68,7 @@ from django.utils.text import slugify
 class EmpresaDB(models.Model):
     nombre = models.CharField(max_length=100)
     slug = models.SlugField(unique=True)
+    codigo_empresa = models.CharField(max_length=7,unique=True,blank=False)  #identificador numerico de la empresa, usado en la asignacion de timbres
     db_name = models.CharField(max_length=100, unique=True)
     db_user = models.CharField(max_length=100, default='admin_user')
     db_password = models.CharField(max_length=100, default='admin_pass')
@@ -107,17 +108,3 @@ class CertificadoCSD(models.Model):
 
     def __str__(self):
         return f"CSD de {self.empresa.nombre_comercial} - {self.rfc}"
-
-class MovimientoTimbresGlobal(models.Model):
-    referencia = models.CharField(max_length=7)
-    tipo = models.CharField(max_length=1)
-    fecha = models.DateTimeField(default=timezone.now)
-    cantidad = models.PositiveIntegerField()
-    precio_unit = models.DecimalField(max_digits=10, decimal_places=2)
-    importe = models.DecimalField(max_digits=12, decimal_places=2)
-
-    class Meta:
-        ordering = ['-fecha']
-
-    def __str__(self):
-        return f"{self.referencia} - {self.fecha.strftime('%Y-%m-%d')} - (+{self.cantidad})"

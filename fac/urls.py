@@ -2,8 +2,8 @@ from django.urls import path
 from fac.views import FacturaListView, FacturaCreateView, FacturaUpdateView, FacturaDeleteView, FacturaDetailView
 from fac.views import verificar_factura, obtener_clave_prod_serv2, obtener_ultimo_numero_factura, obtener_tasa_empresa
 from fac.views import timbrar_factura, descargar_factura, cargar_remision
-from fac.views import CancelarFacturaView, AsignarTimbresView
-from fac.views import MovimientoTimbresGlobalListView, MovimientoTimbresGlobalCreateView
+from fac.views import CancelarFacturaView
+
 
 app_name = 'fac'
 
@@ -25,10 +25,6 @@ urlpatterns = [
     # PATH para cfdi
     path('factura/<int:factura_id>/descargar/<str:tipo>/', descargar_factura, name='descargar_factura'),
     path('factura/<int:pk>/cancelar/', CancelarFacturaView.as_view(), name='cancelar_factura'),
-    path('timbres-asignar/', AsignarTimbresView.as_view(), name='asignar_timbres'),
-    path('timbres/', MovimientoTimbresGlobalListView.as_view(), name='movimiento_timbres_list'),
-    path('timbres/entradas/', MovimientoTimbresGlobalCreateView.as_view(), name='entradas_timbres_global'),
-    # path('timbres/', ListaTimbresView.as_view(), name='movimientos_timbres_global'),
 ]
 
 

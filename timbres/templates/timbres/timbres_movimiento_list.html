@@ -1,19 +1,27 @@
 {% extends "base.html" %}
+
 {% block content %}
 <div class="container mt-4">
     <h2>Movimientos de Timbres</h2>
 
     <div class="d-flex justify-content-between align-items-center mb-3">
         <div>
-            <strong>Entradas:</strong> {{ total_entradas }} |
-            <strong>Salidas:</strong> {{ total_salidas }} |
+            <strong>Entradas:</strong> {{ entradas }} |
+            <strong>Salidas:</strong> {{ salidas }} |
             <strong>Disponibles:</strong> {{ disponibles }}
         </div>
         <div>
-            <a href="{% url 'entradas_timbres_global' %}" class="btn btn-success btn-sm">Entradas</a>
-            <a href="{% url 'asignar_timbres' %}" class="btn btn-primary btn-sm">Asignar Timbres</a>
+            <a href="{% url 'timbres:timbres_entradas_form' %}" class="btn btn-success btn-sm">Entradas</a>
+            <a href="{% url 'timbres:asignar_timbres' %}" class="btn btn-primary btn-sm">Asignar Timbres</a>
         </div>
     </div>
+    {% if messages %}
+    <div class="container mt-2">
+        {% for message in messages %}
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">{{ message }}</div>
+        {% endfor %}
+    </div>
+    {% endif %}
 
     <table class="table table-striped table-sm">
         <thead>

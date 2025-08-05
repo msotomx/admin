@@ -17,13 +17,14 @@
                 <label class="form-label small">Nombre Fiscal</label>
                 {{ form.nombre_fiscal|add_bootstrap_class }}
             </div>
+            <div class="col-md-2 mb-2">
+                <label class="form-label small">Código Empresa</label>
+                {{ form.codigo_empresa|add_bootstrap_class }}
+            </div>
+
             <div class="col-md-3 mb-2">
                 <label class="form-label small">Régimen de Capital</label>
                 {{ form.regimen_de_sociedad|add_bootstrap_class }}
-            </div>
-            <div class="col-md-2 mb-2">
-                <label class="form-label small">RFC</label>
-                {{ form.rfc|add_bootstrap_class }}
             </div>
             <div class="col-md-3 mb-2">
                 <label class="form-label small">Representante</label>
@@ -77,10 +78,6 @@
             <div class="col-md-2 mb-2">
                 <label class="form-label small">Tasa IEPS</label>
                 {{ form.tasa_ieps|add_bootstrap_class }}
-            </div>
-            <div class="col-md-3 mb-2">
-                <label class="form-label small">Ruta XML</label>
-                {{ form.ruta_xml|add_bootstrap_class }}
             </div>
         </div>
         

@@ -12,6 +12,10 @@ Pendientes:
 - inv.views.py
 - fac.views.py
 - falta modificar sign_inicial, para generar el codigo_empresa
+- .env cambio en configuracion de cookies
+- fac.url.py
+
+- sign_initial - grabar usuario en minusculas o sera necesario?
 
 FACTURAS
 - validar que no se repita numero de factura

@@ -16,7 +16,7 @@ class CertificadoCSDAdmin(admin.ModelAdmin):
 
 @admin.register(EmpresaDB)
 class EmpresaDBAdmin(admin.ModelAdmin):
-    list_display = ['nombre', 'fecha_inicio', 'fecha_renovacion', 'dias_restantes', 'estado_renovacion']
+    list_display = ['nombre', 'codigo_empresa','fecha_inicio', 'fecha_renovacion', 'dias_restantes', 'estado_renovacion']
 
     def dias_restantes(self, obj):
         if obj.fecha_renovacion:

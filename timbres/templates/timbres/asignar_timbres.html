@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+{% load bootstrap_filters %}
+{% block content %}
+<div class="container mt-4">
+    <h2>{{ "Asignar Timbres" }}</h2>
+    <form method="POST">
+        {% csrf_token %}
+    
+        <div class="row g-2">
+            <div class="col-md-3 mb-2">
+                <label class="form-label small">Codigo Empresa</label>
+                {{ form.codigo_empresa|add_bootstrap_class }}
+            </div>
+            <div class="col-md-3 mb-2">
+                <label class="form-label small">Referencia</label>
+                {{ form.referencia|add_bootstrap_class }}
+            </div>
+            <div class="col-md-3 mb-2">
+                <label class="form-label small">Fecha</label>
+                {{ form.fecha|add_bootstrap_class }}
+            </div>
+        </div>
+        <div class="row g-2"></div>  
+            <div class="col-md-3 mb-2">
+                <label class="form-label small">Cantidad</label>
+                {{ form.cantidad|add_bootstrap_class }}
+            </div>
+            <div class="col-md-3 mb-2">
+                <label class="form-label small">Precio Unit</label>
+                {{ form.precio_unit|add_bootstrap_class }}
+            </div>
+            <div class="col-md-3 mb-2">
+                <label class="form-label small">Importe</label>
+                {{ form.importe|add_bootstrap_class }}
+            </div>
+        </div>
+        <div class="mt-4">
+            <button type="submit" class="btn btn-success">Asignar Timbres</button>
+            <a href="{% url 'timbres:timbres_movimiento_list' %}" class="btn btn-secondary">Cancelar</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

@@ -484,19 +484,23 @@ class EmpresaForm(forms.ModelForm):
                    'calle_expedicion','numero_exterior_expedicion','numero_interior_expedicion',
                    'colonia_expedicion','localidad_expedicion','municipio_expedicion','estado_expedicion',
                    'pais_expedicion', 'db_name','ruta_xml', 'calle','numero_exterior','numero_interior',
-                   'colonia','codigo_postal','localidad','municipio','estado','pais']
+                   'colonia','codigo_postal','localidad','municipio','estado','pais','rfc']
+        widgets = {
+            'codigo_empresa': forms.TextInput(attrs={'class': 'form-control form-control-sm', 'readonly': 'readonly'}),
+        }
 
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         for field in self.fields.values():
             field.widget.attrs['class'] = 'form-control form-control-sm'
+        codigo_empresa=obtener_ultimo_codigo_empresa
 
 class EmpresaLugarForm(forms.ModelForm):
     regimen_fiscal = forms.ChoiceField(label='Regimen Fiscal') 
     class Meta:
         model = Empresa
-        fields = ['nombre_comercial', 'calle_expedicion', 'numero_exterior_expedicion',
+        fields = ['nombre_fiscal', 'rfc','calle_expedicion', 'numero_exterior_expedicion',
                   'numero_interior_expedicion','colonia_expedicion','codigo_postal_expedicion',
                   'localidad_expedicion','municipio_expedicion','estado_expedicion','pais_expedicion']
 

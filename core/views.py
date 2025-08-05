@@ -14,9 +14,9 @@ from core._thread_locals import get_current_tenant, get_current_empresa_id, set_
 from core.db_router import set_current_tenant_connection
 from django.db import connections
 from django.core.exceptions import PermissionDenied
-
 from functools import wraps
 from core._thread_locals import _thread_locals
+
 
 def require_tenant_connection(view_func):
     @wraps(view_func)

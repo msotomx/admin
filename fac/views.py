@@ -3,13 +3,11 @@
 from django.views import View
 from django.shortcuts import render, redirect
 from django.contrib import messages
-from core.models import Empresa, MovimientoTimbresGlobal
+from core.models import Empresa, TimbresCliente
 from fac.models import Factura, DetalleFactura, TipoComprobante, Exportacion
-from fac.models import TimbresCliente, MovimientoTimbresCliente
 from inv.models import Producto, Moneda, ClaveMovimiento, Remision, DetalleRemision
 from cxc.models import Cliente
 from fac.forms import FacturaForm, DetalleFacturaFormSet, DetalleFacturaForm
-from fac.forms import TimbresForm, DetalleTimbresFormSet
 from core._thread_locals import get_current_tenant
 from django.utils.timezone import now, localtime
 from django.db import transaction
@@ -834,7 +832,7 @@ def timbrar_factura(request,factura_id):
         usuario=request.user.username
     )
     # 1) Verificar estatus de la factura
-    timbres = TimbresCliente.objects.using('tenant').get(empresa=factura.empresa)
+    timbres = TimbresCliente.objects.using('default').get(empresa=factura.empresa)
 
     if timbres.disponibles <= 0:
         return JsonResponse("No tienes folios disponibles para timbrar."
@@ -914,7 +912,7 @@ def timbrar_factura(request,factura_id):
 
         # Actualiza folios usados en la empresa ***
         timbres.utilizados += 1
-        timbres.save(using='tenant')
+        timbres.save(using='default')
 
         return JsonResponse({'success': True, 'uuid': factura.uuid})
 
@@ -1181,175 +1179,3 @@ class CancelarFacturaView(TenantRequiredMixin, View):
             messages.error(request, f"Error de conexión con el PAC: {str(e)}")
 
         return redirect('fac:factura_list')
-
-@login_required
-@tenant_required
-def obtener_ultima_referencia_timbres():
-    ultima = MovimientoTimbresCliente.objects.using('tenant').all().order_by('-referencia').first()
-    if ultima and ultima.referencia.isdigit():
-        siguiente = str(int(ultima.referencia) + 1).zfill(7)
-    else:
-        siguiente = "0000001"
-    
-    return siguiente
-
-
-def asignar_timbres(referencia,codigo_empresa, cantidad, importe, usuario):
-    # Registrar el movimiento
-    empresa = Empresa.objects.using('tenant').filter(codigo_empresa=codigo_empresa)
-    MovimientoTimbresCliente.objects.using('tenant').create(
-        referencia=referencia,
-        empresa=empresa,
-        cantidad=cantidad,
-        fecha=localtime(now()).date(),
-        importe=importe,
-        usuario=usuario
-    )
-
-    # Sumar los folios al total disponible
-    timbres, creado = TimbresCliente.objects.using('tenant').get_or_create(
-        codigo_empresa=codigo_empresa,
-        defaults={'empresa': empresa, 'fecha_asignacion': localtime(now()).date()}
-    )
-    timbres.total_asignados += cantidad
-    timbres.fecha_asignacion = localtime(now()).date()
-    timbres.save(using='tenant')
-
-    # graba en la base default el movimiento de timbres
-    precio_unit = importe / cantidad
-    MovimientoTimbresGlobal.objects.using('default').create(
-        referencia=referencia,
-        tipo="S",
-        fecha=localtime(now()).date(),
-        cantidad=cantidad,
-        precio_unit = precio_unit,
-        importe=importe        
-    )
-
-from .forms import AsignarTimbresForm
-from .views import asignar_timbres  # o el módulo donde tengas la función
-@login_required
-class AsignarTimbresView(View):
-    template_name = 'fac/asignar_timbres.html'
-
-    def get(self, request):
-        form = AsignarTimbresForm()
-        return render(request, self.template_name, {'form': form})
-
-    def post(self, request):
-        form = AsignarTimbresForm(request.POST)
-        if form.is_valid():
-            cantidad = form.cleaned_data['cantidad']
-            importe = form.cleaned_data['importe']
-            codigo_empresa = form.cleaned_data['codigo_empresa']
-
-            usuario = request.user
-            user_timbres = config('USER_TIMBRES')
-            empresa = Empresa.objects.using('tenant').filter(codigo_empresa=codigo_empresa)
-
-            if not empresa:
-                messages.error(request, "Empresa no definida.")
-                return redirect('fac:asignar_timbres')
-
-            try:
-                if usuario == user_timbres:
-                    referencia = obtener_ultima_referencia_timbres()
-                    asignar_timbres(
-                        referencia=referencia,
-                        codigo_empresa=codigo_empresa,
-                        cantidad=cantidad,
-                        importe=importe,
-                        usuario=usuario
-                    )
-                    messages.success(request, "Timbres asignados correctamente.")
-                    return redirect('fac:asignar_timbres')
-                else:
-                    messages.error(request, "Usuario no autorizado para asignar timbres.")
-                    return redirect('fac:asignar_timbres')
-            except Exception as e:
-                messages.error(request, f"Error al asignar timbres: {str(e)}")
-
-        return render(request, self.template_name, {'form': form})
-
-# CRUD TIMBRES
-class TimbresListView(TenantRequiredMixin,ListView):
-    model = TimbresCliente
-    template_name = 'fac/timbres_list.html'
-    context_object_name = 'timbres'
-
-    def get_queryset(self):
-        return TimbresCliente.objects.using('tenant').all()
-
-class TimbresCreateView(TenantRequiredMixin,CreateView):
-    model = TimbresCliente
-    form_class = TimbresForm
-    template_name = 'fac/timbres_form.html'
-    success_url = reverse_lazy('fac:timbres_list')
-
-    def get_initial(self):
-        initial = super().get_initial()
-
-        return initial
-
-    def form_valid(self, form):
-        form.instance.save(using='tenant')  # Guarda en la base de datos del tenant
-        
-        # Redirige al lugar correspondiente después de guardar
-        return redirect('inv:timbres_list') 
-
-class TimbresUpdateView(TenantRequiredMixin, UpdateView):
-    model = TimbresCliente
-    form_class = TimbresForm
-    template_name = 'fac/timbres_form.html'
-    success_url = reverse_lazy('fac:timbres_list')
-
-    def get_queryset(self):
-        return TimbresCliente.objects.using('tenant').filter(id=self.kwargs['pk'])  # Filtramos por la ID de la moneda
-
-    def form_valid(self, form):
-        form.instance.save(using='tenant')  # Guarda en la base de datos del tenant
-        
-        # Redirige al lugar correspondiente después de guardar
-        return HttpResponseRedirect(self.get_success_url())
-
-
-from django.views.generic import ListView
-from django.db.models import Sum, F
-from core.models import MovimientoTimbresGlobal
-
-class MovimientoTimbresGlobalListView(ListView):
-    model = MovimientoTimbresGlobal
-    template_name = 'timbres/movimiento_list.html'
-    context_object_name = 'movimientos'
-    queryset = MovimientoTimbresGlobal.objects.using('default').order_by('-fecha')
-    paginate_by = 10
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        entradas = MovimientoTimbresGlobal.objects.using('default').filter(tipo='E').aggregate(total=Sum('cantidad'))['total'] or 0
-        salidas = MovimientoTimbresGlobal.objects.using('default').filter(tipo='S').aggregate(total=Sum('cantidad'))['total'] or 0
-        disponibles = entradas - salidas
-
-        context.update({
-            'entradas': entradas,
-            'salidas': salidas,
-            'disponibles': disponibles
-        })
-        return context
-
-class MovimientoTimbresGlobalCreateView(CreateView):
-    model = MovimientoTimbresGlobal
-    template_name = 'timbres/entrada_form.html'
-    fields = ['referencia', 'cantidad', 'importe']
-
-    def form_valid(self, form):
-        form.instance.tipo = 'E'
-        form.instance.fecha = localtime(now()).date()
-        form.instance.precio_unit = form.instance.importe / form.instance.cantidad
-        form.instance.save(using='tenant')  # Guarda en la base de datos del tenant
-        
-        # Redirige al lugar correspondiente después de guardar
-        return redirect('fac:movimiento_timbres_list')
-
-    def get_success_url(self):
-        return reverse_lazy('fac:movimiento_timbres_global')
