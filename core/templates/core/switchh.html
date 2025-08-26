@@ -1,0 +1,380 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Switchh — Control total de tu operación, en la nube</title>
+  <meta name="description" content="Switchh: multi-empresa y multi-almacenes con inventario en tiempo real, compras, ventas, CFDI y reportes. Inicia hoy con 30 días de prueba." />
+  <link rel="canonical" href="https://switchh.mx/" />
+
+  <!-- SEO / Social -->
+  <meta property="og:title" content="Switchh — Control total, en la nube" />
+  <meta property="og:description" content="Multi-empresa y multi-almacenes, inventario en tiempo real, CFDI, reportes y acceso desde cualquier dispositivo." />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://switchh.mx/" />
+  <meta name="theme-color" content="#0D3B66" />
+
+  <!-- Favicon (SVG embebido) -->
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' ry='14' fill='%230D3B66'/%3E%3Cpath d='M14 34h36M14 24h26M24 44h26' stroke='%23FFFFFF' stroke-width='6' stroke-linecap='round'/%3E%3C/svg%3E" />
+
+  <!-- Inter (Google Fonts) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet" />
+
+  <!-- Tailwind (CDN) con paleta de marca -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              navy: '#0D3B66',
+              blue: '#1F4E79',
+              slate: '#2C3E50',
+              gray: '#B0B0B0',
+              white: '#FFFFFF',
+              green: '#2ECC71'
+            }
+          },
+          fontFamily: { sans: ['Inter','ui-sans-serif','system-ui','-apple-system','Segoe UI','Roboto','Helvetica','Arial'] },
+          boxShadow: {
+            soft: '0 10px 25px rgba(0,0,0,0.08)'
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Animaciones suaves (utiliza clases y respeta reduced motion) -->
+  <style>
+    [data-animate]{opacity:0;transform:translateY(12px);transition:opacity .6s ease,transform .6s ease}
+    .revealed{opacity:1;transform:none}
+  </style>
+
+  <!-- Schema.org -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "Switchh",
+    "applicationCategory": "BusinessApplication",
+    "operatingSystem": "Web",
+    "offers": {
+      "@type": "Offer",
+      "price": "0",
+      "priceCurrency": "MXN",
+      "description": "Prueba gratuita de 30 días"
+    },
+    "url": "https://switchh.mx",
+    "publisher": {"@type":"Organization","name":"Switchh"}
+  }
+  </script>
+</head>
+<body class="font-sans text-brand-slate bg-brand-white antialiased">
+  <a href="#contenido" class="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 bg-brand-blue text-white px-3 py-2 rounded-lg z-[100]">Saltar al contenido</a>
+
+  <!-- HEADER -->
+  <header class="sticky top-0 bg-white/80 backdrop-blur border-b border-brand-gray/30 z-50" role="banner">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between">
+      <a href="#" class="flex items-center gap-2" aria-label="Inicio de Switchh">
+        <span class="inline-block w-8 h-8 rounded-xl bg-brand-navy"></span>
+        <span class="text-xl font-extrabold text-brand-navy tracking-tight">Switchh</span>
+      </a>
+      <nav class="hidden md:flex items-center gap-6" aria-label="Principal">
+        <a href="#caracteristicas" class="hover:text-brand-navy">Características</a>
+        <a href="#beneficios" class="hover:text-brand-navy">Beneficios</a>
+        <a href="#fotos" class="hover:text-brand-navy">Fotos</a>
+        <a href="#contacto" class="hover:text-brand-navy">Contacto</a>
+      </nav>
+      <div class="hidden md:flex items-center gap-3">
+        <a href="https://switchh.mx" target="_blank" rel="noopener" class="px-4 py-2 rounded-xl bg-brand-green text-white font-semibold hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-green/60">Ir a switchh.mx</a>
+      </div>
+      <button id="menuBtn" class="md:hidden p-2 rounded-lg border border-brand-gray/50" aria-expanded="false" aria-controls="menuMovil" aria-label="Abrir menú">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6"><path d="M3.75 6.75h16.5M3.75 12h16.5M3.75 17.25h16.5"/></svg>
+      </button>
+    </div>
+    <div id="menuMovil" class="md:hidden hidden border-t border-brand-gray/30" role="dialog" aria-label="Menú">
+      <nav class="px-4 py-3 grid gap-2" aria-label="Menú móvil">
+        <a href="#caracteristicas" class="py-2">Características</a>
+        <a href="#beneficios" class="py-2">Beneficios</a>
+        <a href="#fotos" class="py-2">Fotos</a>
+        <a href="#contacto" class="py-2">Contacto</a>
+        <a href="https://switchh.mx" target="_blank" rel="noopener" class="mt-2 inline-flex items-center justify-center px-4 py-2 rounded-xl bg-brand-green text-white font-semibold">Ir a switchh.mx</a>
+      </nav>
+    </div>
+  </header>
+
+  <main id="contenido">
+    <!-- HERO -->
+    <section class="relative overflow-hidden bg-gradient-to-b from-brand-navy to-brand-blue text-white">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 py-20 md:py-28 grid md:grid-cols-2 items-center gap-12">
+        <div data-animate>
+          <h1 class="text-4xl md:text-6xl font-extrabold leading-tight tracking-tight">Control total de tu operación, en minutos.</h1>
+          <p class="mt-5 text-lg text-white/90">Multi-empresa y multi-almacenes con inventario en tiempo real, compras, ventas y facturación CFDI. Accede desde cualquier dispositivo y lugar.</p>
+          <div class="mt-8 flex flex-wrap items-center gap-4">
+            <a href="https://switchh.mx" target="_blank" rel="noopener" class="px-6 py-3 rounded-xl bg-brand-green text-white font-semibold shadow-soft hover:opacity-95 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-green/60">Comenzar prueba gratis 30 días</a>
+            <a href="#caracteristicas" class="px-6 py-3 rounded-xl bg-white/10 hover:bg-white/20 border border-white/20">Ver características</a>
+          </div>
+          <p class="mt-3 text-sm text-white/80">Sin instalaciones. 100% web. Soporte incluido.</p>
+        </div>
+        <div class="relative" data-animate>
+          <img src="https://images.unsplash.com/photo-1556742040-3c52d6e88c62?q=80&w=1200&auto=format&fit=crop" alt="Panel de Switchh mostrado en laptop y móvil" class="w-full rounded-2xl shadow-2xl border border-white/10" />
+          <div class="hidden md:flex items-center gap-4 absolute -bottom-6 -left-6 bg-white text-brand-slate rounded-2xl shadow-xl p-4">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-8 h-8 text-brand-green"><path d="M3 12l2-2 4 4 8-8 2 2-10 10z"/></svg>
+            <div>
+              <p class="text-sm">Implementación rápida</p>
+              <p class="font-semibold">Listo para operar en minutos</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CARACTERÍSTICAS -->
+    <section id="caracteristicas" class="py-16 md:py-24">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6">
+        <header class="max-w-3xl" data-animate>
+          <h2 class="text-3xl md:text-4xl font-extrabold text-brand-navy">Características clave</h2>
+          <p class="mt-3 text-brand-slate/80">Diseñado para PyMEs que necesitan control, velocidad y simplicidad.</p>
+        </header>
+
+        <div class="mt-10 grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          <!-- 1 -->
+          <article class="p-6 bg-white rounded-2xl shadow-soft border border-brand-gray/20" data-animate>
+            <div class="w-10 h-10 rounded-xl bg-brand-navy/10 text-brand-navy grid place-items-center">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-5 h-5"><path d="M3 3h7v7H3zM14 3h7v7h-7zM3 14h7v7H3zM14 14h7v7h-7z"/></svg>
+            </div>
+            <h3 class="mt-4 font-bold text-lg">Multi-empresa — Multi-almacenes</h3>
+            <p class="mt-2 text-sm">Cada cliente opera en su propia base de datos → aislamiento, seguridad y escalabilidad.</p>
+          </article>
+          <!-- 2 -->
+          <article class="p-6 bg-white rounded-2xl shadow-soft border border-brand-gray/20" data-animate>
+            <div class="w-10 h-10 rounded-xl bg-brand-blue/10 text-brand-blue grid place-items-center">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-5 h-5"><path d="M3 12h18M12 3v18"/></svg>
+            </div>
+            <h3 class="mt-4 font-bold text-lg">Inventario en tiempo real</h3>
+            <p class="mt-2 text-sm">Entradas, salidas y existencia por almacén, siempre actualizadas.</p>
+          </article>
+          <!-- 3 -->
+          <article class="p-6 bg-white rounded-2xl shadow-soft border border-brand-gray/20" data-animate>
+            <div class="w-10 h-10 rounded-xl bg-brand-green/10 text-brand-green grid place-items-center">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-5 h-5"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+            </div>
+            <h3 class="mt-4 font-bold text-lg">Consultas completas</h3>
+            <p class="mt-2 text-sm">Ventas, compras y movimientos por sucursal, vendedor, producto, proveedor o cliente.</p>
+            <p class="mt-1 text-sm text-brand-slate/70">Desde cualquier dispositivo y lugar.</p>
+          </article>
+          <!-- 4 -->
+          <article class="p-6 bg-white rounded-2xl shadow-soft border border-brand-gray/20" data-animate>
+            <div class="w-10 h-10 rounded-xl bg-brand-navy/10 text-brand-navy grid place-items-center">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-5 h-5"><path d="M6 9l6 6 6-6"/></svg>
+            </div>
+            <h3 class="mt-4 font-bold text-lg">Compras y proveedores</h3>
+            <p class="mt-2 text-sm">Consulta por producto/proveedor y por rangos de fechas → mejor negociación y control de costos.</p>
+          </article>
+          <!-- 5 -->
+          <article class="p-6 bg-white rounded-2xl shadow-soft border border-brand-gray/20" data-animate>
+            <div class="w-10 h-10 rounded-xl bg-brand-blue/10 text-brand-blue grid place-items-center">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-5 h-5"><path d="M3 7h18M3 12h12M3 17h8"/></svg>
+            </div>
+            <h3 class="mt-4 font-bold text-lg">Pedidos móviles</h3>
+            <p class="mt-2 text-sm">Tus vendedores levantan pedidos en sitio; se convierten en remisión al surtir.</p>
+          </article>
+          <!-- 6 -->
+          <article class="p-6 bg-white rounded-2xl shadow-soft border border-brand-gray/20" data-animate>
+            <div class="w-10 h-10 rounded-xl bg-brand-green/10 text-brand-green grid place-items-center">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-5 h-5"><path d="M5 7h14M5 12h14M5 17h14"/></svg>
+            </div>
+            <h3 class="mt-4 font-bold text-lg">Ventas, remisiones y cotizaciones</h3>
+            <p class="mt-2 text-sm">Flujo cotización → remisión → factura para un ciclo comercial ágil.</p>
+          </article>
+          <!-- 7 -->
+          <article class="p-6 bg-white rounded-2xl shadow-soft border border-brand-gray/20" data-animate>
+            <div class="w-10 h-10 rounded-xl bg-brand-navy/10 text-brand-navy grid place-items-center">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-5 h-5"><path d="M4 6h16v12H4zM8 10h8"/></svg>
+            </div>
+            <h3 class="mt-4 font-bold text-lg">CFDI timbrado (XML y PDF)</h3>
+            <p class="mt-2 text-sm">Integración con PAC → cumplimiento fiscal y cobro formal.</p>
+          </article>
+          <!-- 8 -->
+          <article class="p-6 bg-white rounded-2xl shadow-soft border border-brand-gray/20" data-animate>
+            <div class="w-10 h-10 rounded-xl bg-brand-blue/10 text-brand-blue grid place-items-center">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-5 h-5"><path d="M4 19h16M4 5h16M7 10h10M7 14h7"/></svg>
+            </div>
+            <h3 class="mt-4 font-bold text-lg">Políticas de precios e impuestos</h3>
+            <p class="mt-2 text-sm">Listas por tipo de cliente, descuentos, IVA/IEPS/retenciones → margen y fiscalidad bajo control.</p>
+          </article>
+          <!-- 9 -->
+          <article class="p-6 bg-white rounded-2xl shadow-soft border border-brand-gray/20" data-animate>
+            <div class="w-10 h-10 rounded-xl bg-brand-green/10 text-brand-green grid place-items-center">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-5 h-5"><path d="M3 12h3l3 8 4-16 3 8h5"/></svg>
+            </div>
+            <h3 class="mt-4 font-bold text-lg">Consultas y reportes</h3>
+            <p class="mt-2 text-sm">Por producto, cliente, proveedor y fecha; mezcla de movimientos y remisiones para decisiones con datos.</p>
+          </article>
+          <!-- 10 -->
+          <article class="p-6 bg-white rounded-2xl shadow-soft border border-brand-gray/20" data-animate>
+            <div class="w-10 h-10 rounded-xl bg-brand-navy/10 text-brand-navy grid place-items-center">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-5 h-5"><path d="M4 6h16v12H4zM8 10h8"/></svg>
+            </div>
+            <h3 class="mt-4 font-bold text-lg">Interfaz 100% web y responsive</h3>
+            <p class="mt-2 text-sm">Diseño sencillo y rápido de aprender; úsalo desde cualquier dispositivo.</p>
+          </article>
+          <!-- 11 -->
+          <article class="p-6 bg-white rounded-2xl shadow-soft border border-brand-gray/20" data-animate>
+            <div class="w-10 h-10 rounded-xl bg-brand-blue/10 text-brand-blue grid place-items-center">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-5 h-5"><path d="M5 12l5 5L20 7"/></svg>
+            </div>
+            <h3 class="mt-4 font-bold text-lg">Implementación en minutos</h3>
+            <p class="mt-2 text-sm">Fácil de usar; empieza a operar sin fricción.</p>
+          </article>
+        </div>
+
+        <div class="mt-12 text-center" data-animate>
+          <a href="https://switchh.mx" target="_blank" rel="noopener" class="inline-flex items-center justify-center gap-2 px-8 py-4 rounded-2xl bg-brand-green text-white font-semibold shadow-soft hover:opacity-95">
+            Probar Switchh 30 días
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-5 h-5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <!-- BENEFICIOS -->
+    <section id="beneficios" class="bg-brand-white py-16 md:py-24">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6">
+        <header class="max-w-3xl" data-animate>
+          <h2 class="text-3xl md:text-4xl font-extrabold text-brand-navy">Beneficios que vas a notar</h2>
+          <p class="mt-3 text-brand-slate/80">Ahorra tiempo, reduce errores y toma decisiones con datos confiables.</p>
+        </header>
+
+        <div class="mt-10 grid md:grid-cols-3 gap-6">
+          <div class="p-6 bg-white rounded-2xl shadow-soft border border-brand-gray/20" data-animate>
+            <h3 class="font-bold">Arranca en minutos</h3>
+            <p class="mt-2 text-sm">Proceso de adopción sin fricción. Operación rápida y soporte incluido.</p>
+          </div>
+          <div class="p-6 bg-white rounded-2xl shadow-soft border border-brand-gray/20" data-animate>
+            <h3 class="font-bold">Equipo más productivo</h3>
+            <p class="mt-2 text-sm">Vendedores con pedidos móviles y oficina con inventario en tiempo real.</p>
+          </div>
+          <div class="p-6 bg-white rounded-2xl shadow-soft border border-brand-gray/20" data-animate>
+            <h3 class="font-bold">Decisiones con data</h3>
+            <p class="mt-2 text-sm">Reportes claros por producto, cliente, proveedor y fechas.</p>
+          </div>
+        </div>
+
+        <div class="mt-12 text-center" data-animate>
+          <a href="https://switchh.mx" target="_blank" rel="noopener" class="inline-flex items-center justify-center gap-2 px-8 py-4 rounded-2xl bg-brand-green text-white font-semibold shadow-soft hover:opacity-95">Ir a switchh.mx</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- FOTOS / GALERÍA -->
+    <section id="fotos" class="py-16 md:py-24">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6">
+        <header class="max-w-3xl" data-animate>
+          <h2 class="text-3xl md:text-4xl font-extrabold text-brand-navy">Galería</h2>
+          <p class="mt-3 text-brand-slate/80">Un vistazo a Switchh en acción.</p>
+        </header>
+        <div class="mt-8 grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <img src="https://images.unsplash.com/photo-1529336953121-ad5a0d43d0f6?q=80&w=1200&auto=format&fit=crop" alt="Dashboard en una laptop sobre escritorio" class="w-full h-64 object-cover rounded-xl border border-brand-gray/30" data-animate />
+          <img src="https://images.unsplash.com/photo-1529333166437-7750a6dd5a70?q=80&w=1200&auto=format&fit=crop" alt="Equipo colaborando con dispositivos móviles" class="w-full h-64 object-cover rounded-xl border border-brand-gray/30" data-animate />
+          <img src="https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?q=80&w=1200&auto=format&fit=crop" alt="Vendedor registrando un pedido en tablet" class="w-full h-64 object-cover rounded-xl border border-brand-gray/30" data-animate />
+          <img src="https://images.unsplash.com/photo-1551836022-d5d88e9218df?q=80&w=1200&auto=format&fit=crop" alt="Control de inventario en almacén" class="w-full h-64 object-cover rounded-xl border border-brand-gray/30" data-animate />
+          <img src="https://images.unsplash.com/photo-1521737604893-d14cc237f11d?q=80&w=1200&auto=format&fit=crop" alt="Análisis de ventas y reportes" class="w-full h-64 object-cover rounded-xl border border-brand-gray/30" data-animate />
+          <img src="https://images.unsplash.com/photo-1460925895917-afdab827c52f?q=80&w=1200&auto=format&fit=crop" alt="Trabajo remoto desde cualquier lugar" class="w-full h-64 object-cover rounded-xl border border-brand-gray/30" data-animate />
+        </div>
+      </div>
+    </section>
+
+    <!-- CTA FINAL -->
+    <section id="cta" class="py-16 md:py-24 bg-brand-navy text-white text-center">
+      <div class="max-w-4xl mx-auto px-4 sm:px-6" data-animate>
+        <h2 class="text-3xl md:text-4xl font-extrabold">Empieza hoy — 30 días de prueba</h2>
+        <p class="mt-3 text-white/90">Sin tarjeta al inicio. Cancela cuando quieras.</p>
+        <div class="mt-8 flex flex-wrap justify-center gap-4">
+          <a href="https://switchh.mx" target="_blank" rel="noopener" class="px-8 py-4 rounded-2xl bg-brand-green text-white font-semibold shadow-soft hover:opacity-95">Ir a switchh.mx</a>
+          <a href="#contacto" class="px-8 py-4 rounded-2xl border border-white/30 hover:bg-white/10">Hablar con ventas</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- CONTACTO (Demo) -->
+    <section id="contacto" class="py-16 md:py-24">
+      <div class="max-w-4xl mx-auto px-4 sm:px-6">
+        <header data-animate>
+          <h2 class="text-3xl md:text-4xl font-extrabold text-brand-navy">Contacto</h2>
+          <p class="mt-3 text-brand-slate/80">Déjanos tus datos y te contactamos. (Formulario de demostración)</p>
+        </header>
+        <form class="mt-8 grid gap-4 md:grid-cols-2" aria-label="Formulario de contacto (demostración)" data-animate>
+          <div>
+            <label for="nombre" class="block text-sm font-medium">Nombre</label>
+            <input id="nombre" type="text" class="mt-1 w-full rounded-xl border border-brand-gray/40 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-brand-blue/40" placeholder="Tu nombre" />
+          </div>
+          <div>
+            <label for="email" class="block text-sm font-medium">Email</label>
+            <input id="email" type="email" class="mt-1 w-full rounded-xl border border-brand-gray/40 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-brand-blue/40" placeholder="[email protected]" />
+          </div>
+          <div class="md:col-span-2">
+            <label for="mensaje" class="block text-sm font-medium">Mensaje</label>
+            <textarea id="mensaje" rows="4" class="mt-1 w-full rounded-xl border border-brand-gray/40 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-brand-blue/40" placeholder="Cuéntanos sobre tu empresa"></textarea>
+          </div>
+          <div class="md:col-span-2">
+            <button type="button" class="inline-flex items-center justify-center px-6 py-3 rounded-xl bg-brand-green text-white font-semibold shadow-soft hover:opacity-95">Enviar (demo)</button>
+            <p class="mt-2 text-xs text-brand-slate/70">*Este formulario es una demostración: integraremos tu backend o un servicio como Formspree/Netlify al publicar.</p>
+          </div>
+        </form>
+      </div>
+    </section>
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="border-t border-brand-gray/30 py-10 text-sm" role="contentinfo">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 flex flex-col md:flex-row items-center justify-between gap-4">
+      <div class="flex items-center gap-2">
+        <span class="inline-block w-6 h-6 rounded-lg bg-brand-navy"></span>
+        <span>© <span id="year"></span> Switchh. Todos los derechos reservados.</span>
+      </div>
+      <nav class="flex items-center gap-4" aria-label="Legal">
+        <a href="#" class="hover:text-brand-navy">Privacidad</a>
+        <a href="#" class="hover:text-brand-navy">Términos</a>
+      </nav>
+    </div>
+  </footer>
+
+  <!-- JS: menú móvil + animaciones on-scroll con respeto a reduced motion -->
+  <script>
+    const menuBtn = document.getElementById('menuBtn');
+    const menuMovil = document.getElementById('menuMovil');
+    if (menuBtn && menuMovil) {
+      menuBtn.addEventListener('click', () => {
+        const expanded = menuBtn.getAttribute('aria-expanded') === 'true';
+        menuBtn.setAttribute('aria-expanded', String(!expanded));
+        menuMovil.classList.toggle('hidden');
+      });
+    }
+
+    // Año dinámico
+    document.getElementById('year').textContent = new Date().getFullYear();
+
+    // Animaciones al hacer visible
+    const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (!prefersReduced && 'IntersectionObserver' in window) {
+      const els = document.querySelectorAll('[data-animate]');
+      const io = new IntersectionObserver((entries) => {
+        entries.forEach(e => {
+          if (e.isIntersecting) {
+            e.target.classList.add('revealed');
+            io.unobserve(e.target);
+          }
+        });
+      }, { threshold: 0.15 });
+      els.forEach(el => io.observe(el));
+    } else {
+      // Si no hay IO o prefiere menos movimiento, revela todo
+      document.querySelectorAll('[data-animate]').forEach(el => el.classList.add('revealed'));
+    }
+  </script>
+</body>
+</html>

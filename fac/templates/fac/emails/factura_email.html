@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h2>Enviar Factura por Email</h2>
+{% if messages %}
+    <div class="container mt-2">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Cerrar"></button>
+        </div>
+        {% endfor %}
+    </div>
+{% endif %}
+
+<form method="post" enctype="multipart/form-data" class="row g-3">
+    {% csrf_token %}
+
+    <div class="col-md-4">
+        <label class="form-label">Destinatario 1</label>
+        <input type="email" name="destinatario1" class="form-control" value= "{{ destinatario1 }}" required>
+    </div>
+    <div class="col-md-4">
+        <label class="form-label">Destinatario 2</label>
+        <input type="email" name="destinatario2" class="form-control" value= "{{ destinatario2 }}">
+    </div>
+    <div class="col-md-4">
+        <label class="form-label">Destinatario 3</label>
+        <input type="email" name="destinatario3" class="form-control" value= "{{ destinatario3 }}">
+    </div>
+
+    <div class="col-md-6">
+        <label class="form-label">Archivo PDF:  {{ nombre_factura}}.pdf</label>
+        <label class="form-label">Archivo XML: {{ nombre_factura }}.xml</label>
+    </div>
+
+    <div class="col-md-12">
+        <button type="submit" class="btn btn-primary">Enviar Email</button>
+    </div>
+</form>
+{% endblock %}

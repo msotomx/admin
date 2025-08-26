@@ -1,0 +1,15 @@
+<!doctype html>
+<html>
+  <body>
+    <p>Hola {{ factura.cliente.nombre|default:"" }},</p>
+    <p>Adjuntamos tu factura <strong>{{ factura.numero_factura }}</strong>
+       correspondiente a {{ factura.empresa.nombre_comercial }}.</p>
+    <ul>
+      <li>Fecha: {{ factura.fecha_emision|date:"d/m/Y" }}</li>
+      <li>Total: {{ factura.total }}</li>
+      <li>RFC Emisor: {{ factura.empresa.rfc|default:"" }}</li>
+    </ul>
+    <p>Incluimos los archivos <strong>PDF</strong> y <strong>XML</strong> como adjuntos.</p>
+    <p>Gracias por tu preferencia.</p>
+  </body>
+</html>

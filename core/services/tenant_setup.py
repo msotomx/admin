@@ -103,6 +103,7 @@ def crear_tenant_completo(request, nombre_comercial, username, password, contact
         contacto_telefono= contacto_telefono,
         contacto_email   = contacto_email,
         codigo_empresa   = codigo_empresa,
+        num_usuarios     = 1,
     )
 
     # paso 8: Crear usuario capturado en el formulario, en User default
@@ -113,7 +114,7 @@ def crear_tenant_completo(request, nombre_comercial, username, password, contact
     usuario_global = UserModel._default_manager.db_manager('default').create_user(
         username=username,
         password=password,
-        email=f'{username}@switchh.com'
+        email=contacto_email
     )
 
     # Paso 9: Crear el PerfilUsuario del usuario capturado en el formulario
@@ -121,7 +122,7 @@ def crear_tenant_completo(request, nombre_comercial, username, password, contact
     PerfilUsuario.objects.using('default').create(
         user=usuario_global,
         empresa=empresa_db,
-        tipo_usuario = "1"
+        tipo_usuario = "A" # Administrador O-Operativo V-Vendedor
     )
 
     # Paso 10: Cargar datos iniciales (catálogos, etc.)

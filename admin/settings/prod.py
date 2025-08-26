@@ -35,6 +35,7 @@ INSTALLED_APPS = [
     'inv',
     'cxc',
     'fac',
+    'timbres',
     'widget_tweaks',
     'django.contrib.admin',
     'django.contrib.auth',
@@ -117,7 +118,7 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/4.2/topics/i18n/
 
-LANGUAGE_CODE = 'en-us'
+LANGUAGE_CODE = 'es'
 
 USE_TZ = True
 TIME_ZONE = 'America/Mexico_City'
@@ -152,19 +153,42 @@ LOGIN_URL = reverse_lazy('core:login')
 LOGOUT_REDIRECT_URL = reverse_lazy('core:login')
 LOGIN_REDIRECT_URL = reverse_lazy('core:inicio')
 
-# Para desarrollo, usando la consola de Django para pruebas
 EMAIL_BACKEND = config('EMAIL_BACKEND')
-EMAIL_HOST = config('EMAIL_HOST')
-EMAIL_PORT = config('EMAIL_PORT')
-EMAIL_USE_TLS = config('EMAIL_USE_TLS') 
-EMAIL_HOST_USER = config('EMAIL_HOST_USER')
-EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD')
-DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
+
+AWS_SES_REGION_NAME=config('AWS_SES_REGION_NAME')
+AWS_SES_REGION_ENDPOINT=config('AWS_SES_REGION_ENDPOINT')
+AWS_ACCESS_KEY_ID=config('AWS_ACCESS_KEY_ID')
+AWS_SECRET_ACCESS_KEY=config('AWS_SECRET_ACCESS_KEY')
+
+#EMAIL_HOST = config('EMAIL_HOST')
+#EMAIL_PORT = config('EMAIL_PORT')
+#EMAIL_USE_TLS = config('EMAIL_USE_TLS') 
+#EMAIL_HOST_USER = config('EMAIL_HOST_USER')
+#EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD')
+DEFAULT_FROM_EMAIL = config("DEFAULT_FROM_EMAIL")
+DEFAULT_FROM_NAME = config("DEFAULT_FROM_NAME")
+SERVER_EMAIL = config('SERVER_EMAIL')
+REPLY_TO_EMAIL = config("REPLY_TO_EMAIL")
+MAIL_TIMEOUT = config("EMAIL_TIMEOUT", cast=int, default=15)
+
+
+SES_SANDBOX = config("SES_SANDBOX")
+SES_PROD = config("SES_PROD", cast=bool, default=False)
+SES_SANDBOX_WHITELIST = set([e.strip().lower() for e in config("SES_SANDBOX_WHITELIST", default="").split(",") if e.strip()])
 
 PAC_CLIENT_ID = '0ed04e34-760b-41ef-b778-68c35891d7f1'
 PAC_API_TOKEN = 'CyJdHuv41rlHtTGfH1Y9bvwxFH24c4SGbP35WP1M5cc8743a'
 PAC_URL = 'https://dev.techbythree.com/api/v1/facturacion/timbrar'
 
+from django.contrib.messages import constants as messages
+
+MESSAGE_TAGS = {
+    messages.DEBUG: 'secondary',
+    messages.INFO: 'info',
+    messages.SUCCESS: 'success',
+    messages.WARNING: 'warning',
+    messages.ERROR: 'danger',
+}
 
 # Seguridad para sesiones en desarrollo
 SESSION_ENGINE = 'django.contrib.sessions.backends.db'
@@ -184,7 +208,6 @@ CSRF_TRUSTED_ORIGINS = [
     'https://www.switchh.mx'
 ]
 
-SECURE_SSL_REDIRECT = True  # Redirige todo HTTP a HTTPS
 
 # HSTS (HTTP Strict Transport Security)
 SECURE_HSTS_SECONDS = 31536000  # 1 año
@@ -200,3 +223,9 @@ SECURE_CONTENT_TYPE_NOSNIFF = True
 # Previene que el navegador cargue scripts inseguros
 SECURE_BROWSER_XSS_FILTER = True
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+SECURE_SSL_REDIRECT = True  # Redirige todo HTTP a HTTPS
+
+CELULAR = config('CEL_WA')
+MENSAJE_INICIO1 = config('MENSAJE_INICIO1')
+MENSAJE_INICIO2 = config('MENSAJE_INICIO2')
+MENSAJE_INICIO3 = config('MENSAJE_INICIO3')

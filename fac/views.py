@@ -3,7 +3,7 @@
 from django.views import View
 from django.shortcuts import render, redirect
 from django.contrib import messages
-from core.models import Empresa, TimbresCliente
+from core.models import Empresa
 from fac.models import Factura, DetalleFactura, TipoComprobante, Exportacion
 from inv.models import Producto, Moneda, ClaveMovimiento, Remision, DetalleRemision
 from cxc.models import Cliente
@@ -15,6 +15,7 @@ from django.http import JsonResponse
 from django.urls import reverse_lazy
 from django.views.generic import ListView, CreateView, UpdateView, DeleteView, DetailView
 from django.views.generic.edit import CreateView, UpdateView
+from django.http import HttpResponseBadRequest
 
 from django.forms import modelformset_factory
 from django.views.decorators.http import require_GET
@@ -25,8 +26,7 @@ from django.contrib.auth.decorators import login_required
 from core.decorators import tenant_required
 from django.http import HttpResponseRedirect
 from decouple import config
-
-
+from timbres.models import TimbresCliente
 
 # CRUD FACTURAS ==================
 from decimal import Decimal
@@ -666,7 +666,7 @@ def generar_json_cfdi(request,factura):
         descuentoF = float('0.0')
     camposPDF = {
         "tipoComprobante": "Factura",
-        "Comentarios": "Aqui van los comentarios de la factura",
+        "Comentarios": "",
         "calleEmisor": emisor.calle_expedicion,
         "noExteriorEmisor": emisor.numero_exterior_expedicion,
         "noInteriorEmisor": emisor.numero_interior_expedicion,
@@ -703,7 +703,7 @@ def generar_json_cfdi(request,factura):
         "subtotal": float(factura.subtotal) + float(factura.descuento_factura),
         "total": float(factura.total),
         "lugar_expedicion": factura.lugar_expedicion,
-        "observaciones": "observaciones de la factura vamos a ver que tantos caracteres acepta este campo de observaciones",
+        "observaciones": " ",
         "exportacion": factura.exportacion.exportacion,
         "respuesta_compatibilidad_terceros": False,
         # Emisor
@@ -748,6 +748,7 @@ def guardar_archivos_factura(request,factura, uuid=None, sello=None, sello_sat=N
         - xml y pdf en otra funcion 
         - uuid, sello... 
     """
+    
     if not factura.pk:
         raise ValueError("La factura debe existir antes de guardar archivos")
     # convierte fecha_timbrado a aware
@@ -796,7 +797,7 @@ def guardar_archivos_factura(request,factura, uuid=None, sello=None, sello_sat=N
         success, mensaje = consultar_y_guardar_archivos(request,factura)
         if not success:
                 return JsonResponse({'success': False, 'error': mensaje}, status=500)
-
+        
     except Exception as e:
             logger.error(f"Error guardando factura tras timbrado {factura.pk}: {e}")
             raise
@@ -832,11 +833,21 @@ def timbrar_factura(request,factura_id):
         usuario=request.user.username
     )
     # 1) Verificar estatus de la factura
-    timbres = TimbresCliente.objects.using('default').get(empresa=factura.empresa)
-
+    
+    try:
+        timbres = TimbresCliente.objects.using('default').get(codigo_empresa=factura.empresa.codigo_empresa)
+    except TimbresCliente.DoesNotExist:
+        return JsonResponse(
+            {'success': False, 'error' : 'No hay folios disponibles para timbrar. Solicitar timbres en la opcion de Configuración - Solicitar Timbres'},
+            status=400
+        )
+    
     if timbres.disponibles <= 0:
-        return JsonResponse("No tienes folios disponibles para timbrar."
-                            "Solicitar timbres al whatsapp 656-304-9836")
+        return JsonResponse(
+            {'success': False, 'error' : 'No hay folios disponibles para timbrar. Solicitar timbres en la opcion de Configuración - Solicitar Timbres'},
+            status=400
+        )
+
     if factura.estatus not in ['Borrador', 'Error']:
         return JsonResponse(
             {'success': False, 'error': 'Estatus no válido para timbrar'},
@@ -855,7 +866,6 @@ def timbrar_factura(request,factura_id):
             # Aquí iría el código para enviar al PAC
             print("CFDI validado correctamente, listo para enviarse.")
         else:
-                        
             return JsonResponse({'success': False, 'error': 'Error al generar CFDI: validación fallida.'}, status=400)        
     
     except ValueError as e:
@@ -888,11 +898,10 @@ def timbrar_factura(request,factura_id):
     except ValueError:
         data = None
     
-
     uuid = None
     if data and isinstance(data, dict):
         uuid = data.get("data", {}).get("timbre_fiscal", {}).get("uuid")
-    
+
     if 200 <= resp.status_code < 300 and uuid:
         try:
             timbre = data["data"].get("timbre_fiscal", {})
@@ -909,11 +918,11 @@ def timbrar_factura(request,factura_id):
             )
         except Exception as e:
             return JsonResponse({'success': False, 'error': f'Error al guardar archivos: {e}'}, status=500)
-
+        
         # Actualiza folios usados en la empresa ***
         timbres.utilizados += 1
         timbres.save(using='default')
-
+        
         return JsonResponse({'success': True, 'uuid': factura.uuid})
 
     else:
@@ -1022,11 +1031,16 @@ def consultar_y_guardar_archivos(request, factura):
 
         if not xml_str or not pdf_b64:
             return False, "XML o PDF no disponibles en la respuesta"
-
+        
         # Guardar en el modelo
-        factura.xml.save(f"{nombre_factura}.xml", ContentFile(xml_str.encode('utf-8')), save=False)
-        factura.pdf.save(f"{nombre_factura}.pdf", ContentFile(base64.b64decode(pdf_b64)), save=False)
-        factura.save(using='tenant',update_fields=["xml", "pdf"])
+        try:
+            factura.xml.save(f"{nombre_factura}.xml", ContentFile(xml_str.encode('utf-8')), save=False)
+            factura.pdf.save(f"{nombre_factura}.pdf", ContentFile(base64.b64decode(pdf_b64)), save=False)
+            factura.save(using='tenant', update_fields=["xml", "pdf"])
+        except Exception as e:
+            import traceback
+            print(traceback.format_exc())  # para que se vea el error en los logs
+            return HttpResponseBadRequest(str(e))
 
         return True, "Archivos descargados y guardados correctamente"
 
@@ -1179,3 +1193,271 @@ class CancelarFacturaView(TenantRequiredMixin, View):
             messages.error(request, f"Error de conexión con el PAC: {str(e)}")
 
         return redirect('fac:factura_list')
+
+from email.utils import formataddr
+from django.conf import settings
+from django.core.exceptions import ValidationError
+from django.core.validators import validate_email
+from django.contrib import messages
+from django.shortcuts import redirect, render, get_object_or_404
+import mimetypes, os
+from django.core.files.storage import default_storage
+from django.core.mail import EmailMessage, get_connection
+
+def _attach_filefield(email, ff):
+    if not ff or not getattr(ff, "name", None):
+        return
+    name = os.path.basename(ff.name)
+    if default_storage.exists(ff.name):
+        with default_storage.open(ff.name, "rb") as f:
+            data = f.read()
+        mime, _ = mimetypes.guess_type(name)
+        email.attach(name, data, mime or "application/octet-stream")
+
+
+def enviar_factura_email22(request, pk):
+    factura = get_object_or_404(Factura, pk=pk)
+
+    if request.method == "POST":
+        candidatos = [
+            request.POST.get('destinatario1', '').strip(),
+            request.POST.get('destinatario2', '').strip(),
+            request.POST.get('destinatario3', '').strip(),
+        ]
+        emails_validos = []
+        for d in candidatos:
+            if not d:
+                continue
+            try:
+                validate_email(d)
+                emails_validos.append(d)
+            except ValidationError:
+                messages.error(request, f"Correo inválido: {d}")
+                return redirect('fac:enviar_factura_email', pk=pk)
+
+        if not emails_validos:
+            messages.error(request, "Debe ingresar al menos un destinatario válido.")
+            return redirect('fac:enviar_factura_email', pk=pk)
+
+        # Sandbox vs Producción (ahora estamos en producción SES_SANDBOX = False)
+        if getattr(settings, "SES_SANDBOX", False):
+            no_permitidos = [e for e in emails_validos
+                             if e.lower() not in getattr(settings, "SES_SANDBOX_WHITELIST", [])]
+            if no_permitidos:
+                messages.error(request, f"En modo sandbox solo puedes enviar a verificados: {', '.join(no_permitidos)}")
+                return redirect('fac:enviar_factura_email', pk=pk)
+
+        asunto = request.POST.get('asunto', f"Factura {factura.numero_factura}")
+        mensaje = request.POST.get('mensaje', '')
+        print("[Enviar_fatura_email] - antes de try")
+        try:
+            from_email = formataddr((
+                getattr(settings, "DEFAULT_FROM_NAME", "Switchh"),
+                getattr(settings, "DEFAULT_FROM_EMAIL", "[email protected]")
+            ))
+
+            # Usa la conexión configurada (SMTP SES o django-ses)
+            connection = get_connection()  # coge EMAIL_BACKEND y credenciales de settings
+
+            extra_headers = {}
+            if hasattr(settings, "SES_CONFIGURATION_SET"):
+                extra_headers["X-SES-CONFIGURATION-SET"] = settings.SES_CONFIGURATION_SET
+            print("[Enviar_fatura_email] - B")
+            email = EmailMessage(
+                subject=asunto,
+                body=mensaje,
+                from_email=from_email,
+                to=emails_validos,
+                reply_to=[getattr(settings, "REPLY_TO_EMAIL", getattr(settings, "DEFAULT_FROM_EMAIL", ""))] if getattr(settings, "REPLY_TO_EMAIL", None) else None,
+                headers=extra_headers or None,
+                connection=connection,
+            )
+
+            _attach_filefield(email, factura.xml)
+            _attach_filefield(email, factura.pdf)
+            print("[Enviar_fatura_email] - C")
+
+            email.send(fail_silently=False)
+            messages.success(request, "Factura enviada correctamente.")
+            return redirect('fac:factura_list')
+
+        except Exception as e:
+            messages.error(request, f"Error al enviar el correo: {e}")
+            return redirect('fac:enviar_factura_email', pk=pk)
+    
+    nombre_pdf = os.path.basename(factura.pdf.name) if getattr(factura.pdf, "name", None) else ""
+    nombre_xml = os.path.basename(factura.xml.name) if getattr(factura.xml, "name", None) else ""
+    contexto = {
+        'factura': factura,
+        'destinatario1': factura.cliente.email,
+        'destinatario2': factura.cliente.email2,
+        'destinatario3': factura.cliente.email3,
+        'asunto': f"Factura {factura.numero_factura}",
+        'mensaje': "Enviamos adjunto factura timbrada, agradecemos por su preferencia.\n" + f"{factura.empresa.nombre_fiscal}",
+        'nombre_pdf': nombre_pdf,
+        'nombre_xml': nombre_xml,
+        'nombre_factura': f"FACTURA_{factura.cliente.rfc}_{factura.numero_factura}",
+    }
+    return render(request, "fac/factura_email.html", contexto)
+
+# NUEVA VERSION PARA ENVIO DE FACTURAS:
+from email.utils import parseaddr, formataddr
+from django.core.validators import validate_email
+from django.core.exceptions import ValidationError
+
+def _sanitize_addr(raw):
+    """Regresa (name, addr) validando que no haya controles/espacios en la parte local."""
+    if not raw:
+        return None, None
+    s = str(raw).replace('\r', '').replace('\n', '').strip()
+    name, addr = parseaddr(s)     # soporta "Nombre <email@dom.com>"
+    addr = (addr or "").strip()
+    if not addr:
+        return None, None
+    # valida formato y que la parte local no tenga espacios/control
+    validate_email(addr)
+    local, sep, domain = addr.partition('@')
+    if not sep or any(ch.isspace() for ch in local):
+        raise ValidationError("Email inválido (espacios en parte local).")
+    return name, addr
+
+import os, mimetypes
+from django.core.files.storage import default_storage
+from django.core.mail import EmailMultiAlternatives
+from django.template.loader import render_to_string
+from django.utils.html import strip_tags
+from django.core.validators import validate_email
+from django.core.exceptions import ValidationError
+from django.contrib import messages
+from django.conf import settings
+from django.shortcuts import get_object_or_404, redirect
+from django.views.decorators.http import require_POST
+
+def _emails_validos(*candidatos):
+    limpios, vistos = [], set()
+    for e in candidatos:
+        if not e:
+            continue
+        e = e.strip().lower()
+        if not e or e in vistos:
+            continue
+        try:
+            validate_email(e)
+            limpios.append(e)
+            vistos.add(e)
+        except ValidationError:
+            pass
+    return limpios
+
+import os
+from django.shortcuts import render, get_object_or_404, redirect
+from django.urls import reverse
+from django.views.decorators.http import require_http_methods
+from django.core.mail import EmailMultiAlternatives
+from django.template.loader import render_to_string
+from django.utils.html import strip_tags
+from django.contrib import messages
+from django.conf import settings
+import time
+
+@require_http_methods(["GET", "POST"])
+def enviar_factura_email(request, pk):
+    factura = get_object_or_404(Factura, pk=pk)
+    next_url = (
+        request.GET.get("next")
+        or request.POST.get("next")
+        or reverse("fac:factura_list")
+    )
+
+    if request.method == "GET":
+        nombre_factura= f"FACTURA_{factura.cliente.rfc}_{factura.numero_factura}" if factura.cliente and factura.numero_factura else "factura-sin-datos"
+        return render(
+            request,
+            "fac/emails/factura_email.html",
+            {
+                "factura": factura,
+                "next": next_url,
+                "destinatario1": factura.cliente.email,
+                "destinatario2": factura.cliente.email2,
+                "destinatario3": factura.cliente.email3,
+                "nombre_factura":nombre_factura,
+                "sugerido": getattr(getattr(factura, "cliente", None), "email", ""),
+            },
+        )
+    
+    # POST → enviar
+    raws = [
+        request.POST.get("destinatario1", ""),
+        request.POST.get("destinatario2", ""),
+        request.POST.get("destinatario3", ""),
+    ]
+    dests = []
+    for r in raws:
+        try:
+            _, addr = _sanitize_addr(r)
+            if addr:
+                dests.append(addr.lower())
+        except ValidationError:
+            pass
+        
+    if not dests:
+        messages.error(request, "Captura al menos un correo válido.")
+        return render(
+            request,
+            "fac/emails/factura_email.html",
+            {
+                "factura": factura,
+                "next": next_url,
+                "sugerido": getattr(getattr(factura, "cliente", None), "email", ""),
+                "destinatario1": request.POST.get("destinatario1", ""),
+                "destinatario2": request.POST.get("destinatario2", ""),
+                "destinatario3": request.POST.get("destinatario3", ""),
+                "nombre_factura":nombre_factura,
+            },
+        )
+
+    asunto = f"Factura {getattr(factura,'serie','')}{'-' if getattr(factura,'folio',None) else ''}{getattr(factura,'folio','')} | {getattr(getattr(factura,'empresa',None),'nombre_comercial','SWITCHH')}"
+    html_body = render_to_string("fac/emails/factura.html", {"factura": factura})
+    text_body = strip_tags(html_body)
+
+    # Sanitizando From
+    fn, fa = _sanitize_addr(settings.DEFAULT_FROM_EMAIL)
+    from_email = formataddr((fn or "", fa)) if fa else settings.DEFAULT_FROM_EMAIL
+
+    # Reply-To (usa parámetro reply_to en vez de header crudo)
+    reply_to_list = []
+    rt = getattr(settings, "REPLY_TO_EMAIL", None)
+    try:
+        _, rta = _sanitize_addr(rt)
+        if rta:
+            reply_to_list = [rta]
+    except ValidationError:
+        pass
+
+    msg = EmailMultiAlternatives(
+        subject=asunto,
+        body=text_body,
+        from_email=from_email,
+        to=dests,
+        reply_to=reply_to_list,   # ← en vez de headers={"Reply-To": ...}
+    )
+    msg.attach_alternative(html_body, "text/html")
+
+    # adjuntos con _attach_filefield(...)
+    # Adjuntos (usa tu helper existente)
+    _attach_filefield(msg, getattr(factura, "pdf", None))
+    _attach_filefield(msg, getattr(factura, "xml", None))
+
+    try:
+        print("Antes de enviar")
+        sent = msg.send()
+        print("send() OK:", sent)
+        
+        if sent == 1:
+            messages.success(request, f"Factura enviada a: {', '.join(dests)}.")
+        else:
+            messages.error(request, "SES no aceptó el mensaje.")
+    except Exception as e:
+        messages.error(request, f"Error al enviar: {e}")
+
+    return redirect(next_url)

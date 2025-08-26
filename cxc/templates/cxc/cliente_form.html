@@ -70,34 +70,49 @@
                 <label class="form-label small">C.P. Entrega</label>
                 {{ form.codigo_postal_entrega|add_bootstrap_class }}
             </div>
-            <div class="col-md-3 mb-2">
+            <div class="col-md-2 mb-2">
                 <label class="form-label small">Ciudad Entrega</label>
                 {{ form.ciudad_entrega|add_bootstrap_class }}
-            </div>
-            <div class="col-md-3 mb-2">
-                <label class="form-label small">Teléfono 1</label>
-                {{ form.telefono1|add_bootstrap_class }}
-            </div>
-            <div class="col-md-3 mb-2">
-                <label class="form-label small">Teléfono 2</label>
-                {{ form.telefono2|add_bootstrap_class }}
-            </div>
-            <div class="col-md-4 mb-2">
-                <label class="form-label small">Email</label>
-                {{ form.email|add_bootstrap_class }}
             </div>
             <div class="col-md-2 mb-2">
                 <label class="form-label small">Plazo Crédito</label>
                 {{ form.plazo_credito|add_bootstrap_class }}
             </div>
             <div class="col-md-3 mb-2">
+                <label class="form-label small">Nombre del Contacto</label>
+                {{ form.campo_libre_str|add_bootstrap_class }}
+            </div>
+
+            <div class="col-md-3 mb-2">
+                <label class="form-label small">Email 1</label>
+                {{ form.email|add_bootstrap_class }}
+            </div>
+            <div class="col-md-3 mb-2">
+                <label class="form-label small">Email 2</label>
+                {{ form.email2|add_bootstrap_class }}
+            </div>
+            <div class="col-md-3 mb-2">
+                <label class="form-label small">Email 3</label>
+                {{ form.email3|add_bootstrap_class }}
+            </div>
+            <div class="col-md-2 mb-2">
+                <label class="form-label small">Teléfono 1</label>
+                {{ form.telefono1|add_bootstrap_class }}
+            </div>
+            <div class="col-md-2 mb-2">
+                <label class="form-label small">Teléfono 2</label>
+                {{ form.telefono2|add_bootstrap_class }}
+            </div>
+
+            <div class="col-md-2 mb-2">
                 <label class="form-label small">Límite Crédito</label>
                 {{ form.limite_credito|add_bootstrap_class }}
             </div>
-            <div class="col-md-3 mb-2">
+            <div class="col-md-2 mb-2">
                 <label class="form-label small">Cuenta Contable</label>
                 {{ form.cuenta_cnt|add_bootstrap_class }}
             </div>
+
             <div class="col-md-2 mb-2 form-check">
                 {{ form.aplica_retencion_iva }}
                 <label class="form-check-label small">Retención IVA</label>
@@ -111,10 +126,6 @@
             <div class="col-md-9 mb-2">
                 <label class="form-label small">Comentarios</label>
                 {{ form.comentarios|add_bootstrap_class }}
-            </div>
-            <div class="col-md-3 mb-2">
-                <label class="form-label small">Nombre del Contacto</label>
-                {{ form.campo_libre_str|add_bootstrap_class }}
             </div>
 
         </div>

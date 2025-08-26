@@ -51,8 +51,8 @@ def set_current_tenant_connection(alias):
     set_current_tenant('tenant', empresa_id, empresa_fiscal)
     
 class TenantDatabaseRouter:
-    DEFAULT_MODELS = ['EmpresaDB', 'PerfilUsuario', 'CertificadoCSD',
-                      'MovimientoTimbresGlobal','TimbresCliente'] 
+    DEFAULT_MODELS = ['empresadb', 'perfilusuario', 'certificadocsd',
+                      'movimientotimbresglobal','timbrescliente'] 
     DEFAULT_APPS = ['auth', 'contenttypes', 'sessions', 'admin','timbres']
 
     def db_for_read(self, model, **hints):

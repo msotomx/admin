@@ -22,7 +22,7 @@ class ClienteForm(forms.ModelForm):
             'telefono1': forms.TextInput(attrs={'class': 'form-control'}),
             'telefono2': forms.TextInput(attrs={'class': 'form-control'}),
             'direccion': forms.Textarea(attrs={'rows': 3, 'class': 'form-control form-control-sm'}),
-            'direccion_entrega': forms.Textarea(attrs={'rows': 3, 'class': 'form-control form-control-sm'}),
+            'direccion_entrega': forms.Textarea(attrs={'rows': 2, 'class': 'form-control form-control-sm'}),
             'comentarios': forms.Textarea(attrs={'rows': 2, 'class': 'form-control form-control-sm'}),
         }
         

@@ -1,11 +1,26 @@
 {% extends 'base.html' %}
-
+{% load bootstrap_filters %}
 {% block content %}
-<h3>Registrar Entrada de Timbres</h3>
-<form method="post">
-  {% csrf_token %}
-  {{ form.as_p }}
-  <button type="submit" class="btn btn-primary">Guardar</button>
-  <a href="{% url 'tibres:timbres_movimiento_list' %}" class="btn btn-secondary">Cancelar</a>
-</form>
+<div class="container mt-4">
+  <h3>Registrar Entrada de Timbres</h3>
+  <form method="POST">
+      {% csrf_token %}
+      <div class="col-md-3 mb-2">
+          <label class="form-label small">Referencia</label>
+          {{ form.referencia|add_bootstrap_class }}
+      </div>
+      <div class="col-md-3 mb-2">
+          <label class="form-label small">Cantidad</label>
+          {{ form.cantidad|add_bootstrap_class }}
+      </div>
+      <div class="col-md-3 mb-2">
+          <label class="form-label small">Importe</label>
+          {{ form.importe|add_bootstrap_class }}
+      </div>
+      <div class="mt-4">
+          <button type="submit" class="btn btn-success">Grabar Compra</button>
+          <a href="{% url 'timbres:timbres_movimiento_list' %}" class="btn btn-secondary">Cancelar</a>
+      </div>
+  </form>
+</div>
 {% endblock %}

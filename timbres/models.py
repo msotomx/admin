@@ -7,12 +7,9 @@ class MovimientoTimbresGlobal(models.Model):
     usuario = models.CharField(max_length=20)
     tipo = models.CharField(max_length=1)
     fecha = models.DateField()
-    cantidad = models.IntegerField()
+    cantidad = models.DecimalField(max_digits=10, decimal_places=2)
     precio_unit = models.DecimalField(max_digits=10, decimal_places=2)
     importe = models.DecimalField(max_digits=12, decimal_places=2)
-
-    class Meta:
-        ordering = ['-fecha']
 
     def __str__(self):
         return f"{self.referencia} - {self.fecha.strftime('%Y-%m-%d')} - (+{self.cantidad})"

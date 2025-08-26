@@ -44,6 +44,15 @@ class Exportacion(models.Model):
     def __str__(self):
         return self.nombre
 
+def factura_xml_path(instance, filename):
+    # Usa el codigo_empresa como subdir para separar facturas timbradas
+    empresa_codigo = instance.empresa.codigo_empresa if instance.empresa else "desconocida"
+    return f"cfdi/{empresa_codigo}/xml/{filename}"
+
+def factura_pdf_path(instance, filename):
+    empresa_codigo = instance.empresa.codigo_empresa if instance.empresa else "desconocida"
+    return f"cfdi/{empresa_codigo}/pdf/{filename}"
+
 class Factura(models.Model):
     ESTATUS_CHOICES = (
         ('Borrador','Borrador'),  
@@ -79,8 +88,8 @@ class Factura(models.Model):
     condiciones_pago = models.CharField(max_length=30, default="1") # CONTADO, 30 DIAS, ETC
 
     # Archivos generados
-    xml = models.FileField(upload_to='cfdi/xml/', null=True, blank=True)
-    pdf = models.FileField(upload_to='cfdi/pdf/', null=True, blank=True)
+    xml = models.FileField(upload_to=factura_xml_path, null=True, blank=True)
+    pdf = models.FileField(upload_to=factura_pdf_path, null=True, blank=True)
 
     # Información de timbrado
     uuid = models.CharField(max_length=40, blank=True)

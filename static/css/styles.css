@@ -1,5 +1,7 @@
+.bg-brand { background-color: #0D3B66 !important; }
+.navbar.bg-dark { background-color: yellow !important; }
 .navbar {
-    background-color: #6c0a74; /* magenta oscuro */
+    background-color: #0D3B66 !important;
     font-family: Arial, sans-serif;
   }
   
@@ -8,7 +10,7 @@
     margin: 0;
     padding: 0;
     display: flex;
-    background-color: #6c0a74;
+    background-color: #0D3B66;
   }
   
   .menu > li {
@@ -24,7 +26,7 @@
   }
   
   .menu > li:hover > a {
-    background-color: #8e0d92;
+    background-color: #0D3B66;
   }
   
   .submenu {

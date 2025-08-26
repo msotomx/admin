@@ -52,9 +52,13 @@
                             <a href="{% url 'fac:factura_update' factura.pk %}" class="btn btn-sm btn-outline-warning">Consultar</a>
                             {% if factura.estatus == "Vigente" %}
                                 <form method="post" action="{% url 'fac:cancelar_factura' factura.pk %}" class="d-inline" onsubmit="return confirm('¿Deseas cancelar esta factura?');">
-                                {% csrf_token %}
-                                <button type="submit" class="btn btn-danger btn-sm">Cancelar Factura</button>
-                            </form>
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-danger btn-sm">Cancelar Factura</button>
+                                </form>
+                                <a href="{% url 'fac:enviar_factura_email' factura.pk %}?next={{ request.get_full_path|urlencode }}"
+                                    class="btn btn-sm btn-outline-primary">
+                                    Enviar factura
+                                </a>
                             {% endif %}
 
                             <a href="{% url 'fac:descargar_factura' factura.id 'pdf' %}" target="_blank" class="btn btn-outline-danger btn-sm">Descargar PDF</a>

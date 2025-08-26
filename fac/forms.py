@@ -37,7 +37,7 @@ class FacturaForm(forms.ModelForm):
         model = Factura
         fields = '__all__'
         exclude = ['serie_emisor',
-                   'lugar_expedicion', 'tipo_cambio',  
+                   'tipo_cambio', 'lugar_expedicion',  
                    'xml', 'pdf', 'uuid', 'fecha_timbrado',
                    'sello_cfdi', 'no_certificado_sat', 'empresa', 'usuario']
         widgets = {
@@ -58,6 +58,7 @@ class FacturaForm(forms.ModelForm):
 
         self.fields['cliente'].queryset = Cliente.objects.using('tenant').all().order_by('nombre')
         self.fields['clave_remision'].queryset = ClaveMovimiento.objects.using('tenant').filter(es_remision=True).order_by('nombre')
+        self.fields['fecha_emision'].initial = localtime(now()).date()
 
         # Ocultar campos
         self.fields['descuento_factura'].widget = forms.HiddenInput()

@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+
+    <div class="container mt-4">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h4 class="mb-4">Empresas · Contacto y Renovación</h4>
+            <div class="d-flex gap-2">
+                <form method="get" class="d-flex">
+                    <input type="search" name="q" value="{{ q }}" class="form-control form-control-sm me-2" placeholder="Buscar por código, nombre o slug…">
+                    <button type="submit" class="btn btn-sm btn-outline-primary">Buscar</button>
+                </form>
+
+                <a href="{% url 'core:menu_staff' %}" class="btn btn-secondary btn-sm">Regresar al Menú</a>
+            </div>
+        </div>   
+        {% if empresas %}
+        <div class="table-responsive">
+            <table class="table table-striped table-bordered">
+                <thead class="thead-dark">
+                    <tr>
+                        <th>Código</th>
+                        <th>Nombre</th>
+                        <th>Inicio</th>
+                        <th>Renovación</th>
+                        <th>Contacto</th>
+                        <th>Teléfono</th>
+                        <th>Email</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for e in empresas %}
+                    <tr>
+                        <td>{{ e.codigo_empresa }}</td>
+                        <td>{{ e.nombre }}</td>
+                        <td>{{ e.fecha_inicio|date:"Y-m-d" }}</td>
+                        <td>{{ e.fecha_renovacion|date:"Y-m-d" }}</td>
+                        <td>{{ e.contacto_nombre }}</td>
+                        <td>{{ e.contacto_telefono }}</td>
+                        <td>{{ e.contacto_email }}</td>
+                        <td><a href="{% url 'core:empresa_contacto_update' codigo_empresa=e.codigo_empresa %}" class="btn btn-sm btn-warning">Editar</a></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% if is_paginated %}
+            <p class="muted">Página {{ page_obj.number }} de {{ paginator.num_pages }}</p>
+            <div>
+            {% if page_obj.has_previous %}
+                <a class="btn" href="?q={{ q }}&page={{ page_obj.previous_page_number }}">« Anterior</a>
+            {% endif %}
+            {% if page_obj.has_next %}
+                <a class="btn" href="?q={{ q }}&page={{ page_obj.next_page_number }}">Siguiente »</a>
+            {% endif %}
+            </div>
+        {% endif %}
+
+        {% else %}
+            <p class="muted">No se encontraron empresas con ese criterio.</p>
+        {% endif %}
+    </div>
+{% endblock %}        

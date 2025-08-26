@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container mt-4">
+    <h3 class="mb-3">Timbres Disponibles por Cliente</h3>
+    <div class="mb-3">
+        <a href="{% url 'core:exportar_timbres_disponibles_excel' %}" class="btn btn-success">Exportar a Excel</a>
+        <a href="{% url 'core:menu_staff' %}" class="btn btn-secondary">Regresar al Menú</a>
+    </div>
+
+    <table class="table table-bordered table-striped">
+        <thead>
+            <tr>
+                <th>Código Empresa</th>
+                <th>Nombre de Contacto</th>
+                <th>Teléfono</th>
+                <th>Email</th>
+                <th>Total Asignados</th>
+                <th>Utilizados</th>
+                <th>Disponibles</th>
+                <th>Fecha de Asignación</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for t in timbres %}
+                {% with empresa=empresas_dict.t.codigo_empresa %}
+                <tr>
+                    <td>{{ t.codigo_empresa }}</td>
+                    <td>{{ empresa.nombre_contacto|default:"-" }}</td>
+                    <td>{{ empresa.telefono|default:"-" }}</td>
+                    <td>{{ empresa.email|default:"-" }}</td>
+                    <td>{{ t.total_asignados }}</td>
+                    <td>{{ t.utilizados }}</td>
+                    <td>{{ t.disponibles }}</td>
+                    <td>{{ t.fecha_asignacion }}</td>
+                </tr>
+                {% endwith %}
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

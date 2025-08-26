@@ -1,18 +1,25 @@
-{% extends "base.html" %}
-
+{% extends 'base.html' %}
+{% load humanize %}
 {% block content %}
 <div class="container mt-4">
-    <h2>Movimientos de Timbres</h2>
-
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h4 class="mb-0">Movimientos de Timbres</h4>
+    </div>
     <div class="d-flex justify-content-between align-items-center mb-3">
         <div>
-            <strong>Entradas:</strong> {{ entradas }} |
-            <strong>Salidas:</strong> {{ salidas }} |
-            <strong>Disponibles:</strong> {{ disponibles }}
+            <strong>Entradas:</strong> {{ entradas|floatformat:0|intcomma }}
+            <strong>Salidas:</strong> {{ salidas|floatformat:0|intcomma }} |
+            <strong>Disponibles:</strong> {{ disponibles|floatformat:0|intcomma }}
         </div>
         <div>
-            <a href="{% url 'timbres:timbres_entradas_form' %}" class="btn btn-success btn-sm">Entradas</a>
+            <form method="get" class="d-flex">
+                <input type="text" name="q" value="{{ query }}" class="form-control form-control-sm me-2" placeholder="Buscar código_empresa..">
+                <button type="submit" class="btn btn-sm btn-outline-primary">Buscar</button>
+            </form>
+
+            <a href="{% url 'timbres:timbres_entradas' %}" class="btn btn-success btn-sm">Nueva Compra</a>
             <a href="{% url 'timbres:asignar_timbres' %}" class="btn btn-primary btn-sm">Asignar Timbres</a>
+            <a href="{% url 'core:menu_staff' %}" class="btn btn-secondary btn-sm">Regresar al Menú</a>
         </div>
     </div>
     {% if messages %}
@@ -23,29 +30,70 @@
     </div>
     {% endif %}
 
-    <table class="table table-striped table-sm">
-        <thead>
-            <tr>
-                <th>Referencia</th>
-                <th>Tipo</th>
-                <th>Fecha</th>
-                <th>Cantidad</th>
-                <th>Precio Unitario</th>
-                <th>Importe</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for m in movimientos %}
-            <tr>
-                <td>{{ m.referencia }}</td>
-                <td>{{ m.tipo }}</td>
-                <td>{{ m.fecha|date:"Y-m-d H:i" }}</td>
-                <td>{{ m.cantidad }}</td>
-                <td>${{ m.precio_unit }}</td>
-                <td>${{ m.importe }}</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+
+    <div class="table-responsive">
+        <table class="table table-sm table-striped table-bordered align-middle">
+            <thead class="table-light small">
+                <tr>
+                    <th>Empresa</th>
+                    <th>Referencia</th>
+                    <th>Tipo</th>
+                    <th>Fecha</th>
+                    <th>Cantidad</th>
+                    <th>Precio Unitario</th>
+                    <th>Importe</th>
+                    <th>Usuario</th>
+                </tr>
+            </thead>
+            <tbody class="small">
+                {% for m in timbres %}
+                    <tr>
+                        <td>{{ m.codigo_empresa }}</td>
+                        <td>{{ m.referencia }}</td>
+                        <td>{{ m.tipo }}</td>
+                        <td>{{ m.fecha|date:"d-M-Y" }}</td>
+                        <td>
+                            {% if m.cantidad %}
+                                {{ m.cantidad|floatformat:0|intcomma }}
+                            {% else %}
+                                $0.00
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if m.precio_unit %}
+                                ${{ m.precio_unit|floatformat:2|intcomma }}
+                            {% else %}
+                                $0.00
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if m.importe %}
+                                ${{ m.importe|floatformat:2|intcomma }}
+                            {% else %}
+                                $0.00
+                            {% endif %}
+                        </td>
+                        <td>{{ m.usuario }}</td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="7" class="text-center text-muted">No hay movimientos registrados.</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+        <div class="d-flex justify-content-between mt-4">
+        {% if page_obj.has_previous %}
+            <a href="?page={{ page_obj.previous_page_number }}" class="btn btn-secondary btn-sm">Página Anterior</a>
+        {% else %}
+            <span></span>
+        {% endif %}
+    
+        {% if page_obj.has_next %}
+            <a href="?page={{ page_obj.next_page_number }}" class="btn btn-primary btn-sm">Siguiente Página</a>
+        {% endif %}
+    </div>
+
 </div>
 {% endblock %}

@@ -1,0 +1,142 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container mt-4">
+    {% if messages %}
+        <div class="container mt-3">
+            {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} mb-2 alert-dismissible fade show" role="alert">
+                {{ message }}
+            </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+  <div class="d-flex align-items-center justify-content-between mb-3">
+    <h4 class="mb-0">
+        Usuarios de la empresa:
+        {% if empresa_db.nombre_comercial %}
+            {{ empresa_db.nombre_comercial }}
+        {% endif %}
+      <small class="text-muted">({{ empresa_db.codigo_empresa }})</small>
+    </h4>
+    <div class="d-flex gap-2">
+        <form class="d-flex" method="get" action="">
+        <input name="q" class="form-control form-control-sm me-2" type="search"
+                placeholder="Buscar usuario, nombre o email" value="{{ q|default:'' }}">
+        <button class="btn btn-sm btn-outline-primary" type="submit">Buscar</button>
+        </form>
+        <a href="{% url 'core:usuario_create' %}" class="btn btn-primary btn-sm">
+                Nuevo Usuario
+        </a>
+    </div>
+  </div>
+
+<form method="post" action="{% url 'core:usuarios_bulk_status' %}" id="bulk-form">
+    {% csrf_token %}
+    <div class="d-flex align-items-center gap-2 mb-2">
+        <select name="action" class="form-select form-select-sm" style="max-width: 220px;">
+            <option value="" selected>— Acción —</option>
+            <option value="activate">Activar seleccionados</option>
+            <option value="deactivate">Desactivar seleccionados</option>
+        </select>
+        <button type="submit" class="btn btn-sm btn-outline-secondary">Aplicar</button>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table table-sm table-striped align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th style="width:36px;text-align:center">
+                        <input type="checkbox" id="select-all" class="form-check-input" title="Seleccionar todos">
+                    </th>
+                    <th>Usuario</th>
+                    <th>Nombre</th>
+                    <th>Email</th>
+                    <th>Tipo</th>
+                    <th>Activo</th>
+                    <th style="width: 220px;">Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for p in perfiles %}
+                <tr>
+                    <td style="text-align:center">
+                    <input type="checkbox"
+                            class="form-check-input row-check"
+                            name="user_ids"
+                            value="{{ p.user.id }}">
+                    </td>
+                    <td>{{ p.user.username }}</td>
+                    <td>
+                    {% if p.user.get_full_name %}
+                        {{ p.user.get_full_name }}
+                    {% else %}
+                        {{ p.user.first_name }} {{ p.user.last_name }}
+                    {% endif %}
+                    </td>
+                    <td>{{ p.user.email }}</td>
+                    <td>{{ p.tipo_usuario|default:"" }}</td>
+                    <td>
+                        {% if p.user.is_active %}
+                        <span class="badge text-bg-success">Sí</span>
+                        {% else %}
+                        <span class="badge text-bg-secondary">No</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <a href="{% url 'core:password_change_for_user' p.user.id %}" class="btn btn-sm btn-outline-warning">
+                        Cambiar Contraseña
+                    </a>
+                </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5" class="text-center text-muted py-4">
+                    No hay usuarios registrados para esta empresa.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+            </table>
+        </div>
+</form>
+  {% if is_paginated %}
+    <nav aria-label="Paginación">
+      <ul class="pagination pagination-sm justify-content-end">
+        {% if page_obj.has_previous %}
+          <li class="page-item">
+            <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if q %}&q={{ q }}{% endif %}">&laquo;</a>
+          </li>
+        {% else %}
+          <li class="page-item disabled"><span class="page-link">&laquo;</span></li>
+        {% endif %}
+
+        {% for num in page_obj.paginator.page_range %}
+          {% if num == page_obj.number %}
+            <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+          {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+            <li class="page-item"><a class="page-link" href="?page={{ num }}{% if q %}&q={{ q }}{% endif %}">{{ num }}</a></li>
+          {% endif %}
+        {% endfor %}
+
+        {% if page_obj.has_next %}
+          <li class="page-item">
+            <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if q %}&q={{ q }}{% endif %}">&raquo;</a>
+          </li>
+        {% else %}
+          <li class="page-item disabled"><span class="page-link">&raquo;</span></li>
+        {% endif %}
+      </ul>
+    </nav>
+  {% endif %}
+</div>
+<script>
+  // Seleccionar todos
+  const selectAll = document.getElementById('select-all');
+  const checks = document.querySelectorAll('.row-check');
+  if (selectAll) {
+    selectAll.addEventListener('change', function() {
+      checks.forEach(chk => chk.checked = this.checked);
+    });
+  }
+</script>
+{% endblock %}

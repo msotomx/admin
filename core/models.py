@@ -23,7 +23,7 @@ class Empresa(models.Model):
     tasa_ieps = models.DecimalField(max_digits=9,decimal_places=5)  # Tasa de IEPS
     tasa_retencion_iva = models.DecimalField(max_digits=9,decimal_places=5)  #Tasa de Retencion 16% = 16, 8% = 8 se usa al facturar
     tasa_retencion_isr = models.DecimalField(max_digits=9,decimal_places=5)  
-    codigo_empresa = models.CharField(max_length=7,unique=True,blank=False)  #identificador numerico de la empresa, usado en la asignacion de timbres
+    codigo_empresa = models.CharField(max_length=7,unique=True,blank=False)  #identificador de la empresa, usado en la asignacion de timbres
     comentarios = models.TextField(blank=True)
     factor = models.DecimalField(max_digits=10,decimal_places=5,blank=True) # campo extra
     #DATOS FISCALES
@@ -80,11 +80,12 @@ class EmpresaDB(models.Model):
     contacto_nombre = models.CharField(max_length=100, blank=False)
     contacto_telefono = models.CharField(max_length=20, blank=False)
     contacto_email = models.EmailField(blank=False)
-
+    num_usuarios = models.PositiveSmallIntegerField(null=True, blank=True)
+    
     def save(self, *args, **kwargs):
         if not self.slug:
             self.slug = slugify(self.nombre)
-        self.fecha_renovacion = self.fecha_inicio + timedelta(days=90)  # se suman 90 dias a la fecha de inicio
+        self.fecha_renovacion = self.fecha_inicio + timedelta(days=30)  # se suman 30 dias a la fecha de inicio
         super().save(*args, **kwargs)
 
     def __str__(self):
@@ -94,7 +95,7 @@ class PerfilUsuario(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     empresa = models.ForeignKey(EmpresaDB, on_delete=models.CASCADE)
     tipo_usuario = models.CharField(max_length=1, blank=True)
-
+    
     def __str__(self):
         return f'{self.user.username} - {self.empresa.nombre}'
 

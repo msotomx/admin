@@ -1,21 +1,15 @@
 IP DROPLET DIGITAL OCEAN:  24.199.106.186
 
 Pendientes:
-- navbar.html: cambio en menu
-- inv.models : en Tabla ClaveMovimiento, se agrego es_servicio Boolean
-- inv.forms  : en ClaveMovimiento, queryset, elimina es_compra, es_servicio, es_remision
-- inv.empresa_form.html : cambio del template, eliminacion de campos fiscales.
-			  se elimino regimen_fiscal de este template y se paso a empresa_lugarexp.html
-- inv.empresa_lugarexp.html: se agregaron campo de Regimen Fiscal.
-		  	     se cambio regimen_fiscal para este template
-- admin/settings/prod.py
-- inv.views.py
-- fac.views.py
-- falta modificar sign_inicial, para generar el codigo_empresa
-- .env cambio en configuracion de cookies
-- fac.url.py
+- cambiar fecha_renovacion (editar EmpresaDB)
+- cambiar numero de usuarios autorizados en Empresa.num_usuarios
+- cambiar password (olvide contraseña principal)
+- .env cambio en DEBUG
+- Vendedores - no carga la fecha registro al iniciar
 
-- sign_initial - grabar usuario en minusculas o sera necesario?
+
+git clone https://github.com/msotomx/web.git
+COLOR AZUL:  navy:'#0D3B66'
 
 FACTURAS
 - validar que no se repita numero de factura
@@ -26,9 +20,10 @@ CLIENTES:
 REPORTES
 - agregar reporte por tipo de cliente
 - existencia por categoria - todas
-Modificar email al crear el usuario en crear_tenant_completo, dejar el email capturado
-revisar al crear la Empresa, el nombre comercial esta con minusculas
-En sign_inicial - cambiar en boton Creando Nueva Empresa...
+
+
+
+
 
 Concepto		Tabla			Vive en DB
 Conexión a base		EmpresaDB		default
@@ -105,3 +100,58 @@ La conexión 'tenant' está activa con la base: e_paty20250721
 
 
 python manage.py migrate cxc --database=default
+
+1) Mostrar Empresas Registradas 
+2) Timbres Disponibles por empresa 
+3) Timbres asignados por fecha 
+4) Empresas por Fecha de Renovacion
+
+Elabora el template y vista "Precio", en este modulo vamos a mostrar 2 opciones de precio:
+1) Paquete Premium  $499
+   - menos de $42 pesos por mes
+   - Pago Anual
+   - incluye todas las opciones del sistema
+   - compras, ventas, cotizaciones, facturacion electronica,movimientos por cliente, por proveedor
+   - 100% en la nube
+   - 30 dias para probar y conocer el sistema
+   - soporte via whatsapp
+   - el pago se realiza dentro de 30 dias
+   - el cliente se compromete a enviar un video de 20 segundos con su experiencia con el sistema
+        deberas indicar: nombre, nombre de tu empresa, ciudad donde se ubica y comentarios
+
+2) Paquete Platino $699
+   - menos de $60 pesos por mes
+   - Pago Anual
+   - incluye todas las opciones del sistema
+   - compras, ventas, cotizaciones, facturacion electronica,movimientos por cliente, por proveedor
+   - 100% en la nube
+   - 30 dias para probar y conocer el sistema
+   - soporte via whatsapp (en caso de ocupar)
+   - el pago se realiza dentro de 30 dias
+
+
+
+from django.core.mail import EmailMessage
+from django.conf import settings
+
+print("Usando backend:", settings.EMAIL_BACKEND)
+print("From:", settings.DEFAULT_FROM_EMAIL)
+print("SMTP Host:", settings.EMAIL_HOST)
+
+msg = EmailMessage(
+    subject="✅ Prueba Amazon SES Producción",
+    body="Hola!\n\nEste es un correo de prueba enviado desde Django usando Amazon SES (SMTP, producción).",
+    from_email=settings.DEFAULT_FROM_EMAIL,
+    to=["msoto.stop@gmail.com"],
+    headers={"Reply-To": settings.REPLY_TO_EMAIL}
+)
+
+try:
+    result = msg.send()
+    print("Resultado:", result)
+    if result == 1:
+        print("✅ SES aceptó el correo. Revisa tu bandeja de entrada.")
+    else:
+        print("⚠️ No se envió el correo.")
+except Exception as e:
+    print("❌ Error al enviar:", str(e))

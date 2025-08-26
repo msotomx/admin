@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-4" style="max-width: 720px;">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h4 class="mb-0">Nuevo usuario</h4>
+    <a href="{% url 'core:usuario_list' %}" class="btn btn-sm btn-outline-secondary">Regresar</a>
+  </div>
+
+    <form method="post" action="{% url 'core:usuario_create' %}" novalidate>
+    {% csrf_token %}
+
+    {% if form.errors or form.non_field_errors %}
+        <div class="alert alert-danger">
+        <strong>Revisa los campos:</strong>
+        {{ form.non_field_errors }}
+        <ul class="mb-0">
+            {% for field in form %}
+            {% for error in field.errors %}
+                <li><strong>{{ field.label }}:</strong> {{ error }}</li>
+            {% endfor %}
+            {% endfor %}
+        </ul>
+        </div>
+    {% endif %}
+
+    <div class="mb-3">
+      <label for="id_username" class="form-label">Usuario</label>
+      {{ form.username }}
+      {% if form.username.errors %}
+        <div class="text-danger small">{{ form.username.errors|join:", " }}</div>
+      {% else %}
+        <div class="form-text">No uses email; permitido: letras, números y . @ + - _</div>
+      {% endif %}
+    </div>
+
+    <div class="row">
+      <div class="col-md-6 mb-3">
+        <label for="id_first_name" class="form-label">Nombre</label>
+        {{ form.first_name }}
+        {% if form.first_name.errors %}
+          <div class="text-danger small">{{ form.first_name.errors|join:", " }}</div>
+        {% endif %}
+      </div>
+      <div class="col-md-6 mb-3">
+        <label for="id_last_name" class="form-label">Apellidos</label>
+        {{ form.last_name }}
+        {% if form.last_name.errors %}
+          <div class="text-danger small">{{ form.last_name.errors|join:", " }}</div>
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="mb-3">
+      <label for="id_email" class="form-label">Email (opcional)</label>
+      {{ form.email }}
+      {% if form.email.errors %}
+        <div class="text-danger small">{{ form.email.errors|join:", " }}</div>
+      {% endif %}
+    </div>
+
+    <div class="mb-4">
+      <label for="id_tipo_usuario" class="form-label">Tipo de usuario</label>
+      {{ form.tipo_usuario }}
+      {% if form.tipo_usuario.errors %}
+        <div class="text-danger small">{{ form.tipo_usuario.errors|join:", " }}</div>
+      {% endif %}
+    </div>
+
+    <div class="d-flex gap-2">
+      <button type="submit" class="btn btn-primary">Crear usuario</button>
+      <a href="{% url 'core:usuario_list' %}" class="btn btn-outline-secondary">Cancelar</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

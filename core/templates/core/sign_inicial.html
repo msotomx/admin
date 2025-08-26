@@ -27,11 +27,19 @@
                         <input type="text" class="form-control" id="nombre_comercial" name="nombre_comercial" required>
                     </div>
                     <div class="col-md-6 mb-1">
-                        <label for="username" class="form-label">Usuario (ej. fran171011, user777, luis2025)</label>
-                        <input type="text" class="form-control" id="username" name="username" required>
+                        <label for="username" class="form-label">
+                            Usuario
+                            <span class="ms-2 small text-body-secondary">Ej: fran171011, ventas-01, luis2025 </span>
+                        </label>
+                        <input type="text" class="form-control" id="username" name="username" placeholder="minombre2532" required>
+                        {% if form.username.errors %}
+                            <div class="text-danger small">{{ form.username.errors|join:", " }}</div>
+                        {% else %}
+                            <div class="form-text">permitido: letras, números y . + - _, sin espacios</div>
+                        {% endif %}
                     </div>
                     <div class="col-md-6 mb-1">
-                        <label for="password" class="form-label">Contraseña    (guardar usuario y contaseña)</label>
+                        <label for="password" class="form-label">Contraseña    (guardar usuario y contraseña)</label>
                         <input type="password" class="form-control" id="password" name="password" required>
                     </div>
 

@@ -44,6 +44,8 @@ class Cliente(models.Model):
     telefono1 = models.CharField(max_length=20, blank=True,default="")
     telefono2 = models.CharField(max_length=20, blank=True,default="")
     email = models.EmailField(blank=True,default="")
+    email2 = models.EmailField(blank=True,default="")
+    email3 = models.EmailField(blank=True,default="")
     plazo_credito = models.SmallIntegerField(default=0, null=True)
     limite_credito = models.BigIntegerField(default=0,null=True)
     cuenta_cnt = models.CharField(max_length=24, blank=True,default="")

@@ -2,3 +2,16 @@ venv/
 README.md
 db.sqlite3
 LICENSE
+.git
+__pycache__/
+*.pyc
+*.pyo
+*.log
+.env
+venv/
+.venv/
+node_modules/
+media/
+staticfiles/
+ed25519*.*
+*.pdf

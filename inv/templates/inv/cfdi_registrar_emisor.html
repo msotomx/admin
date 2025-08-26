@@ -3,6 +3,9 @@
 {% block content %}
 <div>
     <h2>REGISTRAR EMISOR DE CFDI</h2>
+    <p> </p>
+    <p>En esta opción se registran los archivos de su firma digital '.cer' y '.key' para poder timbrar sus facturas</p>
+    <p> </p>
     <form method="post" enctype="multipart/form-data" action="{% url 'inv:cfdi_registrar_csd' %}">
         {% csrf_token %}
     

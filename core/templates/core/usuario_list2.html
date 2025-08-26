@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2>Usuarios Activos</h2>
+
+    </div>
+
+    {% if usuarios %}
+        <table class="table table-bordered table-striped">
+            <thead class="table-dark">
+                <tr>
+                    <th>Usuario</th>
+                    <th>Nombre</th>
+                    <th>Apellido</th>
+                    <th>Tipo Usuario</th>
+                    <th>Editar</th>
+                </tr>
+            </thead>
+            <tbody>
+                
+                {% for u in usuarios %}
+                <tr>
+                    <td>{{ u.username }}</td>
+                    <td>{{ u.nombre }}</td>
+                    <td>{{ u.apellido}}</td>
+                    <td>{{ u.tipo }}</td>
+                    
+                    <td>
+                        <a href="{% url 'core:usuario_form' e.pk %}" class="btn btn-sm btn-warning">Editar</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <div class="alert alert-info">No hay usuarios.</div>
+    {% endif %}
+</div>
+{% endblock %}

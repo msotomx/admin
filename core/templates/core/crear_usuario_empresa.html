@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% block title %}Agregar usuario{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <h1 class="h4 mb-3">Agregar Nuevo Usuario</h1>
+
+  {% for message in messages %}
+    <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+  {% endfor %}
+
+  <form method="post" class="row g-3">
+    {% csrf_token %}
+
+    <div class="col-md-6">
+      <label class="form-label">Usuario</label>
+      {{ form.username|as_widget:{"class":"form-control"} }}
+    </div>
+
+    <div class="col-md-6">
+      <label class="form-label">Email</label>
+      {{ form.email|as_widget:{"class":"form-control"} }}
+      {{ form.email.errors }}
+    </div>
+
+    <div class="col-md-6">
+      <label class="form-label">Tipo de usuario</label>
+      {{ form.tipo_usuario|as_widget:{"class":"form-select"} }}
+      {{ form.tipo_usuario.errors }}
+    </div>
+
+    <div class="col-md-6">
+      <label class="form-label">Nombre</label>
+      {{ form.first_name|as_widget:{"class":"form-control"} }}
+      {{ form.first_name.errors }}
+    </div>
+
+    <div class="col-md-6">
+      <label class="form-label">Apellidos</label>
+      {{ form.last_name|as_widget:{"class":"form-control"} }}
+      {{ form.last_name.errors }}
+    </div>
+
+    <div class="col-12">
+      <button class="btn btn-primary">Crear usuario</button>
+      <a href="{% url 'core:usuario_list' %}" class="btn btn-outline-secondary">Cancelar</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

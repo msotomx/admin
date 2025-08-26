@@ -328,7 +328,8 @@ class VendedorCreateView(TenantRequiredMixin,CreateView):
     def get_initial(self):
         initial = super().get_initial()
 
-        initial['fecha_registro'] = date.today()
+        initial['fecha_registro'] = localtime(now()).date()
+        print(" EN VENDEDOR GET_INITIAL")
         return initial
 
     def form_valid(self, form):

@@ -87,7 +87,12 @@ class VendedorForm(forms.ModelForm):
             'telefono': forms.TextInput(attrs={'class': 'form-control'}),
             'email': forms.TextInput(attrs={'class': 'form-control'}),
             'fecha_registro': forms.DateInput(attrs={'type': 'date'}),
-        }        
+        }      
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        self.fields['fecha_registro'].initial = localtime(now()).date()
 
 from django import forms
 from django.db import transaction
@@ -484,7 +489,7 @@ class EmpresaForm(forms.ModelForm):
                    'calle_expedicion','numero_exterior_expedicion','numero_interior_expedicion',
                    'colonia_expedicion','localidad_expedicion','municipio_expedicion','estado_expedicion',
                    'pais_expedicion', 'db_name','ruta_xml', 'calle','numero_exterior','numero_interior',
-                   'colonia','codigo_postal','localidad','municipio','estado','pais','rfc']
+                   'colonia','codigo_postal','localidad','municipio','estado','pais','rfc','num_usuarios']
         widgets = {
             'codigo_empresa': forms.TextInput(attrs={'class': 'form-control form-control-sm', 'readonly': 'readonly'}),
         }
@@ -494,7 +499,6 @@ class EmpresaForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         for field in self.fields.values():
             field.widget.attrs['class'] = 'form-control form-control-sm'
-        codigo_empresa=obtener_ultimo_codigo_empresa
 
 class EmpresaLugarForm(forms.ModelForm):
     regimen_fiscal = forms.ChoiceField(label='Regimen Fiscal') 

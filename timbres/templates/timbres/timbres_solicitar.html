@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+
+{% block title %}Inicio{% endblock %}
+
+{% block content %}
+    <div class="container mt-5 p-4 rounded " style="background-color: azure">  <!-- bg-light-->
+    
+        <div class="text-center mt-4">
+            <h1><strong>Solicitar Timbres Facturación Electrónica  </strong></h1>
+            
+            <p>En este momento tienes {{ disponibles }} timbres disponibles</p>
+            <hr>
+            <p>Para solicitar timbres, favor de enviar un whatsapp al {{ celular }}</p>
+            <p>Solo menciona tu código de empresa: <strong> {{ codigo_empresa }} </strong> </p>
+                        
+        </div>
+    </div>
+{% endblock %}

@@ -1,5 +1,6 @@
 {% load static %}
-<nav class="navbar navbar-expand-lg navbar-dark bg-dark"> <!-- dark-->
+<nav class="navbar navbar-expand-lg navbar-dark bg-brand"
+      style="background-color:#0D3B66 !important;">  <!-- bg-dark -->
   <div class="container-fluid">
     <!-- Nombre de la Empresa de context_processors-->
      <a class="navbar-brand" href="#">
@@ -77,10 +78,10 @@
 
         <!-- Generar CFDI's -->
         <li class="nav-item dropdown">
-          <a class="nav-link dropdown-toggle" href="#" id="cfdiDropdown" role="button" data-bs-toggle="dropdown">Generar CFDI</a>
+          <a class="nav-link dropdown-toggle" href="#" id="cfdiDropdown" role="button" data-bs-toggle="dropdown">Facturación</a>
           <ul class="dropdown-menu">
-            <li><a class="dropdown-item" href="{% url 'fac:factura_list' %}">Generar Facturas y CFDI</a></li>
-            <li><a class="dropdown-item" href="#">CFDI por Cliente</a></li>
+            <li><a class="dropdown-item" href="{% url 'fac:factura_list' %}">Facturación y CFDI</a></li>
+            <li><a class="dropdown-item" href="#"></a></li>
           </ul>
         </li>
 
@@ -91,7 +92,8 @@
             <li><a class="dropdown-item" href="{% url 'inv:empresa_list' %}">Datos Generales</a></li>
             <li><a class="dropdown-item" href="{% url 'inv:empresa_lugarexp_list' %}">Información Fiscal</a></li>
             <li><a class="dropdown-item" href="{% url 'inv:cfdi_registrar_emisor' %}">Registrar Sellos Fiscales</a></li>
-            <li><a class="dropdown-item" href="{% url 'core:timbres_movimiento_list' %}">Timbres</a></li>
+            <li><a class="dropdown-item" href="{% url 'core:usuario_list' %}">Usuarios</a></li>
+            <li><a class="dropdown-item" href="{% url 'timbres:timbres_solicitar' %}">Solicitar Timbres</a></li>
           </ul>
         </li>
 

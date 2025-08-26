@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Menú Staff</h2>
+    <div class="list-group mt-3">
+        <a href="{% url 'timbres:timbres_movimiento_list' %}" class="list-group-item list-group-item-action">Asignar Timbres a Clientes</a>
+        <a href="{% url 'core:staff_empresa_list' %}" class="list-group-item list-group-item-action">Mostrar Empresas Registradas</a>
+        <a href="{% url 'core:staff_timbres_clientes' %}" class="list-group-item list-group-item-action">Timbres Disponibles por Empresa</a>
+        <a href="{% url 'core:staff_movimiento_timbres' %}" class="list-group-item list-group-item-action">Timbres Asignados por Fecha</a>
+        <a href="{% url 'core:staff_empresa_renovacion_list' %}" class="list-group-item list-group-item-action">Empresas por Fecha de Renovación</a>
+        <a href="{% url 'core:empresa_contacto_list' %}" class="list-group-item list-group-item-action">Modificar Fecha Renovación y Datos Contacto</a>
+        <a href="{% url 'core:staff_empresa_num_usuarios_list' %}" class="list-group-item list-group-item-action">Modificar Número de Usuarios</a>
+  
+    </div>
+</div>
+{% endblock %}

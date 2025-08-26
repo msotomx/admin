@@ -1,8 +1,9 @@
 django==4.2
-Pillow            # manejo de imágenes
-mysqlclient
+Pillow
 django-widget-tweaks
 requests
 python-decouple
-psycopg[binary]           # o mejor: psycopg[binary]
-gunicorn
+psycopg[binary]
+gunicorn==21.2.0
+openpyxl
+django-ses
