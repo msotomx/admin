@@ -82,9 +82,9 @@ urlpatterns = [
     path("usuarios/<int:user_id>/password/change/", CambiarPasswordView.as_view(), name="password_change_for_user"),  # el admin  cambia la contraseña
     path("password/change/done/", CambiarPasswordDoneView.as_view(), name="password_change_done"),
     path("usuarios/bulk-status/", usuarios_bulk_status, name="usuarios_bulk_status"),
-    path("empresas/contacto/", EmpresaContactoListView.as_view(), name="empresa_contacto_list"),
-    path("empresas/<str:codigo_empresa>/editar-contacto/", EmpresaContactoUpdateView.as_view(), name="empresa_contacto_update"),
-    path("empresas/num-usuarios/", EmpresaNumUsuariosListView.as_view(), name="staff_empresa_num_usuarios_list"),
-    path("empresas/<str:codigo_empresa>/editar-num-usuarios/", EmpresaNumUsuariosUpdateView.as_view(), name="staff_empresa_num_usuarios_update"),
+    path("staff-empresas/contacto/", EmpresaContactoListView.as_view(), name="staff_empresa_contacto_list"),
+    path("staff-empresas/<str:codigo_empresa>/editar-contacto/", EmpresaContactoUpdateView.as_view(), name="staff_empresa_contacto_update"),
+    path("staff-empresas/num-usuarios/", EmpresaNumUsuariosListView.as_view(), name="staff_empresa_num_usuarios_list"),
+    path("staff-empresas/<str:codigo_empresa>/editar-num-usuarios/", EmpresaNumUsuariosUpdateView.as_view(), name="staff_empresa_num_usuarios_update"),
 ]
 

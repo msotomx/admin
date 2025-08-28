@@ -22,7 +22,6 @@
                     <tr>
                         <th>Código</th>
                         <th>Nombre Comercial</th>
-                        <th>Nombre Fiscal</th>
                         <th>Número Usuarios</th>
                         <th></th>
                     </tr>
@@ -31,8 +30,7 @@
                     {% for e in empresas %}
                     <tr>
                         <td>{{ e.codigo_empresa }}</td>
-                        <td>{{ e.nombre_comercial }}</td>
-                        <td>{{ e.nombre_fiscal }}</td>
+                        <td>{{ e.nombre }}</td>
                         <td>{{ e.num_usuarios }}</td>
                         <td><a href="{% url 'core:staff_empresa_num_usuarios_update' codigo_empresa=e.codigo_empresa %}" class="btn btn-sm btn-warning">Editar</a></td>
                     </tr>

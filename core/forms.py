@@ -106,11 +106,10 @@ class EmpresaContactoForm(forms.ModelForm):
 
 class EmpresaNumUsuariosForm(forms.ModelForm):
     class Meta:
-        model = Empresa
-        fields = ["codigo_empresa", "nombre_comercial", "nombre_fiscal", "num_usuarios"]
+        model = EmpresaDB
+        fields = ["codigo_empresa", "nombre", "num_usuarios"]
         widgets = {
             "codigo_empresa":   forms.TextInput(attrs={"class": "form-control", 'readonly': 'readonly'}),
-            "nombre_comercial": forms.TextInput(attrs={"class": "form-control", 'readonly': 'readonly'}),
-            "nombre_fiscal":    forms.TextInput(attrs={"class": "form-control", 'readonly': 'readonly'}),
+            "nombre": forms.TextInput(attrs={"class": "form-control", 'readonly': 'readonly'}),
             "num_usuarios":    forms.TextInput(attrs={"class": "form-control"}),
         }

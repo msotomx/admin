@@ -8,7 +8,7 @@
 
       <div class="d-flex align-items-center justify-content-between mb-3">
         <h1 class="h3 mb-0">Editar contacto · {{ object.nombre }}</h1>
-        <a href="{% url 'core:empresa_contacto_list' %}" class="btn btn-outline-secondary btn-sm">← Volver</a>
+        <a href="{% url 'core:staff_empresa_contacto_list' %}" class="btn btn-outline-secondary btn-sm">← Volver</a>
       </div>
 
       {% if messages %}
@@ -61,7 +61,7 @@
 
             <div class="d-flex gap-2 mt-4">
               <button type="submit" class="btn btn-primary">Guardar cambios</button>
-              <a href="{% url 'core:empresa_contacto_list' %}" class="btn btn-outline-secondary">Regresar</a>
+              <a href="{% url 'core:staff_empresa_contacto_list' %}" class="btn btn-outline-secondary">Regresar</a>
             </div>
           </form>
         </div>

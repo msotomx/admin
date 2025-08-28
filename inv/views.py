@@ -2153,7 +2153,7 @@ def registrar_csd_view(request):
 
         client_id = settings.PAC_CLIENT_ID
         api_token = settings.PAC_API_TOKEN
-        url = f"https://dev.techbythree.com/api/v1/compatibilidad/{client_id}/RegistraEmisor"
+        url = f"https://techbythree.com/api/v1/compatibilidad/{client_id}/RegistraEmisor"
 
         try:
             # Codifica los archivos a base64

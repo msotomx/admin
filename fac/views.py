@@ -1004,7 +1004,7 @@ def consultar_y_guardar_archivos(request, factura):
     if not uuid:
         return False, "UUID no disponible"
 
-    base_url = "https://dev.techbythree.com/api/v1/facturacion/descargar"
+    base_url = "https://techbythree.com/api/v1/facturacion/descargar"
     headers = {
         "Authorization": f"Bearer {settings.PAC_API_TOKEN}",
         "Accept": "application/json",
@@ -1164,7 +1164,7 @@ class CancelarFacturaView(TenantRequiredMixin, View):
             messages.error(request, "La factura no tiene UUID y no puede ser cancelada.")
             return redirect('fac:factura_list')
 
-        url = f"https://dev.techbythree.com/api/v1/facturacion/cancelar/{factura.uuid}"
+        url = f"https://techbythree.com/api/v1/facturacion/cancelar/{factura.uuid}"
         payload = {
             "motivo": "02",
             "folio_sustitucion": ""

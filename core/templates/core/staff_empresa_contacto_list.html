@@ -40,7 +40,7 @@
                         <td>{{ e.contacto_nombre }}</td>
                         <td>{{ e.contacto_telefono }}</td>
                         <td>{{ e.contacto_email }}</td>
-                        <td><a href="{% url 'core:empresa_contacto_update' codigo_empresa=e.codigo_empresa %}" class="btn btn-sm btn-warning">Editar</a></td>
+                        <td><a href="{% url 'core:staff_empresa_contacto_update' codigo_empresa=e.codigo_empresa %}" class="btn btn-sm btn-warning">Editar</a></td>
                     </tr>
                     {% endfor %}
                 </tbody>

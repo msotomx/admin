@@ -4,6 +4,7 @@ from datetime import date
 from .models import Empresa
 from .models import PerfilUsuario
 from .models import EmpresaDB
+from .models import SiteMessages
 
 admin.site.register(Empresa)
 admin.site.register(PerfilUsuario)
@@ -29,3 +30,7 @@ class EmpresaDBAdmin(admin.ModelAdmin):
             return 'VENCIDA'
         return 'VIGENTE'
     estado_renovacion.short_description = 'Estado'
+
+@admin.register(SiteMessages)
+class SiteMessagesAdmin(admin.ModelAdmin):
+    list_display = ("mensaje1","mensaje2","mensaje3", "mensaje4", "mensaje5")

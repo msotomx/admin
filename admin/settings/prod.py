@@ -11,7 +11,7 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 """
 
 from pathlib import Path
-from decouple import config
+from decouple import config, Csv
 import os
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -70,7 +70,8 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
-                'core.context_processors.empresa_context',                
+                'core.context_processors.empresa_context',   
+                'core.context_processors.site_messages',             
             ],
         },
     },
@@ -176,9 +177,9 @@ SES_SANDBOX = config("SES_SANDBOX")
 SES_PROD = config("SES_PROD", cast=bool, default=False)
 SES_SANDBOX_WHITELIST = set([e.strip().lower() for e in config("SES_SANDBOX_WHITELIST", default="").split(",") if e.strip()])
 
-PAC_CLIENT_ID = '0ed04e34-760b-41ef-b778-68c35891d7f1'
-PAC_API_TOKEN = 'CyJdHuv41rlHtTGfH1Y9bvwxFH24c4SGbP35WP1M5cc8743a'
-PAC_URL = 'https://dev.techbythree.com/api/v1/facturacion/timbrar'
+PAC_CLIENT_ID = config('PAC_CLIENT_ID')
+PAC_API_TOKEN = config('PAC_API_TOKEN')
+PAC_URL = config('PAC_URL')
 
 from django.contrib.messages import constants as messages
 
@@ -194,23 +195,21 @@ MESSAGE_TAGS = {
 SESSION_ENGINE = 'django.contrib.sessions.backends.db'
 SESSION_COOKIE_DOMAIN = None
 SESSION_COOKIE_NAME = 'sessionid'
-SESSION_COOKIE_SECURE = True  # Solo True si usas HTTPS
+SESSION_COOKIE_SECURE = config('SESSION_COOKIE_SECURE')
 SESSION_COOKIE_SAMESITE = 'Lax'
 SESSION_COOKIE_HTTPONLY = True
 SESSION_SAVE_EVERY_REQUEST = False
 SESSION_COOKIE_AGE = 7200  # Definir el tiempo que la sesión se mantiene activa. - 2 horas
 SESSION_EXPIRE_AT_BROWSER_CLOSE = False
 
-CSRF_COOKIE_SECURE = True
+CSRF_COOKIE_SECURE = config('CSRF_COOKIE_SECURE')
 CSRF_COOKIE_SAMESITE = 'Lax'
-CSRF_TRUSTED_ORIGINS = [
-    'https://switchh.mx',
-    'https://www.switchh.mx'
-]
+CSRF_TRUSTED_ORIGINS = CSRF_TRUSTED_ORIGINS = config('CSRF_TRUSTED_ORIGINS', cast=Csv())
+
 
 
 # HSTS (HTTP Strict Transport Security)
-SECURE_HSTS_SECONDS = 31536000  # 1 año
+SECURE_HSTS_SECONDS = config('SECURE_HSTS_SECONDS')
 SECURE_HSTS_INCLUDE_SUBDOMAINS = True
 SECURE_HSTS_PRELOAD = True
 
@@ -222,10 +221,11 @@ SECURE_CONTENT_TYPE_NOSNIFF = True
 
 # Previene que el navegador cargue scripts inseguros
 SECURE_BROWSER_XSS_FILTER = True
-SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
-SECURE_SSL_REDIRECT = True  # Redirige todo HTTP a HTTPS
+SECURE_PROXY_SSL_HEADER = tuple(config(
+    "SECURE_PROXY_SSL_HEADER",
+    cast=Csv()
+))
+SECURE_SSL_REDIRECT = config('SECURE_SSL_REDIRECT')
 
 CELULAR = config('CEL_WA')
-MENSAJE_INICIO1 = config('MENSAJE_INICIO1')
-MENSAJE_INICIO2 = config('MENSAJE_INICIO2')
-MENSAJE_INICIO3 = config('MENSAJE_INICIO3')
+

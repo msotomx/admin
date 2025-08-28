@@ -16,3 +16,6 @@ def get_current_empresa_id():
 
 def get_current_empresa_fiscal():
     return getattr(_thread_locals, 'empresa_fiscal', None)
+
+def clear_current_tenant():
+    set_current_tenant(None, None, "")

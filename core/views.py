@@ -9,7 +9,7 @@ from django.contrib import messages
 from django.http import HttpResponseRedirect
 from django.conf import settings
 # Create your views here.
-from core.models import PerfilUsuario, EmpresaDB, Empresa
+from core.models import PerfilUsuario, EmpresaDB, Empresa, SiteMessages
 from timbres.models import MovimientoTimbresGlobal
 from core._thread_locals import get_current_tenant, get_current_empresa_id, set_current_tenant
 from core.db_router import set_current_tenant_connection
@@ -64,10 +64,13 @@ def inicio(request):
         if not empresa_fiscal:
             return render(request, 'core/empresa_no_configurada.html', {'empresa': empresaDB})
 
+        sm = SiteMessages.objects.using("default").first()
         contexto = {
-            'mensaje1' : config('MENSAJE_INICIO1'),
-            'mensaje2' : config('MENSAJE_INICIO2'),
-            'mensaje3' : config('MENSAJE_INICIO3'),
+            "mensaje1": getattr(sm, "mensaje1", "") or "",
+            "mensaje2": getattr(sm, "mensaje2", "") or "",
+            "mensaje3": getattr(sm, "mensaje3", "") or "",
+            "mensaje4": getattr(sm, "mensaje4", "") or "",
+            "mensaje5": getattr(sm, "mensaje5", "") or "",
         }
 
         return render(request, 'core/inicio.html', contexto)
@@ -979,12 +982,12 @@ from core.forms import EmpresaContactoForm
 @method_decorator(staff_member_required, name="dispatch")
 class EmpresaContactoListView(LoginRequiredMixin, ListView):
     model = EmpresaDB
-    template_name = "core/empresa_contacto_list.html"
+    template_name = "core/staff_empresa_contacto_list.html"
     context_object_name = "empresas"
     paginate_by = 15
 
     def get_queryset(self):
-        qs = EmpresaDB.objects.using('tenant').all().order_by("codigo_empresa")
+        qs = EmpresaDB.objects.using('default').all().order_by("codigo_empresa")
         q = (self.request.GET.get("q") or "").strip()
         if q:
             qs = qs.filter(
@@ -1007,7 +1010,7 @@ from django.urls import reverse
 class EmpresaContactoUpdateView(UpdateView):
     model = EmpresaDB
     form_class = EmpresaContactoForm
-    template_name = "core/empresa_contacto_form.html"
+    template_name = "core/staff_empresa_contacto_form.html"
     slug_field = "codigo_empresa"
     slug_url_kwarg = "codigo_empresa"
 
@@ -1045,7 +1048,7 @@ class EmpresaContactoUpdateView(UpdateView):
         return HttpResponseRedirect(self.get_success_url())
 
     def get_success_url(self):
-        return reverse("core:empresa_contacto_update", kwargs={
+        return reverse("core:staff_empresa_contacto_update", kwargs={
             "codigo_empresa": self.object.codigo_empresa
         })
 
@@ -1089,7 +1092,7 @@ class EmpresaNumUsuariosUpdateView(LoginRequiredMixin, UpdateView):
         # Valores limpios desde el form
         numero = form.cleaned_data.get("num_usuarios")
 
-        with transaction.atomic(using="tenant"):
+        with transaction.atomic(using="default"):
             # 🔧 UPDATE directo en la BD 'default'
             updated = (
                 EmpresaDB.objects.using("default")

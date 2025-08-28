@@ -14,3 +14,14 @@ def empresa_context(request):
     else:
         set_current_tenant(None,None,None)
     return {'empresa_actual': None}
+
+def site_messages(request):
+    from core.models import SiteMessages
+    obj = SiteMessages.objects.using("default").first()
+    return {
+        "MENSAJE_INICIO1": getattr(obj, "mensaje1", ""),
+        "MENSAJE_INICIO2": getattr(obj, "mensaje2", ""),
+        "MENSAJE_INICIO3": getattr(obj, "mensaje3", ""),
+        "MENSAJE_INICIO4": getattr(obj, "mensaje4", ""),
+        "MENSAJE_INICIO5": getattr(obj, "mensaje5", ""),
+    }

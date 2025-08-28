@@ -109,3 +109,14 @@ class CertificadoCSD(models.Model):
 
     def __str__(self):
         return f"CSD de {self.empresa.nombre_comercial} - {self.rfc}"
+
+class SiteMessages(models.Model):
+    mensaje1 = models.CharField(max_length=200, blank=True)
+    mensaje2 = models.CharField(max_length=200, blank=True)
+    mensaje3 = models.CharField(max_length=200, blank=True)
+    mensaje4 = models.CharField(max_length=200, blank=True)
+    mensaje5 = models.CharField(max_length=200, blank=True)
+
+    class Meta:
+        verbose_name = "Mensajes de inicio"
+        verbose_name_plural = "Mensajes de inicio"
