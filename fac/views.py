@@ -155,8 +155,8 @@ class FacturaCreateView(TenantRequiredMixin, FacturaBaseView, CreateView):
                 print("No se encontró la Clave de Remision", empresa.clave_remision)
 
         initial['numero_remision'] = '0000000'  
-        initial['fecha_emision'] = localtime(now()).date()
-        initial['fecha_creacion'] = localtime(now()).date()
+        initial['fecha_emision'] = localtime(now()).date().isoformat()
+        initial['fecha_creacion'] = localtime(now()).date().isoformat()
         initial['serie_emisor'] = 'A'
         initial['lugar_expedicion'] = empresa.codigo_postal_expedicion
         initial['tipo_cambio'] = 1
@@ -220,7 +220,8 @@ class FacturaCreateView(TenantRequiredMixin, FacturaBaseView, CreateView):
         empresa = Empresa.objects.using('tenant').first()
 
         factura.usuario = self.request.user.username
-        factura.empresa = empresa  
+        factura.empresa = empresa
+        
         # Asignar moneda MXN si no viene del formulario
         if not factura.moneda:
             moneda_mxn = Moneda.objects.using('tenant').filter(clave="MXN").first()
@@ -238,6 +239,7 @@ class FacturaCreateView(TenantRequiredMixin, FacturaBaseView, CreateView):
             factura.tipo_comprobante = str(tipo_comp)[:1]
 
         # Defaults si están vacíos
+        factura.fecha_emision = factura.fecha_emision
         factura.serie_emisor = factura.serie_emisor or 'A'
         factura.lugar_expedicion = empresa.codigo_postal_expedicion or '00000'
         factura.tipo_cambio = factura.tipo_cambio or Decimal('1.00')
@@ -593,7 +595,7 @@ def generar_json_cfdi(request,factura):
         if retencion_iva_detalle and retencion_iva_detalle > 0:
             tasa_str = "{:.6f}".format(float(tasa_retencion_iva))  # tasa con 6 decimales
             concepto["impuestos"]["retenciones"].append({
-                "base": float(iva_detalle),
+                "base": float(base),
                 "impuesto": "002",
                 "tipo_factor": "Tasa",
                 "tasa_cuota": tasa_str,
@@ -1019,7 +1021,7 @@ def consultar_y_guardar_archivos(request, factura):
         if xml_resp.status_code != 200:
             return False, f"Error consultando XML: {xml_resp.text}"
         xml_data = xml_resp.json()
-        xml_str = xml_data.get("archivo")  # 🔄 clave corregida
+        xml_payload = xml_data.get("archivo")
 
         # 2. Descargar PDF
         pdf_url = f"{base_url}/{uuid}/pdf"
@@ -1029,12 +1031,15 @@ def consultar_y_guardar_archivos(request, factura):
         pdf_data = pdf_resp.json()
         pdf_b64 = pdf_data.get("archivo") 
 
-        if not xml_str or not pdf_b64:
+        if not xml_payload or not pdf_b64:
             return False, "XML o PDF no disponibles en la respuesta"
         
         # Guardar en el modelo
         try:
-            factura.xml.save(f"{nombre_factura}.xml", ContentFile(xml_str.encode('utf-8')), save=False)
+            # Normalizar XML a bytes reales
+            xml_bytes = _normalize_xml_bytes(xml_payload)
+
+            factura.xml.save(f"{nombre_factura}.xml", ContentFile(xml_bytes), save=False)
             factura.pdf.save(f"{nombre_factura}.pdf", ContentFile(base64.b64decode(pdf_b64)), save=False)
             factura.save(using='tenant', update_fields=["xml", "pdf"])
         except Exception as e:
@@ -1052,39 +1057,48 @@ from django.http import HttpResponse, Http404
 from django.shortcuts import get_object_or_404
 from django.views.decorators.clickjacking import xframe_options_exempt
 # DESCARGA EL PDF
-
+from django.http import FileResponse, Http404, HttpResponseNotFound
+from django.utils.text import slugify
 
 @login_required
 @tenant_required
 @xframe_options_exempt
 def descargar_factura(request, factura_id, tipo):
-    #    factura = get_object_or_404(Factura, id=factura_id)
-    factura = get_object_or_404(
-        Factura.objects.using('tenant'),
-        id=factura_id,
-    )
+    factura = get_object_or_404(Factura.objects.using('tenant'), pk=factura_id)
 
-    nombre_factura= f"FACTURA_{factura.cliente.rfc}_{factura.numero_factura}" if factura.cliente and factura.numero_factura else " "
+    base = f"FACTURA_{getattr(factura.cliente, 'rfc', '')}_{getattr(factura, 'numero_factura', '')}".strip("_")
+    base = slugify(base or "factura").upper()  # limpia para header
+
     if tipo == 'xml':
-        archivo = factura.xml
+        campo = factura.xml
         content_type = 'application/xml'
-        nombre = f"{nombre_factura}.xml"
+        ext = 'xml'
     elif tipo == 'pdf':
-        archivo = factura.pdf
+        campo = factura.pdf
         content_type = 'application/pdf'
-        nombre = f"{nombre_factura}.pdf"
-
+        ext = 'pdf'
     else:
         raise Http404("Tipo de archivo no válido")
 
-    if not archivo:
-            return HttpResponse(status=204)  # No Content, sin error visible    
-    
-    response = HttpResponse(archivo, content_type=content_type)
-    response['Content-Disposition'] = f'inline; filename="{nombre}"'  # Para abrir en navegador
-    return response
+    # 1) ¿hay valor en BD?
+    if not campo or not getattr(campo, "name", ""):
+        # No hay archivo asociado en la BD
+        return HttpResponseNotFound("Archivo no adjuntado a la factura.")
 
+    # 2) ¿existe físicamente en el storage?
+    storage = campo.storage
+    path_rel = campo.name  # p.ej. cfdi/ABC1234/pdf/archivo.pdf
+    if not storage.exists(path_rel):
+        # BD lo referencia, pero no está en disco/S3
+        return HttpResponseNotFound("Archivo no encontrado en el almacenamiento.")
 
+    # 3) Abrir y servir en streaming
+    campo.open("rb")
+    filename = f"{base}.{ext}"
+    resp = FileResponse(campo, content_type=content_type)
+    # inline = abre en navegador; usa 'attachment' para descarga forzada
+    resp["Content-Disposition"] = f'inline; filename="{filename}"'
+    return resp
 
 # Busca la remision y regresa los datos para cargarlos en factura_form.html
 @login_required
@@ -1461,3 +1475,63 @@ def enviar_factura_email(request, pk):
         messages.error(request, f"Error al enviar: {e}")
 
     return redirect(next_url)
+
+import base64, gzip, io, zipfile
+
+def _is_base64(s: str) -> bool:
+    s = s.strip()
+    if len(s) < 32:
+        return False
+    try:
+        base64.b64decode(s, validate=True)
+        return True
+    except Exception:
+        return False
+
+def _maybe_strip_data_url(b64_or_text: str) -> str:
+    # data:application/pdf;base64,AAAA...
+    if b64_or_text.startswith("data:"):
+        comma = b64_or_text.find(",")
+        if comma != -1:
+            return b64_or_text[comma+1:]
+    return b64_or_text
+
+def _normalize_xml_bytes(value: str | bytes) -> bytes:
+    """
+    Acepta el campo 'archivo' del PAC y regresa bytes XML reales (UTF-8, sin BOM).
+    Detecta: Base64, GZIP, ZIP, o XML directo.
+    """
+    # a) Si llegan bytes, trabajamos con ellos
+    if isinstance(value, (bytes, bytearray)):
+        raw = bytes(value)
+    else:
+        # value es str: ¿es Base64?
+        v = value.strip()
+        if _is_base64(_maybe_strip_data_url(v)):
+            raw = base64.b64decode(_maybe_strip_data_url(v))
+        else:
+            raw = v.encode("utf-8")
+
+    # b) ¿ZIP? (firma PK)
+    if raw.startswith(b"PK\x03\x04"):
+        with zipfile.ZipFile(io.BytesIO(raw)) as zf:
+            # toma el primer .xml si existe
+            for name in zf.namelist():
+                if name.lower().endswith(".xml"):
+                    return zf.read(name)
+            # de no haber .xml, regresa el primero
+            return zf.read(zf.namelist()[0])
+
+    # c) ¿GZIP? (firma 1F 8B)
+    if raw.startswith(b"\x1f\x8b"):
+        with gzip.GzipFile(fileobj=io.BytesIO(raw)) as gz:
+            raw = gz.read()
+
+    # d) ¿XML directo? (con o sin BOM)
+    if raw.startswith(b"\xef\xbb\xbf"):
+        raw = raw[3:]
+    # Validación mínima
+    if b"<cfdi:Comprobante" not in raw[:4096] and b"<cfdi:Comprobante" not in raw:
+        # Aun así lo regresamos; quizá no es CFDI pero es XML válido
+        pass
+    return raw

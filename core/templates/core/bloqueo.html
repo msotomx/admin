@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Servicio vencido{% endblock %}
+
+{% block content %}
+  <meta name="robots" content="noindex">
+
+  <div class="container py-5">
+    <div class="row justify-content-center">
+      <div class="col-lg-7">
+        <div class="card shadow-sm">
+          <div class="card-body p-4">
+            <div class="d-flex align-items-center mb-3">
+              {# Opcional: tu logo si quieres mostrarlo aquí #}
+              {# <img src="{% static 'img/logo.png' %}" alt="Logo" height="36" class="me-2"> #}
+              <h4 class="m-0 text-danger">Su suscripción ha vencido</h4>
+            </div>
+
+            {% if dias_renov is not None %}
+              {% if dias_renov < 0 %}
+                <p class="mb-3">
+                  La fecha de renovación <strong>expiró hace {{ dias_renov|abs }} día{% if dias_renov|abs != 1 %}s{% endif %}</strong>.
+                </p>
+              {% elif dias_renov == 0 %}
+                <p class="mb-3">La fecha de renovación es <strong>hoy</strong>.</p>
+              {% endif %}
+            {% endif %}
+
+            <p class="mb-3">
+              Para reactivar el servicio, por favor envíe un WhatsApp al
+              <strong>{{ cel_wa }}</strong> y mencione su código de empresa
+              <strong>{{ codigo_empresa }}</strong>.
+            </p>
+
+            <div class="d-flex gap-2">
+              {% if cel_wa_link %}
+                <a class="btn btn-success"
+                   target="_blank" rel="noopener"
+                   href="https://wa.me/{{ cel_wa_link }}">
+                  Contactar por WhatsApp
+                </a>
+              {% endif %}
+              <a class="btn btn-secondary" href="{% url 'login' %}">Iniciar sesión</a>
+            </div>
+
+            <hr class="my-4">
+            <small class="text-muted">
+              Si ya realizó el pago, por favor vuelva a iniciar sesión para revalidar el acceso.
+            </small>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock %}

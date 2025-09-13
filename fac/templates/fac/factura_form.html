@@ -233,8 +233,8 @@ document.addEventListener('DOMContentLoaded', function () {
     const fecha_emisionInput = document.getElementById('id_fecha_emision');
     const numero_facturaInput = document.getElementById('id_numero_factura');
     
-    if (fecha_emisionInput) {
-        fecha_emisionInput.focus();
+    if (numero_facturaInput) {
+        numero_facturaInput.focus();
     }
     // busca el ultimo numero de factura
 
@@ -574,7 +574,7 @@ document.addEventListener('DOMContentLoaded', function () {
             // calcula iva del producto:
             const iva = importe * tasa_iva; // esta tasa_iva se grabo en el formset en el BLUR de PRODUCTO
             const ieps = importe * tasa_ieps;
-            const retencion_iva = iva * tasa_retencion_iva;
+            const retencion_iva = importe * tasa_retencion_iva;
             const retencion_isr = importe * tasa_retencion_isr;
             
             // pasar valores al formulario
@@ -623,7 +623,7 @@ document.addEventListener('DOMContentLoaded', function () {
             const retencionIvaInput = row.querySelector('input[name$="-retencion_iva"]');
             const retencionIsrInput = row.querySelector('input[name$="-retencion_isr"]');
 
-            const retIva = iva * retencionIvaRate;
+            const retIva = importe * retencionIvaRate;
             const retIsr = importe * retencionIsrRate;
 
             retencion_iva_total += retIva;

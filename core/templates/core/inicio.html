@@ -6,7 +6,7 @@
     <div class="container mt-5 p-4 rounded " style="background-color: azure">  <!-- bg-light-->
     
         <div class="text-center mt-4">
-            <h1>Bienvenido a  <strong>Switchh</strong></h1>
+            <h1>Bienvenido a  <strong>Switchh•Sistemas</strong></h1>
             <!--
             <p>Vigencia de tu Licencia:</p>
             <p>Recomienda Switchh•Sistemas a tus amigos y conocidos y obten un 50% de descuento en tu renovación</p>
@@ -16,11 +16,28 @@
             <p> </p>
             
             <br>
-            <h5>{{ mensaje1 }}</h5>
-            <h5>{{ mensaje2 }}</h5>
-            <h5>{{ mensaje3 }}</h5>
-            <h5>{{ mensaje4 }}</h5>
-            <h5>{{ mensaje5 }}</h5>
+            {% if show_renov_alert %}
+            <div class="alert alert-warning d-flex align-items-center justify-content-between" role="alert">
+                <div>
+                    Su fecha de renovación está próxima
+                    {% if dias_renov == 0 %}(hoy){% else %}(en {{ dias_renov }} día{% if dias_renov != 1 %}s{% endif %}){% endif %}.
+                    Favor de enviar un WhatsApp al <strong>{{ cel_wa }}</strong> y mencionar su código de empresa
+                    <strong>{{ codigo_empresa }}</strong>.
+                </div>
+                {% if cel_wa_link %}
+                    <a class="btn btn-sm btn-outline-success ms-3"
+                        target="_blank" rel="noopener"
+                        href="https://wa.me/{{ cel_wa_link }}">WhatsApp</a>
+                {% endif %}
+            </div>
+            {% else %}
+                <h5>{{ mensaje1 }}</h5>
+                <h5>{{ mensaje2 }}</h5>
+                <h5>{{ mensaje3 }}</h5>
+                <h5>{{ mensaje4 }}</h5>
+                <h5>{{ mensaje5 }}</h5>
+            {% endif %}            
+            
         </div>
     </div>
 {% endblock %}

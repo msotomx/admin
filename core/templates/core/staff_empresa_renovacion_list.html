@@ -30,8 +30,8 @@
                         <td>{{ empresa.codigo_empresa }}</td>
                         <td>{{ empresa.nombre }}</td>
                         <td>{{ empresa.db_name }}</td>
-                        <td>{{ empresa.fecha_inicio }}</td>
-                        <td>{{ empresa.fecha_renovacion }}</td>
+                        <td>{{ empresa.fecha_inicio|date:"d/M/Y" }}</td>
+                        <td>{{ empresa.fecha_renovacion|date:"d/M/Y" }}</td>
                         <td>{{ empresa.contacto_nombre }}</td>
                         <td>{{ empresa.contacto_telefono }}</td>
                         <td>{{ empresa.contacto_email }}</td>

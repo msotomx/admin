@@ -171,7 +171,7 @@ class DetalleFactura(models.Model):
         ieps = self.importe * tasa_ieps
         self.ieps_producto = ieps.quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
         # retencion_iva
-        retencion_iva = iva * tasa_retencion_iva
+        retencion_iva = self.importe * tasa_retencion_iva
         self.retencion_iva = retencion_iva.quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
         # retencion_isr
         retencion_isr = self.importe * tasa_retencion_isr

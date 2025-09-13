@@ -325,13 +325,6 @@ class VendedorCreateView(TenantRequiredMixin,CreateView):
     template_name = 'inv/vendedor_form.html'
     success_url = reverse_lazy('inv:vendedor_list')
 
-    def get_initial(self):
-        initial = super().get_initial()
-
-        initial['fecha_registro'] = localtime(now()).date()
-        print(" EN VENDEDOR GET_INITIAL")
-        return initial
-
     def form_valid(self, form):
         vendedor = form.cleaned_data['vendedor']
         # Guarda el objeto en la base de datos del tenant
@@ -518,7 +511,8 @@ class MovimientoCreateView(TenantRequiredMixin, CreateView):
                 print("No se asignó almacen_actual")
             
         # Asignar la fecha de hoy
-        initial['fecha_movimiento'] = date.today()
+        #initial['fecha_movimiento'] = date.today()
+        initial['fecha_movimiento'] = localtime(now()).date().isoformat()
 
         return initial
     
@@ -759,7 +753,7 @@ class RemisionCreateView(TenantRequiredMixin, RemisionBaseView, CreateView):
             except Almacen.DoesNotExist:
                 print("No se encontró el almacén", empresa.almacen_actual)
 
-        initial['fecha_remision'] = date.today()
+        initial['fecha_remision'] = localtime(now()).date().isoformat()
         return initial
 
     def get(self, request, *args, **kwargs):
@@ -1023,7 +1017,7 @@ class CotizacionCreateView(TenantRequiredMixin, CreateView):
         initial = super().get_initial()
                
         # Asignar la fecha de hoy
-        initial['fecha_cotizacion'] = date.today()
+        initial['fecha_cotizacion'] = localtime(now()).date().isoformat()
 
         return initial
     
@@ -1756,6 +1750,7 @@ class CompraCreateView(TenantRequiredMixin, CompraBaseView, CreateView):
                 pass
 
         initial['fecha_compra'] = localtime(now()).date().isoformat()
+        initial['fecha_vencimiento'] = localtime(now()).date().isoformat()
         return initial
 
     def get(self, request, *args, **kwargs):

@@ -10,7 +10,7 @@ from .models import Compra, DetalleCompra, Cotizacion, DetalleCotizacion
 from core.models import Empresa
 from cxc.models import Cliente, RegimenFiscal
 from core.models import CertificadoCSD
-
+from django.utils import timezone
 from decimal import Decimal
 from collections import defaultdict
 
@@ -77,7 +77,14 @@ class ProveedorForm(forms.ModelForm):
             'comentarios': forms.Textarea(attrs={'rows': 3}),
         }
 
+
 class VendedorForm(forms.ModelForm):
+    fecha_registro = forms.DateField(
+        widget=forms.DateInput(attrs={'type':'date','class':'form-control'}, format='%Y-%m-%d'),
+        input_formats=['%Y-%m-%d'],
+        required=True,
+    )
+
     class Meta:
         model = Vendedor
         fields = '__all__'
@@ -86,18 +93,17 @@ class VendedorForm(forms.ModelForm):
             'nombre': forms.TextInput(attrs={'class': 'form-control'}),
             'telefono': forms.TextInput(attrs={'class': 'form-control'}),
             'email': forms.TextInput(attrs={'class': 'form-control'}),
-            'fecha_registro': forms.DateInput(attrs={'type': 'date'}),
         }      
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-
-        self.fields['fecha_registro'].initial = localtime(now()).date()
-
+        if not self.is_bound and not getattr(self.instance, 'pk', None):
+            self.initial['fecha_registro'] = timezone.localdate().isoformat()
+        
 from django import forms
 from django.db import transaction
 from .models import Producto
-#self.fields['fecha_registro'].initial = localtime(now()).date()
+
 
 from django import forms
 
@@ -119,18 +125,22 @@ class ProductoForm(forms.ModelForm):
         self.fields['proveedor'].queryset = Proveedor.objects.using('tenant').order_by('nombre')
         
 # MOVIMIENTOS
-from datetime import date
 class MovimientoForm(forms.ModelForm):
+    fecha_movimiento = forms.DateField(
+        widget=forms.DateInput(attrs={'type':'date','class':'form-control'}, format='%Y-%m-%d'),
+        input_formats=['%Y-%m-%d'],
+        required=True,
+    )
+
     class Meta:
         model = Movimiento
         exclude = ['usuario', 'move_s']  # Ocultamos move_s (se asignará en la vista)
-        widgets = {
-            'fecha_movimiento': forms.DateInput(attrs={'type': 'date'}),
-        }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['clave_movimiento'].queryset = ClaveMovimiento.objects.using('tenant').filter(es_remision=False, es_compra=False, es_servicio=False).order_by('nombre')
+        if not self.is_bound and not getattr(self.instance, 'pk', None):
+            self.initial['fecha_movimiento'] = timezone.localdate().isoformat()
 
 class DetalleMovimientoForm(forms.ModelForm):  
     class Meta:
@@ -184,7 +194,6 @@ DetalleMovimientoFormSet = inlineformset_factory(
 )
 
 # COTIZACIONES
-from datetime import date
 class CotizacionForm(forms.ModelForm):
     class Meta:
         model = Cotizacion
@@ -196,6 +205,8 @@ class CotizacionForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['vendedor'].queryset = Vendedor.objects.using('tenant').order_by('nombre')
+        if not self.is_bound and not getattr(self.instance, 'pk', None):
+            self.initial['fecha_cotizacion'] = timezone.localdate().isoformat()
 
 class DetalleCotizacionForm(forms.ModelForm):
     class Meta:
@@ -385,7 +396,6 @@ class CompraForm(forms.ModelForm):
                 
         self.fields['clave_movimiento'].queryset = ClaveMovimiento.objects.using('tenant').filter(es_compra=True).order_by('nombre')
         self.fields['proveedor'].queryset = Proveedor.objects.using('tenant').all().order_by('nombre')
-        self.fields['fecha_vencimiento'].initial = localtime(now()).date()
         
         # Aplica clases a todos los campos visibles
         for field in self.fields.values():
@@ -506,7 +516,7 @@ class EmpresaLugarForm(forms.ModelForm):
         model = Empresa
         fields = ['nombre_fiscal', 'rfc','calle_expedicion', 'numero_exterior_expedicion',
                   'numero_interior_expedicion','colonia_expedicion','codigo_postal_expedicion',
-                  'localidad_expedicion','municipio_expedicion','estado_expedicion','pais_expedicion']
+                  'localidad_expedicion','municipio_expedicion','estado_expedicion','pais_expedicion','regimen_fiscal']
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

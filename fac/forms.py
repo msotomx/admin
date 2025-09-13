@@ -33,6 +33,12 @@ class BaseDetalleFacturaFormSet(BaseInlineFormSet):
         return False
 
 class FacturaForm(forms.ModelForm):
+    fecha_emision = forms.DateField(
+        required=False, disabled=True,  # ← solo lectura
+        widget=forms.DateInput(attrs={'type':'date','class':'form-control'}, format='%Y-%m-%d'),
+        input_formats=['%Y-%m-%d'],
+    )
+
     class Meta:
         model = Factura
         fields = '__all__'
@@ -58,7 +64,7 @@ class FacturaForm(forms.ModelForm):
 
         self.fields['cliente'].queryset = Cliente.objects.using('tenant').all().order_by('nombre')
         self.fields['clave_remision'].queryset = ClaveMovimiento.objects.using('tenant').filter(es_remision=True).order_by('nombre')
-        self.fields['fecha_emision'].initial = localtime(now()).date()
+        self.fields['fecha_emision'].initial = localtime(now()).date().isoformat()
 
         # Ocultar campos
         self.fields['descuento_factura'].widget = forms.HiddenInput()
@@ -74,6 +80,7 @@ class FacturaForm(forms.ModelForm):
             self.fields['moneda'].initial = Moneda.objects.filter(clave="MXN").first()
             self.fields['tipo_comprobante'].initial = TipoComprobante.objects.filter(tipo_comprobante='I').first()
             self.fields['exportacion'].initial = Exportacion.objects.filter(exportacion='01').first()
+            self.fields['fecha_emision'].initial = localtime(now()).date().isoformat()
                                                                 
 class DetalleFacturaForm(forms.ModelForm):
     class Meta:

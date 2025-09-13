@@ -144,3 +144,34 @@ def cargar_datos_iniciales(db_alias):
         Proveedor.objects.using(db_alias).bulk_create([
             Proveedor(nombre='SIN PROVEEDOR', contacto="SIN PROVEEDOR`"),
         ])    
+
+
+import re
+from django.conf import settings
+from django.utils import timezone
+# CALCULA LOS DIAS FALTANTES PARA LA RENOVACION
+# SI DIAS < 6, MUESTRA RECORDATORIO
+# SI DIAS < 0 BLOQUEA EL ACCESO AL SISTEMA
+
+def info_renovacion(empresa):
+    """
+    Calcula días a la renovación y arma datos para UI.
+    Retorna dict con:
+      - dias_renov (int | None)
+      - cel_wa, cel_wa_link, codigo_empresa
+    """
+    if not empresa or not getattr(empresa, "fecha_renovacion", None):
+        return {"dias_renov": None, "cel_wa": "", "cel_wa_link": "", "codigo_empresa": ""}
+
+    hoy = timezone.localdate()
+    dias = (empresa.fecha_renovacion - hoy).days
+
+    cel_wa = getattr(settings, "CEL_WA", "")
+    cel_wa_link = re.sub(r"\D+", "", str(cel_wa or ""))  # para wa.me
+
+    return {
+        "dias_renov": dias,
+        "cel_wa": cel_wa,
+        "cel_wa_link": cel_wa_link,
+        "codigo_empresa": getattr(empresa, "codigo_empresa", ""),
+    }

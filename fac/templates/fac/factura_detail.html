@@ -1,24 +1,23 @@
 {% extends 'base.html' %}
-
+{% load humanize l10n %}
 {% block content %}
-<div class="container mt-4 small">
-    <h4>Detalle de la Factura: {{ factura.numero_factura }}</h4>
+<div class="container mt-4 small" id="print-area">  
 
+    <h4>Borrador de la Factura: {{ factura.numero_factura }}</h4>
     <div class="mb-3">
-        <strong>Fecha:</strong> {{ factura.fecha_emision|date:"d/m/Y" }}<br>
+        {{ factura.empresa}}<br>
+        <strong>Fecha:</strong> {{ factura.fecha_emision|date:"d/M/Y" }}<br>
         <strong>Factura:</strong> {{ factura.numero_factura }}<br>
-        <strong>Cliente:</strong> {{ factura.cliente }}<br>
-        <strong>Clave Remision:</strong> {{ factura.clave_remision }}<br>
-        <strong>Remision Número:</strong> {{ factura.numero_remision }}<br>
+        <strong> </strong>
+    </div>
+    <div class="mb-3">
+        <strong>Cliente:</strong> {{ factura.cliente.nombre }}<br>
+        <strong>RFC:</strong> {{ factura.cliente.rfc }}<br>
         <strong>Forma de Pago:</strong> {{ factura.forma_pago }}<br>
         <strong>Método de Pago:</strong> {{ factura.metodo_pago }}<br>
         <strong>Uso de CFDI:</strong> {{ factura.uso_cfdi }}<br>
-        <strong>Serie Emisor:</strong> {{ factura.serie_emisor }}<br>
-        <strong>Serie SAT:</strong> {{ factura.serie_sat }}<br>
-        <strong>Fecha Certificacion:</strong> {{ factura.fecha_hora_certificacion|date:"d/m/Y" }}<br>
-        <strong>Tipo de Comprobante:</strong> {{ factura.tipo_comprobante }}<br>
-        <strong>Importe Total:</strong> {{ factura.total }}<br>
         <strong>Status:</strong> {{ factura.estatus }}<br>
+
         <strong>Usuario:</strong> {{ factura.usuario }}
     </div>
 
@@ -28,32 +27,123 @@
             <tr>
                 <th>Producto</th>
                 <th>Clave SAT</th>
-                <th>Cantidad</th>
-                <th>Precio Unit</th>
-                <th>Descuento</th>
-                <th>Subtotal</th>
+                <th style="text-align:right;">Cantidad</th>
+                <th style="text-align:right;">Precio Unit</th>
+                <th style="text-align:right;">Descuento</th>
+                <th style="text-align:right;">Subtotal</th>
             </tr>
         </thead>
         <tbody>
             {% for detalle in detalles %}
                 <tr>
                     <td>{{ detalle.producto }}</td>
-                    <td>{{ detalle.clave_prod_serv }}</td>   <!-- clave SAT -->
-                    <td>{{ detalle.cantidad }}</td>
-                    <td>${{ detalle.valor_unitario }}</td>
-                    <td>${{ detalle.descuento }}</td>
-                    <td>${{ detalle.importe }}</td>
+                    <td>{{ detalle.clave_prod_serv }}</td>
+                    <td style="text-align:right;">${{ detalle.cantidad|unlocalize|floatformat:2|intcomma:False }}</td>
+                    <td style="text-align:right;">${{ detalle.valor_unitario|unlocalize|floatformat:2|intcomma:False }}</td>
+                    <td style="text-align:right;">${{ detalle.descuento|unlocalize|floatformat:2|intcomma:False }}</td>
+                    <td style="text-align:right;">${{ detalle.importe|unlocalize|floatformat:2|intcomma:False }}</td>
+                        
                 </tr>
             {% empty %}
                 <tr>
-                    <td colspan="5" class="text-center text-muted">No hay productos en esta factura.</td>
+                    <td colspan="6" class="text-center text-muted">No hay productos en esta factura.</td>
                 </tr>
             {% endfor %}
         </tbody>
-    </table>
+        <div class="total-general">
+            <tr>
+                <td colspan="5" style="text-align:right;"><strong>IVA</strong></td>
+                
+                <td style="text-align:right; letter-spacing: -0.5px;">{{ factura.iva_factura|default_if_none:0|floatformat:2|intcomma }}</td>
+            </tr>
+            {% if factura.ieps_factura %}
+                <tr>
+                    <td colspan="5" style="text-align:right;"><strong>IEPS</strong></td>
+                    <td style="text-align:right; letter-spacing: -0.5px;">{{ factura.ieps_factura|default_if_none:0|floatformat:2|intcomma }}</td>
+                </tr>
+            {% endif %}
+            {% if factura.retencion_iva %}
+                <tr>
+                    <td colspan="5" style="text-align:right;">Retención de IVA</td>
+                    <td style="text-align:right; letter-spacing: -0.5px;">{{ factura.retencion_iva|default_if_none:0|floatformat:2|intcomma }}</td>
+                </tr>
+            {% endif %}
+            {% if factura.retencion_isr %}
+                <tr>
+                    <td colspan="5" style="text-align:right;"><strong>Retención de ISR</strong></td>
+                    <td style="text-align:right; letter-spacing: -0.5px;">{{ factura.retencion_isr|default_if_none:0|floatformat:2|intcomma }}</td>
+                </tr>
+            {% endif %}
+            <tr>
+                <td colspan="5" style="text-align:right;"><strong>Total</strong></td>
+                <td style="text-align:right; letter-spacing: -0.5px;"><strong>{{ factura.total|default_if_none:0|floatformat:2|intcomma }}</strong></td>
+            </tr>
+            </tr>
+        </div>
 
+    </table>
+</div>
+<div class="container mt-3 no-print">
     <a href="{% url 'fac:factura_list' %}" class="btn btn-secondary btn-sm">Regresar</a>
 
+    <button onclick="printSection('print-area')" class="btn btn-primary btn-sm no-print">
+        Imprimir
+    </button>
 </div>
+
+
+<script>
+    function printSection(id) {
+        const content = document.getElementById(id).innerHTML;
+        const printWindow = window.open('', '', 'height=600,width=800');
+        printWindow.document.write('<html><head><title>Impresión</title>');
+        printWindow.document.write(`<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">`);
+        printWindow.document.write(`
+            <style>
+                body { font-family: sans-serif; font-size: 11px; }
+                table {
+                border-collapse: collapse;
+                width: 100%;
+                page-break-after: avoid; /* evita que la tabla se rompa innecesariamente */
+                }
+                thead tr {
+                border-top: 2px solid black;
+                border-bottom: 2px solid black;
+                }
+                thead th {
+                padding: 4px;
+                text-align: left;
+                font-size: 11px;
+                }
+                td {
+                padding: 2px;
+                }
+                table, td {
+                border: none !important;
+                }
+                .total-general {
+                page-break-before: auto;  /* <- NO fuerza salto */
+                page-break-inside: avoid; /* evita que se corte el bloque */
+                margin-top: 20px;
+                font-size: 11px;
+                font-weight: bold;
+                }
+                .print-header {
+                h5 {
+                    font-size: 13px;
+                }
+                p {
+                    font-size: 13px;
+                }
+                }  
+            </style>
+            `);
+        printWindow.document.write('</head><body>');
+        printWindow.document.write(content);
+        printWindow.document.write('</body></html>');
+        printWindow.document.close();
+        printWindow.print();
+    }
+</script>
 
 {% endblock %}

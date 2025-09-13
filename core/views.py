@@ -20,6 +20,7 @@ from core._thread_locals import _thread_locals
 from django.utils.timezone import now, localtime
 from decouple import config
 from core.mixins import TenantRequiredMixin
+from core.utils import info_renovacion
 
 def require_tenant_connection(view_func):
     @wraps(view_func)
@@ -64,6 +65,18 @@ def inicio(request):
         if not empresa_fiscal:
             return render(request, 'core/empresa_no_configurada.html', {'empresa': empresaDB})
 
+        # Revisa Fecha de Renovacion
+        data = info_renovacion(empresaDB)
+        dias = data["dias_renov"]
+
+        # Si está vencido => cerrar sesión y mostrar solo la pantalla de bloqueo
+        if dias is not None and dias < 0:
+            logout(request)
+            return render(request, "core/bloqueo.html", data)
+
+        # Si está por vencer (0..6) => solo aviso en inicio (no bloquea)
+        show_alert = dias is not None and dias <= 6
+
         sm = SiteMessages.objects.using("default").first()
         contexto = {
             "mensaje1": getattr(sm, "mensaje1", "") or "",
@@ -73,7 +86,10 @@ def inicio(request):
             "mensaje5": getattr(sm, "mensaje5", "") or "",
         }
 
-        return render(request, 'core/inicio.html', contexto)
+        return render(request, "core/inicio.html", {
+            **data,
+            "show_renov_alert": show_alert,
+        }, contexto)
     
     except PerfilUsuario.DoesNotExist:
         return redirect('core:login')
@@ -530,12 +546,12 @@ class StaffEmpresaRenovacionListView(LoginRequiredMixin, UserPassesTestMixin, Li
         return self.request.user.is_staff
 
     def get_queryset(self):
-        return EmpresaDB.objects.using('default').all().order_by('-fecha_renovacion')
+        return EmpresaDB.objects.using('default').all().order_by('fecha_renovacion')
 
 @login_required
 @staff_required(redirect_url='core:inicio')
 def exportar_empresas_renovacion_excel(request):
-    empresas = EmpresaDB.objects.using('default').all().order_by('-fecha_renovacion')
+    empresas = EmpresaDB.objects.using('default').all().order_by('fecha_renovacion')
     wb = openpyxl.Workbook()
     ws = wb.active
     ws.title = "Empresas_Renovacion"

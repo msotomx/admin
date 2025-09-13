@@ -29,14 +29,14 @@
                 {{ form.email|add_bootstrap_class }}
             </div>
             <div class="col-md-3 mb-2">
-                <label class="form-label small">Fecha Registro (días)</label>
+                <label class="form-label small">Fecha Registro (dd/mm/yyyy)</label>
                 {{ form.fecha_registro|add_bootstrap_class }}
             </div>
             </div>
         </div>
         <div class="mt-4">
             <button type="submit" class="btn btn-success">Guardar Vendedor</button>
-            <a href="{% url 'inv:vendedor_list' %}" class="btn btn-secondary">Cancelar</a>
+            <a href="{% url 'inv:vendedor_list' %}" class="btn btn-secondary">Regresar</a>
         </div>
     </form>
 </div>
