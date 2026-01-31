@@ -14,7 +14,6 @@ from django.utils import timezone
 from decimal import Decimal
 from collections import defaultdict
 from core.form_mixins import MXDateFormMixin
-from core.widgets import MXDateWidget
 
 class MonedaForm(forms.ModelForm):
     class Meta:
@@ -201,7 +200,7 @@ class CotizacionForm(forms.ModelForm):
         model = Cotizacion
         fields = '__all__'
         widgets = {
-            'fecha_cotizacion': forms.DateInput(attrs={'type': 'date'}, format='%Y-%m-%d'),
+            'fecha_cotizacion': forms.DateInput(attrs={'type': 'date'}),
         }
 
     def __init__(self, *args, **kwargs):
@@ -262,69 +261,6 @@ DetalleCotizacionFormSet = inlineformset_factory(
     can_delete=True
 )
 
-# TRASPASOS
-class TraspasoForm(forms.ModelForm):
-    class Meta:
-        model = Traspaso
-        fields = '__all__'
-        exclude = ['usuario']
-        widgets = {
-            'fecha_traspaso': forms.DateInput(attrs={'type': 'date'}, format='%Y-%m-%d'),
-        }
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        if not self.is_bound and not getattr(self.instance, 'pk', None):
-            self.initial['fecha_traspaso'] = timezone.localdate().isoformat()
-
-class DetalleTraspasoForm(forms.ModelForm):
-    class Meta:
-        model = DetalleTraspaso
-        fields = '__all__'
-        widgets = {
-            'producto': forms.Select(attrs={'class': 'form-select form-select-sm'}),
-            'cantidad': forms.NumberInput(attrs={'class': 'form-control form-control-sm'}),
-        }
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.fields['producto'].queryset = Producto.objects.using('tenant').all().order_by('nombre')
-        
-# valida productos repetidos
-# valida cantidad = 0
-class DetalleTraspasoBaseFormSet(BaseInlineFormSet):
-    def clean(self):
-        super().clean()
-        productos_vistos = set()
-
-        for form in self.forms:
-            if not form.cleaned_data or (self.can_delete and self._should_delete_form(form)):
-                continue
-
-            producto = form.cleaned_data.get('producto')
-            cantidad = form.cleaned_data.get('cantidad')
-
-            if not producto:
-                raise ValidationError('Debe seleccionar un producto en cada línea del detalle.')
-
-            if cantidad is None or cantidad <= 0:
-                raise ValidationError(f'La cantidad para el producto "{producto}" debe ser mayor a cero.')
-
-            if producto in productos_vistos:
-                raise ValidationError(f'El producto "{producto}" está duplicado en el detalle.')
-
-            productos_vistos.add(producto)
-
-DetalleTraspasoFormSet = inlineformset_factory(
-    parent_model=Traspaso,
-    model=DetalleTraspaso,
-    form=DetalleTraspasoForm,
-    formset=DetalleTraspasoBaseFormSet,
-    fk_name='referencia',
-    fields=['producto', 'cantidad'],
-    extra=1,
-    can_delete=True
-)
 
 # REMISIONES
 class RemisionForm(forms.ModelForm):
@@ -333,22 +269,15 @@ class RemisionForm(forms.ModelForm):
         fields = '__all__'
         exclude = ['usuario', 'numero_factura', 'status', 'monto_total']
         widgets = {
-            'fecha_remision': forms.DateInput(
-                format='%Y-%m-%d',
-                attrs={'type': 'date'}
-            ),
+            'fecha_remision': forms.DateInput(attrs={'type': 'date'}),
         }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        # Deshabilitar cotización en edición
-        if self.instance and self.instance.pk:
-            self.fields["numero_cotizacion"].disabled = True 
-
+                
         self.fields['cliente'].queryset = Cliente.objects.using('tenant').all().order_by('nombre')
         self.fields['clave_movimiento'].queryset = ClaveMovimiento.objects.using('tenant').filter(es_remision=True).order_by('nombre')
         self.fields['vendedor'].queryset = Vendedor.objects.using('tenant').all().order_by('nombre')
-        self.fields['fecha_remision'].input_formats = ['%Y-%m-%d']
 
 class DetalleRemisionForm(forms.ModelForm):
     class Meta:
@@ -370,17 +299,6 @@ class DetalleRemisionForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        opcionales = [
-            "descuento",
-            "tasa_iva", "tasa_ieps",
-            "tasa_retencion_iva", "tasa_retencion_isr",
-            "iva_producto", "ieps_producto",
-            "retencion_iva", "retencion_isr",
-        ]
-        for f in opcionales:
-            if f in self.fields:
-                self.fields[f].required = False
-
         self.fields['producto'].queryset = Producto.objects.using('tenant').all().order_by('nombre')
                
         # Bootstrap para todos los campos
@@ -392,6 +310,9 @@ class DetalleRemisionForm(forms.ModelForm):
                           'tasa_retencion_iva', 'tasa_retencion_isr', 'retencion_iva', 'retencion_isr']:
             self.fields[tax_field].initial = 0
             self.fields[tax_field].widget = forms.HiddenInput()
+
+# valida productos repetidos
+# valida cantidad = 0
 
 class DetalleRemisionFormSet(BaseInlineFormSet):
     def clean(self):

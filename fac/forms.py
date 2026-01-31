@@ -59,7 +59,7 @@ class FacturaForm(forms.ModelForm):
             self.fields[name].widget.attrs.update({
                 'readonly': True,
                 'tabindex': '-1',
-                'class': 'form-control form-control-sm text-end bg-light'
+                'class': 'form-control form-control-sm bg-light'
             })
 
         self.fields['cliente'].queryset = Cliente.objects.using('tenant').all().order_by('nombre')

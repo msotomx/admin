@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4 small">
+    <h4>Detalle del Traspaso: {{ traspaso.referencia }}</h4>
+
+    <div class="mb-3">
+        <strong>Fecha:</strong> {{ traspaso.fecha_traspaso|date:"d/m/Y" }}<br>
+        <strong>Cliente:</strong> {{ traspaso.alm1.nombre }}<br>
+        <strong>Vendedor:</strong> {{ traspaso.alm2.nombre }}<br>
+        <strong>Usuario:</strong> {{ traspaso.usuario }}
+    </div>
+
+    <h5>Productos</h5>
+    <table class="table table-sm table-bordered table-striped">
+        <thead class="table-light">
+            <tr>
+                <th>Producto</th>
+                <th>Descripción</th>
+                <th>Cantidad</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for detalle in detalles %}
+                <tr>
+                    <td>{{ detalle.producto.sku }}</td>
+                    <td>{{ detalle.producto.nombre|truncatechars:40}}</td>
+                    <td>${{ detalle.cantidad }}</td>
+                </tr>
+            {% empty %}
+                <tr>
+                    <td colspan="5" class="text-center text-muted">No hay productos en este traspaso.</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <a href="{% url 'inv:traspaso_list' %}" class="btn btn-secondary btn-sm">Regresar</a>
+</div>
+{% endblock %}

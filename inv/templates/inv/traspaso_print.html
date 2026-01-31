@@ -1,0 +1,63 @@
+{% extends 'base_reportes.html' %}
+
+{% block content %}
+<style>
+    @media print {
+        header,
+        footer,
+        nav,
+        .d-print-none {
+            display: none !important;
+        }
+    }
+</style>
+<div class="container mt-4" id="print-area">
+    <div class="row small">
+
+        <div class="d-flex justify-content-between">
+            <strong>{{ empresa_actual }}</strong>
+            <strong>SWITCHH • SISTEMAS</strong>
+        </div>
+
+        <div class="d-flex justify-content-between">
+            <span><strong>Fecha:</strong> {{ traspaso.fecha_traspaso }}</span>
+            <span><strong>Generada por:</strong> {{ traspaso.usuario }}</span>
+        </div>
+
+        <div class="d-flex justify-content-between">
+            <span><strong>Almacen Origen:</strong> {{ traspaso.alm1.nombre| truncatechars:40 }}</span>
+            <strong>Traspaso Número {{ traspaso.referencia }}</strong>
+        </div>
+
+        <div class="d-flex">
+            <span><strong>Almacen Destino:</strong> {{ traspaso.alm2.nombre| truncatechars:40 }}</span>
+        </div>
+    </div>
+
+    <table class="table table-bordered table-sm mt-4">
+        <thead class="table-light">
+            <tr>
+                <th>#</th>
+                <th>Producto</th>
+                <th>Descripción</th>
+                <th class="text-end">Cantidad</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for d in detalles %}
+            <tr>
+                <td>{{ forloop.counter }}</td>
+                <td>{{ d.producto.sku| truncatechars:15 }}</td>
+                <td>{{ d.producto.nombre| truncatechars:40 }}</td>
+                <td class="text-end">{{ d.cantidad|floatformat:2 }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <div class="mt-4 text-center d-print-none">
+        <button onclick="window.print()" class="btn btn-primary">Imprimir</button>
+        <a href="{% url 'inv:traspaso_list' %}" class="btn btn-secondary">Volver</a>
+    </div>
+</div>
+{% endblock %}

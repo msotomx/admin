@@ -275,11 +275,11 @@ class FacturaCreateView(TenantRequiredMixin, FacturaBaseView, CreateView):
 
         return render(self.request, self.template_name, {'form': form, 'formset': formset})
     
+from django.shortcuts import render, redirect
 from django.views.generic import UpdateView
 from django.db import transaction
 from .models import Factura, DetalleFactura
 from .forms import FacturaForm, DetalleFacturaFormSet
-from django.shortcuts import render, redirect, get_object_or_404
 
 class FacturaUpdateView(TenantRequiredMixin, FacturaBaseView, UpdateView):
     model = Factura
@@ -295,42 +295,46 @@ class FacturaUpdateView(TenantRequiredMixin, FacturaBaseView, UpdateView):
             queryset=DetalleFactura.objects.using('tenant').filter(factura=self.object),
             prefix='detalles'
         )
-
-        # Deshabilitar si ya está vigente/cancelada
-        if self.object.estatus in ("Vigente", "Cancelada"):
+        
+        if (self.object.estatus == "Vigente") or (self.object.estatus == "Cancelada"):
             for f in formset.forms:
                 for field in f.fields.values():
                     field.disabled = True
+
+        return render(request, self.template_name, {'form': form, 'formset': formset})
+
+    def get_form(self, form_class=None):
+        form = super().get_form(form_class)
+        if (self.object.estatus == "Vigente") or (self.object.estatus == "Cancelada"):
             for field in form.fields.values():
-                field.disabled = True
-
-        contexto = {'form': form, 'formset': formset, 'object': self.object}
-        return render(request, self.template_name, contexto)
-
+                field.disabled = True  # Esto desactiva el campo
+        return form
+    
     def post(self, request, *args, **kwargs):
         self.object = self.get_object()
-
-        # MUY IMPORTANTE: ligar el form a la instancia existente
-        form = self.form_class(request.POST or None, request.FILES or None, instance=self.object)
-
+        form = self.form_class(request.POST or None)
         formset = DetalleFacturaFormSet(
             request.POST,
             instance=self.object,
             queryset=DetalleFactura.objects.using('tenant').filter(factura=self.object),
             prefix='detalles'
         )
-
+        
         if form.is_valid() and formset.is_valid():
             return self.form_valid(form, formset)
         return self.form_invalid(form, formset)
 
-    @transaction.atomic(using='tenant')  # asegurar transacción en la DB tenant
+    @transaction.atomic
     def form_valid(self, form, formset):
-        # Guardar la factura en la DB tenant
+        # Guarda la factura principal
         factura = form.save(commit=False)
-        factura.save(using='tenant')
+        
+        factura.save(
+            using='tenant'
+        )
 
-        # Recalcular/guardar detalles con lógica centralizada
+
+        # Recalcula y graba los detalles usando tu lógica centralizada
         self.procesar_formset(formset, factura)
 
         return redirect('fac:factura_list')
@@ -734,94 +738,9 @@ from django.utils.timezone import is_naive, make_aware
 from django.utils import timezone
 from datetime import datetime
 
-from django.db import transaction
 import logging
-
 logger = logging.getLogger(__name__)
-
-def guardar_archivos_factura(
-    request,
-    factura,
-    uuid=None,
-    sello=None,
-    sello_sat=None,
-    num_certificado=None,
-    rfc_certifico=None,
-    fecha_timbrado=None,
-    estatus=None,
-):
-
-    estatus = estatus or "Vigente"
-    if not factura.pk:
-        raise ValueError("La factura debe existir antes de guardar archivos")
-    # convierte fecha_timbrado a aware
-    
-    if isinstance(fecha_timbrado, str):
-        try:
-            fecha_dt = datetime.strptime(fecha_timbrado, "%Y-%m-%d %H:%M:%S")
-        except Exception:
-            fecha_dt = timezone.now()
-    elif isinstance(fecha_timbrado, datetime):
-        fecha_dt = fecha_timbrado
-    else:
-        fecha_dt = timezone.now()  # fallback seguro
-
-    # Si es naive, conviértelo a aware
-    if timezone.is_naive(fecha_dt):
-        fecha_dt = timezone.make_aware(fecha_dt, timezone.utc)  # Aseguramos que es UTC
-
-    # Ahora, ajustamos la fecha a la zona horaria local (si corresponde)
-    fecha_local = fecha_dt.astimezone(timezone.get_current_timezone())
-
-    logger.info(
-        "Post-timbrado factura %s -> uuid=%s, sello(len)=%s, sello_sat(len)=%s, num_certificado=%s, rfc_certifico=%s, estatus=%s",
-        factura.pk,
-        uuid,
-        len(sello) if isinstance(sello, str) else sello,
-        len(sello_sat) if isinstance(sello_sat, str) else sello_sat,
-        num_certificado,
-        rfc_certifico,
-        estatus,
-    )
-
-    # Diccionario solo con lo que realmente queremos guardar
-    campos_update = {
-        "estatus": estatus,
-        "fecha_timbrado": fecha_local,
-    }
-    if uuid is not None:
-        campos_update["uuid"] = uuid
-    if sello is not None:
-        campos_update["sello"] = sello
-    if sello_sat is not None:
-        campos_update["sello_sat"] = sello_sat
-    if num_certificado is not None:
-        campos_update["num_certificado"] = num_certificado
-    if rfc_certifico is not None:
-        campos_update["rfc_certifico"] = rfc_certifico
-
-    try:
-        with transaction.atomic(using="tenant"):
-            # 1) Actualizar directamente en la BD del tenant
-            factura.__class__.objects.using("tenant").filter(pk=factura.pk).update(**campos_update)
-
-            # 2) Recargar la factura para que traiga esos valores
-            factura.refresh_from_db(using="tenant")
-
-            # 3) Guardar XML / PDF (solo toca esos campos)
-            success, mensaje = consultar_y_guardar_archivos(request, factura)
-            if not success:
-                logger.error("Error al guardar XML/PDF de factura %s: %s", factura.pk, mensaje)
-                # puedes lanzar excepción si quieres cortar el flujo
-                raise Exception(mensaje)
-
-    except Exception as e:
-        logger.error(f"Error guardando factura tras timbrado {factura.pk}: {e}", exc_info=True)
-        raise
-
-
-
-def guardar_archivos_factura22(request,factura, uuid=None, sello=None, sello_sat=None, 
+def guardar_archivos_factura(request,factura, uuid=None, sello=None, sello_sat=None, 
                              num_certificado=None, rfc_certifico=None, 
                              fecha_timbrado=None, estatus=None):
     """
@@ -997,7 +916,7 @@ def timbrar_factura(request,factura_id):
                 num_certificado = timbre.get("num_certificado_sat"),
                 rfc_certifico   = timbre.get("rfc_certifico"),
                 fecha_timbrado  = data["data"].get("fecha_timbrado"),
-                estatus         = "Vigente",
+                estatus         = data["data"].get("estado"),
             )
         except Exception as e:
             return JsonResponse({'success': False, 'error': f'Error al guardar archivos: {e}'}, status=500)

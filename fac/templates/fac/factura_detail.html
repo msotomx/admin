@@ -62,16 +62,16 @@
                     <td style="text-align:right; letter-spacing: -0.5px;">{{ factura.ieps_factura|default_if_none:0|floatformat:2|intcomma }}</td>
                 </tr>
             {% endif %}
-            {% if factura.retencion_iva %}
+            {% if factura.retencion_iva_factura %}
                 <tr>
-                    <td colspan="5" style="text-align:right;">Retención de IVA</td>
-                    <td style="text-align:right; letter-spacing: -0.5px;">{{ factura.retencion_iva|default_if_none:0|floatformat:2|intcomma }}</td>
+                    <td colspan="5" style="text-align:right;"><strong>Retención de IVA</strong></td>
+                    <td style="text-align:right; letter-spacing: -0.5px;">{{ factura.retencion_iva_factura|default_if_none:0|floatformat:2|intcomma }}</td>
                 </tr>
             {% endif %}
-            {% if factura.retencion_isr %}
+            {% if factura.retencion_isr_factura %}
                 <tr>
                     <td colspan="5" style="text-align:right;"><strong>Retención de ISR</strong></td>
-                    <td style="text-align:right; letter-spacing: -0.5px;">{{ factura.retencion_isr|default_if_none:0|floatformat:2|intcomma }}</td>
+                    <td style="text-align:right; letter-spacing: -0.5px;">{{ factura.retencion_isr_factura|default_if_none:0|floatformat:2|intcomma }}</td>
                 </tr>
             {% endif %}
             <tr>

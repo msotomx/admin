@@ -10,56 +10,6 @@
             pointer-events: none;       /* Evita que intente editarlo */
             border-color: #ccc;         /* Borde más tenue */
         }
-        .factura-totales-box {
-            position: fixed;
-            right: 1.5rem;
-            bottom: 15.5rem;
-            width: 260px;
-            max-width: 90vw;
-            background-color: #ffffff;
-            border-radius: 0.75rem;
-            padding: 0.75rem 0.9rem;
-            border: 1px solid rgba(0,0,0,.1);
-            z-index: 1050; /* encima del contenido normal */
-            font-size: 0.85rem;
-        }
-
-        .factura-total-row {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 0.5rem;
-            margin-bottom: 0.30rem;
-        }
-
-        .factura-total-row .label {
-            flex: 0 0 auto;
-        }
-
-        .factura-total-row input {
-            flex: 1 1 auto;
-        }
-
-        /* Total principal un poquito más grande */
-        .factura-total-row-main input {
-            font-size: 0.95rem;
-        }
-
-        /* Versión móvil: caja a lo ancho abajo */
-        @media (max-width: 768px) {
-        .factura-totales-box {
-            position: static;      /* deja de ser fija */
-            right: auto;
-            left: auto;
-            bottom: auto;
-            width: 100%;
-            max-width: 100%;
-            margin: 1rem 0;
-            border-radius: 0.75rem;
-            z-index: auto;
-        }
-        }
-
     </style>
     <h4>{% if form.instance.pk %}Consultar{% else %}Nueva{% endif %} Factura</h4>
     <form id="factura-form" method="post">
@@ -89,7 +39,7 @@
                     <label class="form-label small">Cliente</label>
                     {{ form.cliente|add_bootstrap_class }}
                 </div>
-                <div class="col-md-2 mb-2">
+                <div class="col-md-3 mb-2">
                     <label class="form-label small">Método de Pago</label>
                     {{ form.metodo_pago|add_bootstrap_class }}
                 </div>
@@ -105,11 +55,9 @@
                     <label class="form-label small">Condiciones Pago</label>
                     {{ form.condiciones_pago|add_bootstrap_class }}
                 </div>    
-                <div class="col-md-2 mb-2" style="text-align:left;">
+                <div class="col-md-1 mb-2">
                     <label class="form-label small">Status</label>
-                    <div class="w-100">
-                        {{ form.estatus }}
-                    </div>
+                    {{ form.estatus|add_bootstrap_class }}
                 </div>
                 <div class="col-md-1 mb-2">
                     <label class="form-label small">Usuario</label>
@@ -117,7 +65,38 @@
                     <input type="hidden" name="usuario" value="{{ request.user.username }}">
                 </div>
             </div>
-
+        </div>
+        <div class="row g-2 mt-0">
+            <div class="col-md-2 mb-2">
+                <label class="form-label small">Subtotal</label>
+                <input type="text" id="subtotal" class="form-control form-control-sm text-end bg-light" readonly disabled>
+                <input type="hidden" name="subtotal" id="subtotal_hidden">
+            </div>
+            <div class="col-md-2 mb-2">
+                <label class="form-label small">IVA</label>
+                <input type="text" id="iva_factura" class="form-control form-control-sm text-end bg-light" readonly disabled>
+                <input type="hidden" name="iva_factura" id="iva_factura_hidden">
+            </div>
+            <div class="col-md-2 mb-2">
+                <label class="form-label small">IEPS</label>
+                <input type="text" id="ieps_factura" class="form-control form-control-sm text-end bg-light" readonly disabled>
+                <input type="hidden" name="ieps_factura" id="ieps_factura_hidden">
+            </div>
+            <div class="col-md-2 mb-2">
+                <label class="form-label small text-end">Retención de IVA</label>
+                <input type="text" id="retencion_iva_factura" class="form-control form-control-sm text-end bg-light" readonly disabled>
+                <input type="hidden" name="retencion_iva_factura" id="retencion_iva_factura_hidden">
+            </div> 
+            <div class="col-md-2 mb-2">
+                <label class="form-label small text-end">Retención de ISR</label>
+                <input type="text" id="retencion_isr_factura" class="form-control form-control-sm text-end bg-light" readonly disabled>
+                <input type="hidden" name="retencion_isr_factura" id="retencion_isr_factura_hidden">
+            </div> 
+            <div class="col-md-2 mb-2">
+                <label class="form-label small">Total General</label>
+                <input type="text" id="total" class="form-control form-control-sm text-end bg-light" readonly disabled>
+                <input type="hidden" name="total" id="total_hidden">
+            </div>
             <input type="hidden" name="moneda" id="moneda" value="{{ form.moneda.value|default:'' }}">
             {{ form.tipo_comprobante }}
             {{ form.exportacion }}
@@ -125,20 +104,14 @@
             <input type="hidden" name="impuestos_trasladados" id="impuestos_trasladados" value="{{ form.impuestos_trasladados.value|default:'' }}">
             <input type="hidden" name="impuestos_retenidos" id="impuestos_retenidos" value="{{ form.impuestos_retenidos.value|default:'' }}">
             <input type="hidden" name="descuento_factura" id="descuento_factura" value="{{ form.descuento_factura.value|default:'0' }}">
-
         </div>
         
         <div class="card">
             
-            <div class="card-header d-flex align-items-center">
-                <div class="d-flex align-items-center">
-                    <span class="me-5">Detalle</span>
-                    <button type="button" class="btn btn-sm btn-primary" id="add-linea">
-                        + Agregar línea
-                    </button>
-                </div>
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span>Detalle</span>
+                <button type="button" class="btn btn-sm btn-primary" id="add-linea">+ Agregar línea</button>
             </div>
-
             
             <div class="card-body table-responsive">
                 <table class="table table-bordered table-sm">
@@ -210,57 +183,6 @@
                 </template>
                 
             </div>
-
-        <!-- Caja flotante de totales -->
-        <div class="factura-totales-box shadow-lg">
-            <div class="d-flex justify-content-between align-items-center mb-2">
-                <span class="fw-bold small">Totales</span>
-                <!-- mostrar el status aquí:
-                <span class="badge bg-secondary">{{ factura.get_status_display }}</span>
-                -->
-            </div>
-
-            <div class="factura-total-row">
-                <span class="label">Subtotal</span>
-                <input type="text" id="subtotal" class="form-control form-control-sm text-end" readonly disabled>
-                <input type="hidden" name="subtotal" id="subtotal_hidden">
-
-            </div>
-
-            <div class="factura-total-row">
-                <span class="label">IVA</span>
-                <input type="text" id="iva_factura" class="form-control form-control-sm text-end" readonly disabled>
-                <input type="hidden" name="iva_factura" id="iva_factura_hidden">
-            </div>
-
-            <div class="factura-total-row">
-                <span class="label">IEPS</span>
-                <input type="text" id="ieps_factura" class="form-control form-control-sm text-end" readonly disabled>
-                <input type="hidden" name="ieps_factura" id="ieps_factura_hidden">
-            </div>
-
-            <div class="factura-total-row">
-                <span class="label">Ret. IVA</span>
-                <input type="text" id="retencion_iva_factura" class="form-control form-control-sm text-end" readonly disabled>
-                <input type="hidden" name="retencion_iva_factura" id="retencion_iva_factura_hidden">
-            </div>
-
-            <div class="factura-total-row">
-                <span class="label">Ret. ISR</span>
-                <input type="text" id="retencion_isr_factura" class="form-control form-control-sm text-end" readonly disabled>
-                <input type="hidden" name="retencion_isr_factura" id="retencion_isr_factura_hidden">
-            </div>
-
-            <hr class="my-2">
-
-            <div class="factura-total-row factura-total-row-main">
-                <span class="label fw-bold">Total General</span>
-                <input type="text" id="total" class="form-control form-control-sm text-end" readonly disabled>
-                <input type="hidden" name="total" id="total_hidden">
-            </div>
-
-        </div>
-
         <div class="mt-0 text-end">
             {% if form.instance.estatus == "Borrador" or form.instance.estatus == "Error" %}
                 {% if form.instance.pk %}

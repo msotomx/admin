@@ -44,9 +44,10 @@
         <li class="nav-item dropdown">
           <a class="nav-link dropdown-toggle" href="#" id="movimientosDropdown" role="button" data-bs-toggle="dropdown">Movimientos</a>
           <ul class="dropdown-menu">
-            <li><a class="dropdown-item" href="{% url 'inv:movimiento_list' %}">Movimientos Inventario</a></li>
+            <li><a class="dropdown-item" href="{% url 'inv:movimiento_list' %}">Movimientos de Almacen</a></li>
             <li><a class="dropdown-item" href="{% url 'inv:remision_list' %}">Remisiones</a></li>
             <li><a class="dropdown-item" href="{% url 'inv:cotizacion_list' %}">Cotizaciones</a></li>
+            <li><a class="dropdown-item" href="{% url 'inv:traspaso_list' %}">Traspasos</a></li>
             <!-- 
             <li><a class="dropdown-item" href="#">Traspasos</a></li> -->
           </ul>
@@ -85,7 +86,7 @@
           </ul>
         </li>
 
-        <!-- Información general -->
+        <!-- Configuración -->
         <li class="nav-item dropdown">
           <a class="nav-link dropdown-toggle" href="#" id="informacionDropdown" role="button" data-bs-toggle="dropdown">Configuración</a>
           <ul class="dropdown-menu">
@@ -94,6 +95,7 @@
             <li><a class="dropdown-item" href="{% url 'inv:cfdi_registrar_emisor' %}">Registrar Sellos Fiscales</a></li>
             <li><a class="dropdown-item" href="{% url 'core:usuario_list' %}">Usuarios</a></li>
             <li><a class="dropdown-item" href="{% url 'timbres:timbres_solicitar' %}">Solicitar Timbres</a></li>
+            <li><a class="dropdown-item" href="{% url 'ayuda:ayuda' %}">Ayuda</a></li>
           </ul>
         </li>
 

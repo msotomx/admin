@@ -101,7 +101,7 @@ class Factura(models.Model):
     num_certificado=models.CharField(max_length=21, blank=True)
     rfc_certifico  =models.CharField(max_length=13, blank=True)
 
-    estatus = models.CharField(max_length=10, choices=ESTATUS_CHOICES, default="Borrador")  # o 'TIMBRADA', 'CANCELADA' 'ERROR'
+    estatus = models.CharField(max_length=10, choices=ESTATUS_CHOICES, default="Borrador") 
 
     def __str__(self):
         return f'{self.numero_factura or ""} - {self.cliente.nombre}'

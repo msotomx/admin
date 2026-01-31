@@ -1,0 +1,14 @@
+{% extends "ayuda/base_ayuda.html" %}
+
+{% block ayuda_content %}
+  <div class="card">
+    <div class="card-body">
+      <h3 class="mb-1">{{ articulo.titulo }}</h3>
+      <div class="text-muted small mb-3">{{ articulo.categoria }}</div>
+
+      <div class="help-content">
+        {{ articulo.contenido_html|safe }}
+      </div>
+    </div>
+  </div>
+{% endblock %}

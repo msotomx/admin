@@ -10,16 +10,18 @@ from .views import VendedorListView, VendedorCreateView, VendedorUpdateView, Ven
 from .views import ProductoListView, ProductoCreateView, ProductoUpdateView, ProductoDeleteView
 from .views import MovimientoListView, MovimientoCreateView, MovimientoUpdateView, MovimientoDeleteView, MovimientoDetailView
 from .views import RemisionListView, RemisionCreateView, RemisionUpdateView, RemisionDeleteView, RemisionDetailView
+#from .views import RemisionCotCreateView, RemisionCotUpdateView
 from .views import CompraListView, CompraCreateView, CompraUpdateView, CompraDeleteView, CompraDetailView
 from .views import CotizacionListView, CotizacionCreateView, CotizacionUpdateView, CotizacionDeleteView, CotizacionDetailView
+from .views import TraspasoListView, TraspasoCreateView, TraspasoUpdateView, TraspasoDeleteView, TraspasoDetailView
 from .views import EmpresaListView, EmpresaCreateView, EmpresaUpdateView
 from .views import EmpresaLugarListView, EmpresaLugarUpdateView
 from .views import verificar_movimiento, obtener_costo_producto
 from .views import verificar_remision, obtener_precio_producto
-from .views import verificar_cotizacion
+from .views import verificar_cotizacion, verificar_traspaso
 from .views import verificar_compra, obtener_dias_plazo, obtener_paridad_moneda
 from .views import obtener_ultimo_numero_remision, obtener_ultimo_movimiento, obtener_ultima_compra
-from .views import obtener_ultimo_vendedor, obtener_ultima_cotizacion
+from .views import obtener_ultimo_vendedor, obtener_ultima_cotizacion, obtener_ultimo_traspaso
 from .views import remisiones_por_dia, buscar_remisiones_por_dia
 from .views import remisiones_por_cliente, buscar_remisiones_por_cliente
 from .views import remisiones_por_producto, buscar_remisiones_por_producto
@@ -32,10 +34,8 @@ from .views import compras_por_producto, buscar_compras_por_producto
 from .views import compras_por_proveedor, buscar_compras_por_proveedor
 from .views import registrar_emisor_view, registrar_csd_view
 from .views import obtener_ultimo_producto
-from .views import imprimir_remision, imprimir_movimiento, imprimir_compra, imprimir_cotizacion
-
-
-#from .views import producto_create_view
+from .views import imprimir_remision, imprimir_remision_ticket, imprimir_movimiento, imprimir_compra
+from .views import imprimir_cotizacion, imprimir_traspaso
 
 app_name = 'inv'
 
@@ -92,10 +92,21 @@ urlpatterns = [
     path('verificar-cotizacion/', verificar_cotizacion, name='verificar_cotizacion'),
     path('ajax/numero-cotizacion/', obtener_ultima_cotizacion, name='ajax_numero_cotizacion'),
     path('cotizacion/<int:pk>/imprimir/', imprimir_cotizacion, name='imprimir_cotizacion'),
+    # traspasos
+    path('traspaso/', TraspasoListView.as_view(), name='traspaso_list'),
+    path('traspaso/nuevo/', TraspasoCreateView.as_view(), name='traspaso_create'),
+    path('traspaso/editar/<int:pk>/', TraspasoUpdateView.as_view(), name='traspaso_update'),
+    path('traspaso/eliminar/<int:pk>/', TraspasoDeleteView.as_view(), name='traspaso_delete'),
+    path('traspaso/<int:pk>/', TraspasoDetailView.as_view(), name='traspaso_detail'),
+    path('verificar-traspaso/', verificar_traspaso, name='verificar_traspaso'),
+    path('ajax/numero-traspaso/', obtener_ultimo_traspaso, name='ajax_numero_traspaso'),
+    path('traspaso/<int:pk>/imprimir/', imprimir_traspaso, name='imprimir_traspaso'),
  
     path('obtener_costo_producto/', obtener_costo_producto, name='obtener_costo_producto'),
     path('remision/', RemisionListView.as_view(), name='remision_list'),
     path('remision/nuevo/', RemisionCreateView.as_view(), name='remision_create'),
+    #path('remision/nuevo2/', RemisionCotCreateView.as_view(), name='remision_create_cot'),
+    #path('remision/editar2/<int:pk>/', RemisionCotUpdateView.as_view(), name='remision_update_cot'),
     path('remision/editar/<int:pk>/', RemisionUpdateView.as_view(), name='remision_update'),
     path('remision/eliminar/<int:pk>/', RemisionDeleteView.as_view(), name='remision_delete'),
     path('remision/<int:pk>/', RemisionDetailView.as_view(), name='remision_detail'),
@@ -146,6 +157,7 @@ urlpatterns = [
     path('cfdi_registrar_emisor/', registrar_emisor_view, name='cfdi_registrar_emisor'),
     path('cfdi_registrar_csd/', registrar_csd_view, name='cfdi_registrar_csd'),
     path('remision/<int:pk>/imprimir/', imprimir_remision, name='imprimir_remision'),
+    path('remision/<int:pk>/ticket/', imprimir_remision_ticket, name='imprimir_remision_ticket'),
     path('movimiento/<int:pk>/imprimir/', imprimir_movimiento, name='imprimir_movimiento'),
     path('compra/<int:pk>/imprimir/', imprimir_compra, name='imprimir_compra'),
 ]

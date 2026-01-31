@@ -31,7 +31,6 @@
                             <th>Código</th>
                             <th>Tipo de Cliente</th>
                             <th>Teléfono 1</th>
-                            <th>Teléfono 2</th>
                             <th>Email</th>
                             <th>Acciones</th>
                         </tr>
@@ -43,7 +42,6 @@
                             <td>{{ cliente.cliente }}</td>
                             <td>{{ cliente.tipo_cliente }}</td>
                             <td>{{ cliente.telefono1 }}</td>
-                            <td>{{ cliente.telefono2 }}</td>
                             <td>{{ cliente.email }}</td>
                             <td>
                                 <a href="{% url 'cxc:cliente_update' cliente.pk %}" class="btn btn-sm btn-warning">Editar</a>

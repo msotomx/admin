@@ -1,0 +1,110 @@
+{% extends 'base_reportes.html' %}
+{% load l10n %}
+{% block content %}
+
+<style>
+/* GENERAL */
+body {
+    font-family: "Courier New", monospace; /* estilo ticket */
+    font-size: 12px;
+    line-height: 1.2;
+}
+
+/* CONTENEDOR PRINCIPAL */
+#ticket {
+    width: 80mm;             /* ancho estándar de impresoras térmicas */
+    padding: 5px;
+    margin: auto;
+}
+
+/* TABLAS */
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+th, td {
+    padding: 2px 0;
+}
+
+.text-end {
+    text-align: right;
+}
+
+/* QUITAR ELEMENTOS PARA IMPRESIÓN */
+@media print {
+    header, footer, nav, .d-print-none {
+        display: none !important;
+    }
+
+    body {
+        margin: 0;
+        padding: 0;
+    }
+
+    #ticket {
+        width: 80mm;
+        margin: 0;
+        padding: 0;
+    }
+
+    @page {
+        size: 80mm auto;     /* ancho fijo, largo variable */
+        margin: 0;           /* sin márgenes */
+    }
+}
+</style>
+
+<div id="ticket">
+
+    <h3 style="text-align:center; margin:0; padding:0;">
+        TICKET<br>
+        {{ remision.clave_movimiento.clave_movimiento }} - {{ remision.numero_remision }}
+    </h3>
+
+    <p style="margin:4px 0;">
+        <strong>Fecha:</strong> {{ remision.fecha_remision }}<br>
+        <strong>Cliente:</strong> {{ remision.cliente.nombre }}<br>
+        <strong>Almacén:</strong> {{ remision.almacen.nombre }}<br>
+        <strong>Vendedor:</strong> {{ remision.vendedor.nombre }}
+    </p>
+
+    <hr>
+
+    <table>
+        <thead>
+            <tr>
+                <th style="text-align:left;">Prod</th>
+                <th class="text-end">Cant</th>
+                <th class="text-end">P.Unit</th>
+                <th class="text-end">Sub</th>
+            </tr>
+        </thead>
+        {% localize off %}
+            <tbody>
+                {% for d in detalles %}
+                <tr>
+                    <td>{{ d.producto.nombre|truncatechars:12 }}</td>
+                    <td class="text-end">{{ d.cantidad|floatformat:2 }}</td>
+                    <td class="text-end">{{ d.precio|floatformat:2 }}</td>
+                    <td class="text-end">{{ d.subtotal|floatformat:2 }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        {% endlocalize %}
+    </table>
+
+    <hr>
+
+    <h3 class="text-end" style="margin-top:5px;">
+        TOTAL: ${{ total|floatformat:2 }}
+    </h3>
+
+    <div class="text-center d-print-none" style="margin-top:10px;">
+        <button onclick="window.print()" class="btn btn-primary">Imprimir ticket</button>
+        <a href="{% url 'inv:remision_list' %}" class="btn btn-secondary">Volver</a>
+    </div>
+
+</div>
+
+{% endblock %}

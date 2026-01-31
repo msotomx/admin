@@ -10,7 +10,7 @@
             border-color: #ccc;         /* Borde más tenue */
         }
     </style>
-    <h4>{% if form.instance.pk %}Editar{% else %}Nueva{% endif %} Cotización</h4>
+    <h4>{% if form.instance.pk %}Editar{% else %}Nuevo{% endif %} Traspaso</h4>
     <form method="post">
         {% csrf_token %}
         {{ formset.management_form }}  
@@ -18,28 +18,26 @@
         <div class="card mb-3">
             <div class="card-header">Encabezado</div>
             <div class="row g-2">
-                <div class="col-md-3 mb-2">
-                    <label class="form-label small">Fecha (mm/dd/aaaa)</label>
-                    {{ form.fecha_cotizacion|add_bootstrap_class }}
+                <div class="col-md-2 mb-2">
+                    <label class="form-label small">Fecha</label>
+                    {{ form.fecha_traspaso|add_bootstrap_class }}
+                </div>
+                <div class="col-md-2 mb-2">
+                    <label class="form-label small">Número Traspaso</label>
+                    {{ form.referencia|add_bootstrap_class }}
                 </div>
                 <div class="col-md-3 mb-2">
-                    <label class="form-label small">Número Cotización</label>
-                    {{ form.numero_cotizacion|add_bootstrap_class }}
+                    <label class="form-label small">Almacen Origen</label>
+                    {{ form.alm1|add_bootstrap_class }}
                 </div>
                 <div class="col-md-3 mb-2">
-                    <label class="form-label small">Vendedor</label>
-                    {{ form.vendedor|add_bootstrap_class }}
+                    <label class="form-label small">Almacen Destino</label>
+                    {{ form.alm2|add_bootstrap_class }}
                 </div>
-                <div class="col-md-3 mb-2">
-                    <label class="form-label small">Cliente</label>
-                    {{ form.cliente|add_bootstrap_class }}
+                <div class="col-md-2 mb-2">
+                    <label class="form-label small">Usuario</label>
+                    <input type="text" class="form-control form-control-sm" value="{{ request.user.username }}" readonly disabled>
                 </div>
-                <div class="col-md-6 mb-2">
-                    <label class="form-label small">Comentarios</label>
-                    {{ form.comentarios|add_class:"form-control"|attr:"rows:3" }}
-
-                </div>
-
             </div>
         </div>
 
@@ -54,40 +52,28 @@
                         <tr>
                             <th>Producto</th>
                             <th>Cantidad</th>
-                            <th>Precio Unit</th>
-                            <th>Subtotal</th>
                             <th>Eliminar</th>
                         </tr>
                     </thead>
                     
                     <tbody id="formset-body">
-                        {% for form in formset %}
+                        {% for detalle_form in formset %}
                             <tr class="formset-form">
-                                {{ form.id }}
-                                <td>{{ form.producto }}</td>
-                                <td>{{ form.cantidad }}</td>
-                                <td>{{ form.precio }}</td>
-                                <td>{{ form.subtotal }}</td>
-                                <td>{{ form.DELETE }}</td>
+                                {{ detalle_form.id }}
+                                <td>{{ detalle_form.producto }}</td>
+                                <td>{{ detalle_form.cantidad }}</td>
+                                <td>{{ detalle_form.DELETE }}</td>
                             </tr>
                         {% endfor %}
+
                     </tbody>
                 </table>
-                <tfoot>
-                    <tr>
-                        <td colspan="4" class="text-end fw-bold">Total:</td>
-                        <td>
-                            <input type="text" id="total-general" class="form-control form-control-sm text-end" readonly>
-                        </td>
-                        <td></td>
-                    </tr>
-                </tfoot>
             </div>
         </div>
 
         <div class="mt-3 text-end">
-            <button type="submit" class="btn btn-success">Guardar Cotización</button>
-            <a href="{% url 'inv:cotizacion_list' %}" class="btn btn-secondary">Regresar</a>
+            <button type="submit" class="btn btn-success">Guardar Traspaso</button>
+            <a href="{% url 'inv:traspaso_list' %}" class="btn btn-secondary">Regresar</a>
         </div>
     </form>
 </div>
@@ -96,26 +82,24 @@ document.addEventListener('DOMContentLoaded', function () {
     const addBtn = document.getElementById('add-linea');
     const formsetBody = document.getElementById('formset-body');
     const totalFormsInput = document.getElementById('id_detalles-TOTAL_FORMS');
-    const totalGeneral = document.getElementById('total-general'); 
-    const numeroCotizacionInput = document.getElementById('id_numero_cotizacion');
-    const fechaCotizacionInput = document.getElementById('id_fecha_cotizacion');
+    const referenciaInput = document.getElementById('id_referencia');
+    const fechaTraspasoInput = document.getElementById('id_fecha_traspaso');
 
-    if (fechaCotizacionInput) {
-        fechaCotizacionInput.focus();
+    if (fechaTraspasoInput) {
+        fechaTraspasoInput.focus();
     }
 
-        // busca el ultimo numero de cotizacion
-        // cuando sea if not form.instance.pk calcular numero_cotizacion
-        if (numeroCotizacionInput) {
-        numeroCotizacionInput.addEventListener('focus', function () {   
-            console.log("En cotizacion, antes de numero-cotizacion")
-            fetch(`/inv/ajax/numero-cotizacion/`, {
+        // busca el ultimo numero de traspaso
+        // cuando sea if not form.instance.pk calcular numero_traspaso: referencia
+        if (referenciaInput) {
+        referenciaInput.addEventListener('focus', function () {   
+            console.log("En traspaso, antes de referencia")
+            fetch(`/inv/ajax/numero-traspaso/`, {
                 credentials: 'include'})
                 .then(response => response.json())
                 .then(data => {
-                    numeroCotizacionInput.value = data.numero_cotizacion;
+                    referenciaInput.value = data.referencia;
                 });
-            
         });
     }
 
@@ -123,36 +107,36 @@ document.addEventListener('DOMContentLoaded', function () {
     // Si existe, se muestra en modo edicion
     // Si no existe, continua con el proceso normal de Registro Nuevo
     
-    async function verificarCotizacion(numero_cotizacion) {
-        const response = await fetch(`/inv/verificar-cotizacion/?numero_cotizacion=${numero_cotizacion}`, {
+    async function verificarTrapaso(referencia) {
+        const response = await fetch(`/inv/verificar-traspaso/?referencia=${referencia}`, {
                     credentials: 'include'});
         const data = await response.json();
         if (data.existe) {
-            // alert('Esta cotizacion ya existe. Se mostrará en modo edición.');
-            window.location.href = `/inv/cotizacion/editar/${data.id}/`;
+            // alert('Este traspaso ya existe. Se mostrará en modo edición.');
+            window.location.href = `/inv/traspaso/editar/${data.id}/`;
         }
     }
 
-    if (numeroCotizacionInput) {
-        numeroCotizacionInput.addEventListener('blur', function () {
-            let ref = numeroCotizacionInput.value.trim();
+    if (referenciaInput) {
+        referenciaInput.addEventListener('blur', function () {
+            let ref = referenciaInput.value.trim();
             if (ref) {
                 ref = ref.padStart(7, '0');  // llena la referencia con ceros a la izquierda
-                numeroCotizacionInput.value = ref;
+                referenciaInput.value = ref;
                 
-                verificarCotizacion(ref);
+                verificarTraspaso(ref);
             }
         });
-        numeroCotizacionInput.addEventListener('keydown', function (e) {
+        referenciaInput.addEventListener('keydown', function (e) {
             if (e.key === 'Enter') {
                 e.preventDefault();  // Previene el envío del formulario
 
-                let ref = numeroCotizacionInput.value.trim();
+                let ref = referenciaInput.value.trim();
                 if (ref) {
                     ref = ref.padStart(7, '0');
-                    numeroCotizacionInput.value = ref;
+                    referenciaInput.value = ref;
 
-                    verificarCotizacion(ref);
+                    verificarTraspaso(ref);
                 }
             }
         });
@@ -188,10 +172,73 @@ document.addEventListener('DOMContentLoaded', function () {
 
         formsetBody.appendChild(newRow);
         totalFormsInput.value = totalForms + 1;
-        actualizarTotal(); // ← actualiza total cuando agregas
 
     });
-    
+
+    // FUNCION PARA VALIDAD LA EXISTENCIA DEL PRODUCTO
+
+    const btnGuardar = document.querySelector('button[type="submit"]');
+    const almacenOrigen = document.querySelector('#id_alm1');
+    const fecha = document.querySelector('#id_fecha_traspaso');
+
+    async function validarExistencia(row) {
+        const producto = row.querySelector('select[name$="-producto"]');
+        const cantidad = row.querySelector('input[name$="-cantidad"]');
+
+        if (!producto || !cantidad) return;
+        if (!producto.value || !cantidad.value) return;
+
+        const url = `{% url 'inv:api_existencia_producto' %}` +
+            `?producto=${producto.value}` +
+            `&almacen=${almacenOrigen.value}` +
+            `&fecha=${fecha.value}`;
+
+        try {
+            const response = await fetch(url);
+            const data = await response.json();
+
+            const existencia = parseFloat(data.existencia);
+            const qty = parseFloat(cantidad.value);
+
+            // Limpia errores previos
+            row.classList.remove('table-danger');
+            row.querySelectorAll('.existencia-error').forEach(e => e.remove());
+
+            if (qty > existencia) {
+                btnGuardar.disabled = true;
+                row.classList.add('table-danger');
+
+                const error = document.createElement('div');
+                error.className = 'text-danger small existencia-error';
+                error.innerText = `No hay suficiente existencia (Disponible: ${existencia})`;
+
+                cantidad.parentElement.appendChild(error);
+            } else {
+                btnGuardar.disabled = false;
+            }
+
+        } catch (error) {
+            console.error('Error al validar existencia', error);
+        }
+    }
+
+    // 👉 Evento CHANGE en PRODUCTO
+    document.addEventListener('change', function (e) {
+        if (e.target.matches('select[name$="-producto"]')) {
+            const row = e.target.closest('.formset-form');
+            validarExistencia(row);
+        }
+    });
+
+    // 👉 Evento BLUR en CANTIDAD
+    document.addEventListener('blur', function (e) {
+        if (e.target.matches('input[name$="-cantidad"]')) {
+            const row = e.target.closest('.formset-form');
+            validarExistencia(row);
+        }
+    }, true);
+
+
     // al generarse el evento BLUR del campo producto,
     //  se busca el precio , el cual se asigna al campo precio
     
@@ -211,10 +258,6 @@ document.addEventListener('DOMContentLoaded', function () {
                             credentials: 'include'});
                         if (!costoResp.ok) throw new Error('Error al obtener precio');
                         const costoData = await costoResp.json();
-                        const precioInput = row.querySelector("input[name$='-precio']");
-                        if (precioInput) {
-                            precioInput.value = costoData.precio1;
-                        }
 
                     } catch (err) {
                         console.error('Error al obtener datos del producto:', err);
@@ -228,40 +271,14 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // Recalcular subtotal automáticamente
     document.addEventListener('input', function (e) {
-        if (e.target.name.includes('cantidad') || e.target.name.includes('costo_unit')) {
+        if (e.target.name.includes('cantidad') ) {
             const row = e.target.closest('tr');
             const cantidad = parseFloat(row.querySelector('input[name$="cantidad"]')?.value || 0);
-            const precio_unit = parseFloat(row.querySelector('input[name$="precio"]')?.value || 0);
-            const subtotal = (cantidad * precio_unit);
-            const subtotalField = row.querySelector('input[name$="subtotal"]');
-            if (subtotalField) subtotalField.value = subtotal.toFixed(2);
-            actualizarTotal(); // ← actualiza el total en cada cambio
         }
 
-        if (e.target.name.includes('DELETE')) {
-            actualizarTotal(); // 👈 si marcan eliminar también recalcular
-        }
     });
 
-    function actualizarTotal() {
-        let total = 0;
-        formsetBody.querySelectorAll('tr').forEach(function (row) {
-            const subtotalField = row.querySelector('input[name$="subtotal"]');
-            const deleteCheckbox = row.querySelector('input[type="checkbox"][name$="DELETE"]');
-            
-            // Solo sumar si no está marcado para eliminar
-            if (subtotalField && (!deleteCheckbox || !deleteCheckbox.checked)) {
-                const subtotal = parseFloat(subtotalField.value) || 0;
-                total += subtotal;
-            }
-        });
-        if (totalGeneral) {
-            totalGeneral.value = total.toFixed(2);  // <-- aquí usa `.value` porque es un input en el html
-        }
 
-    }
-
-    actualizarTotal(); // ojo
 });
 </script>
 

@@ -112,6 +112,8 @@ def cargar_datos_iniciales(db_alias):
             ClaveMovimiento(clave_movimiento='CO', nombre='COMPRAS', tipo= 'E', es_remision=False, es_compra=True, es_servicio=False),
             ClaveMovimiento(clave_movimiento='R1', nombre='REMISIONES', tipo= 'S', es_remision=True, es_compra=False, es_servicio=False),
             ClaveMovimiento(clave_movimiento='SE', nombre='SERVICIO', tipo= 'S', es_remision=False, es_compra=False, es_servicio=True),
+            ClaveMovimiento(clave_movimiento='TE', nombre='ENTRADA POR TRASPASO', tipo= 'E', es_remision=False, es_compra=False, es_servicio=False),
+            ClaveMovimiento(clave_movimiento='TS', nombre='SALIDA POR TRASPASO', tipo= 'S', es_remision=False, es_compra=False, es_servicio=False),
         ])
 
     if not TipoCliente.objects.using(db_alias).exists():

@@ -15,7 +15,7 @@ from django.views.generic.edit import CreateView, UpdateView
 
 from .models import Moneda, Categoria, UnidadMedida, Almacen, ClaveMovimiento, Proveedor, Vendedor
 from .models import Producto, Movimiento, DetalleMovimiento, Remision, DetalleRemision
-from .models import Compra, DetalleCompra, Cotizacion, DetalleCotizacion
+from .models import Compra, DetalleCompra, Cotizacion, DetalleCotizacion, Traspaso, DetalleTraspaso
 from .models import SaldoInicial
 from core.models import Empresa
 from cxc.models import Cliente
@@ -27,6 +27,7 @@ from .forms import RemisionForm,  DetalleRemisionFormSet
 from .forms import CompraForm,  DetalleCompraFormSet
 from .forms import EmpresaForm, EmpresaLugarForm
 from .forms import CotizacionForm,  DetalleCotizacionFormSet
+from .forms import TraspasoForm,  DetalleTraspasoFormSet
 from datetime import date
 from django.http import JsonResponse
 from django.db.models import Case, When, Value, F, DecimalField
@@ -37,6 +38,8 @@ from core.mixins import TenantRequiredMixin
 from django.contrib.auth.decorators import login_required
 from core.decorators import tenant_required
 from core._thread_locals import get_current_tenant, get_current_empresa_id, get_current_empresa_fiscal
+
+from django.db import transaction
 
 # CRUD MONEDAS
 class MonedaListView(TenantRequiredMixin,ListView):
@@ -483,7 +486,7 @@ class MovimientoListView(TenantRequiredMixin, ListView):
     model = Movimiento
     template_name = 'inv/movimiento_list.html'
     context_object_name = 'movimientos'
-    ordering = ['-fecha_movimiento','-clave_movimiento', '-referencia']  # Orden descendente por fecha
+    ordering = ['-fecha_movimiento', '-referencia', '-clave_movimiento']  # Orden descendente por fecha
     paginate_by = 10  # Número de movimientos por página
  
 class MovimientoCreateView(TenantRequiredMixin, CreateView):
@@ -695,15 +698,17 @@ from decimal import Decimal
 
 class RemisionBaseView:
     def procesar_formset(self, formset, remision):
-        monto_total = 0
+        monto_total = Decimal("0")
         remision.detalles.using('tenant').all().delete()
 
         for detalle_form in formset:
             if detalle_form.cleaned_data and not detalle_form.cleaned_data.get('DELETE', False):
                 cd = detalle_form.cleaned_data
-                cantidad = cd['cantidad']
-                precio = cd['precio']
-                descuento = cd['descuento']
+
+                cantidad = cd.get("cantidad") or Decimal("0")
+                precio = cd.get("precio") or Decimal("0")
+                descuento = cd.get("descuento") or Decimal("0")
+
                 subtotal = (cantidad * precio) - descuento
 
                 DetalleRemision.objects.using('tenant').create(
@@ -737,7 +742,7 @@ class RemisionListView(TenantRequiredMixin, ListView):
     paginate_by = 10  # Número de movimientos por página
 
 from decimal import Decimal
-class RemisionCreateView(TenantRequiredMixin, RemisionBaseView, CreateView):
+class RemisionOriginalCreateView(TenantRequiredMixin, RemisionBaseView, CreateView):
     model = Remision
     form_class = RemisionForm
     template_name = 'inv/remision_form.html'
@@ -789,13 +794,230 @@ class RemisionCreateView(TenantRequiredMixin, RemisionBaseView, CreateView):
             self.procesar_formset(formset, self.object)
 
             # return redirect('inv:remision_list')
-            return redirect('inv:remision_update', pk=self.object.pk)
+            return redirect('inv:remision_update', pk=self.object.pk) 
 
         return self.form_invalid(form, formset)
 
     def form_invalid(self, form, formset):
         return render(self.request, self.template_name, {'form': form, 'formset': formset})
+
+from django.contrib import messages
+from django.db import transaction
+from django.shortcuts import get_object_or_404, redirect
+from django.utils import timezone
+from django.views.generic import CreateView
+from decimal import Decimal
+from django.core.exceptions import ValidationError
+from django.forms import inlineformset_factory
+from django.urls import reverse
+
+from core.models import Empresa
+from inv.models import ClaveMovimiento
+from .models import Cotizacion
+from .models import DetalleCotizacion
+from .models import Remision
+from .forms import RemisionForm, DetalleRemisionForm
+
+
+class RemisionCreateView(TenantRequiredMixin, RemisionBaseView, CreateView):
+    model = Remision
+    form_class = RemisionForm
+    template_name = "inv/remision_form.html"
+
+    def dispatch(self, request, *args, **kwargs):
+        self.cotizacion = None
+        cot_id = request.GET.get("cot")
+        nc = request.GET.get("nc")
+        if cot_id:
+            self.cotizacion = get_object_or_404(
+                Cotizacion.objects.using("tenant").select_related("cliente", "vendedor").prefetch_related("detalles"),
+                pk=cot_id,
+            )
+        elif nc:
+            self.cotizacion = get_object_or_404(
+                Cotizacion.objects.using("tenant").select_related("cliente", "vendedor").prefetch_related("detalles"),
+                numero_cotizacion=nc,
+            )
+        return super().dispatch(request, *args, **kwargs)
+
+    # ---- helpers dentro de la vista ----
+    def get_empresa_unica(self):
+        return Empresa.objects.using("tenant").first()
+
+    def get_contexto_remision(self):
+        
+        empresa = self.get_empresa_unica()
+        
+        if not empresa:
+            raise ValidationError("No existe registro de Empresa en este tenant.")
+
+        clave = (empresa.clave_remision or "").strip()
+        if not clave:
+            raise ValidationError("Empresa.clave_remision está vacía.")
+
+        almacen_num = empresa.almacen_actual
+        if not almacen_num:
+            raise ValidationError("Empresa.almacen_actual no está configurado.")
+
+        clave_mov = ClaveMovimiento.objects.using("tenant").get(clave_movimiento=clave)
+        almacen = Almacen.objects.using("tenant").get(almacen=almacen_num)
+        
+        return {"clave_movimiento": clave_mov, "almacen": almacen}
+
+    def generar_numero_remision_por_clave(self, clave_movimiento):
+        
+        ultima = (
+            Remision.objects.using("tenant")
+            .filter(clave_movimiento=clave_movimiento)
+            .order_by("-numero_remision")
+            .first()
+        )
+        if ultima and (ultima.numero_remision or "").isdigit():
+            return str(int(ultima.numero_remision) + 1).zfill(7)
+        return "0000001"
+
+    def get_initial(self):
+        
+        initial = super().get_initial()
+        initial["fecha_remision"] = timezone.localdate()
+        initial["status"] = "R"
+        initial["numero_factura"] = ""
+        initial["usuario"] = getattr(self.request.user, "username", "")
+        
+        try:
+            cm = self.get_contexto_remision()
+            initial["clave_movimiento"] = cm["clave_movimiento"]
+            initial["almacen"] = cm["almacen"]
+            initial["numero_remision"] = self.generar_numero_remision_por_clave(cm["clave_movimiento"])
+        
+        except Exception as e:
+            initial["numero_remision"] = "0000001"
+                    
+        if self.cotizacion:
+            initial.update({
+                "cliente": self.cotizacion.cliente,
+                "vendedor": self.cotizacion.vendedor,
+                "numero_cotizacion": self.cotizacion,
+            })
+        
+        return initial
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+
+        initial_det = []
+        if self.cotizacion:
+            for d in self.cotizacion.detalles.all():
+                initial_det.append({
+                    "producto": d.producto_id,
+                    "cantidad": d.cantidad,
+                    "precio": d.precio,
+                    "descuento": d.descuento or Decimal("0"),
+                    "subtotal": d.subtotal,
+                    "tasa_iva": Decimal("0"),
+                    "tasa_ieps": Decimal("0"),
+                    "iva_producto": Decimal("0"),
+                    "ieps_producto": Decimal("0"),
+                    "tasa_retencion_iva": Decimal("0"),
+                    "tasa_retencion_isr": Decimal("0"),
+                    "retencion_iva": Decimal("0"),
+                    "retencion_isr": Decimal("0"),
+                })
+
+        # 👇 clave: si viene de cotización, extra = número de renglones
+        extra = len(initial_det) if initial_det else 1
+
+        DetalleFS = inlineformset_factory(
+            Remision,
+            DetalleRemision,
+            form=DetalleRemisionForm,   # usa tu form real si ya existe
+            extra=extra,
+            can_delete=True,
+        )
+
+        if self.request.POST:
+            # En POST, el TOTAL_FORMS manda; extra ya no importa tanto, pero usamos 0/extra no estorba.
+            ctx["formset"] = DetalleFS(self.request.POST, prefix="detalles")
+        else:
+            ctx["formset"] = DetalleFS(initial=initial_det, prefix="detalles")
+
+        return ctx
+
+
+    @transaction.atomic
+    def form_valid(self, form):
+        ctx = self.get_context_data(form=form)
+        formset = ctx["formset"]
+
+        if not formset.is_valid():
+            print("FORMSET ERRORS:", formset.errors)
+            print("FORMSET NON FORM ERRORS:", formset.non_form_errors())
+            return self.render_to_response(ctx)
+
+        remision = form.save(commit=False)
+
+        # Forzar datos desde Empresa / Cotización
+        if self.cotizacion:
+            c = self.get_contexto_remision()
+            remision.clave_movimiento = c["clave_movimiento"]
+            remision.almacen = c["almacen"]
+            remision.numero_cotizacion = self.cotizacion
+            remision.cliente = self.cotizacion.cliente
+            remision.vendedor = self.cotizacion.vendedor
+
+        remision.save(using="tenant")
+        self.object = remision  # ✅ necesario para success_url
+
+        self.procesar_formset(formset, remision)
+
+        return redirect(self.get_success_url())
+
+    def get_success_url(self):
+        return reverse('inv:remision_update', kwargs={'pk': self.object.pk})
     
+class RemisionUpdateViewOriginal(TenantRequiredMixin, RemisionBaseView, UpdateView):
+    model = Remision 
+    form_class = RemisionForm
+    template_name = 'inv/remision_form.html'
+    success_url = reverse_lazy('inv:remision_list')
+
+    def get(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        form = self.form_class(instance=self.object)
+        formset = DetalleRemisionFormSet(
+            instance=self.object,
+            queryset=DetalleRemision.objects.using('tenant').filter(numero_remision=self.object),
+            prefix='detalles'
+        )
+        return render(request, self.template_name, {'form': form, 'formset': formset})
+
+    def post(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        form = self.form_class(request.POST or None, instance=self.object)
+        formset = DetalleRemisionFormSet(
+            request.POST,
+            instance=self.object,
+            queryset=DetalleRemision.objects.using('tenant').filter(numero_remision=self.object),
+            prefix='detalles'
+        )
+
+        if form.is_valid() and formset.is_valid():
+            obj = form.save(commit=False)
+            obj.save(using='tenant')
+            self.object = obj
+
+            formset.instance = self.object
+            self.procesar_formset(formset, self.object)
+
+            return redirect('inv:remision_update', pk=self.object.pk)
+
+        return render(request, self.template_name, {'form': form, 'formset': formset})
+
+    def get_form(self, form_class=None):
+        form = super().get_form(form_class)
+        form.fields['numero_remision'].widget.attrs['readonly'] = True
+        return form
+
 class RemisionUpdateView(TenantRequiredMixin, RemisionBaseView, UpdateView):
     model = Remision
     form_class = RemisionForm
@@ -981,7 +1203,7 @@ def verificar_cotizacion(request):
     try: 
         cotizacion = Cotizacion.objects.using('tenant').get(numero_cotizacion=numero_cotizacion)
         return JsonResponse({'existe': True, 'id': cotizacion.id})
-    except Movimiento.DoesNotExist:
+    except Cotizacion.DoesNotExist:
         return JsonResponse({'existe': False})
 
 @login_required
@@ -1052,8 +1274,8 @@ class CotizacionCreateView(TenantRequiredMixin, CreateView):
             numero_cotizacion_formateada = str(numero_cotizacion).zfill(7)
             form.instance.numero_cotizacion = numero_cotizacion_formateada
 
-        form.instance.usuario = self.request.user.username
         self.object = form.save(commit=False)
+        self.object.usuario = self.request.user.username
         self.object.save(using='tenant')
 
         # Asignar la instancia del padre al formset y guardar en la base 'tenant'
@@ -1103,8 +1325,9 @@ class CotizacionUpdateView(TenantRequiredMixin, UpdateView):
     def form_valid(self, form):
         context = self.get_context_data()
         formset = context['formset']
-        if formset.is_valid():   
+        if formset.is_valid():
             obj = form.save(commit=False)
+            obj.usuario = self.request.user.username
             obj.save(using='tenant')
             self.object = obj
 
@@ -1158,6 +1381,292 @@ class CotizacionDeleteView(TenantRequiredMixin, DeleteView):
 
         return HttpResponseRedirect(self.get_success_url())
 
+@login_required
+@tenant_required
+def obtener_ultimo_traspaso(request):
+    ultimo = Traspaso.objects.using('tenant').all().order_by('-referencia').first()
+    if ultimo:
+        siguiente = str(int(ultimo.referencia) + 1).zfill(7)
+    else:
+        siguiente = "0000001"
+    return JsonResponse({'referencia': siguiente})
+
+@login_required
+@tenant_required
+def verificar_traspaso(request):
+    referencia = request.GET.get('referencia')
+
+    try: 
+        traspaso = Traspaso.objects.using('tenant').get(referencia=referencia)
+        return JsonResponse({'existe': True, 'id': referencia.id})
+    except Traspaso.DoesNotExist:
+        return JsonResponse({'existe': False})
+
+@login_required
+@tenant_required
+def imprimir_traspaso(request, pk):
+    traspaso = get_object_or_404(Traspaso.objects.using('tenant'), pk=pk)
+    detalles = DetalleTraspaso.objects.using('tenant').filter(referencia=traspaso)
+
+    return render(request, 'inv/traspaso_print.html', {
+        'traspaso': traspaso,
+        'detalles': detalles,
+    })
+
+# TRASPASOS ENTRE ALMACENES
+
+from decimal import Decimal
+from django.core.exceptions import ValidationError
+
+from inv.models import Movimiento, DetalleMovimiento, ClaveMovimiento
+
+# CREA LOS MOVIMIENTOS DE E y S EN Movimiento-DetalleMovimiento
+def crear_movimientos_traspaso(*, traspaso, detalles_traspaso, usuario: str):
+    using = "tenant"
+
+    cm_ts = ClaveMovimiento.objects.using(using).get(clave_movimiento="TS")
+    cm_te = ClaveMovimiento.objects.using(using).get(clave_movimiento="TE")
+
+    folio = str(traspaso.referencia).zfill(7)
+
+    with transaction.atomic(using=using):
+        # Salida (TS)
+        mov_salida = Movimiento.objects.using(using).create(
+            usuario=usuario,
+            referencia=folio,
+            move_s="S",
+            clave_movimiento=cm_ts,
+            fecha_movimiento=traspaso.fecha_traspaso,
+            almacen=traspaso.alm1,
+        )
+
+        # Entrada (TE)
+        mov_entrada = Movimiento.objects.using(using).create(
+            usuario=usuario,
+            referencia=folio,
+            move_s="E",
+            clave_movimiento=cm_te,
+            fecha_movimiento=traspaso.fecha_traspaso,
+            almacen=traspaso.alm2,
+        )
+
+        # Detalles (mismos productos/cantidades)
+        detalles_mov = []
+        for d in detalles_traspaso:
+            if not d.producto_id:
+                raise ValidationError("Detalle de traspaso sin producto.")
+            if d.cantidad is None or d.cantidad <= 0:
+                raise ValidationError(f"Cantidad inválida para producto {d.producto}.")
+
+            # Si manejas costo en traspaso, aquí lo calculas.
+            costo_unit = d.producto.costo_reposicion
+            subtotal = (Decimal(d.cantidad) * costo_unit).quantize(Decimal("0.01"))
+
+            detalles_mov.append(DetalleMovimiento(
+                referencia=mov_salida,
+                producto=d.producto,
+                cantidad=d.cantidad,
+                costo_unit=costo_unit,
+                subtotal=subtotal,
+            ))
+            detalles_mov.append(DetalleMovimiento(
+                referencia=mov_entrada,
+                producto=d.producto,
+                cantidad=d.cantidad,
+                costo_unit=costo_unit,
+                subtotal=subtotal,
+            ))
+
+        DetalleMovimiento.objects.using(using).bulk_create(detalles_mov)
+
+    return mov_salida, mov_entrada
+
+class TraspasoListView(TenantRequiredMixin, ListView):
+    model = Traspaso
+    template_name = 'inv/traspaso_list.html'
+    context_object_name = 'traspasos'
+    ordering = ['-fecha_traspaso', '-referencia']  # Orden descendente por fecha
+    paginate_by = 10  # Número de movimientos por página
+ 
+class TraspasoCreateView(TenantRequiredMixin, CreateView):
+    model = Traspaso
+    form_class = TraspasoForm
+    template_name = 'inv/traspaso_form.html'
+    success_url = reverse_lazy('inv:traspaso_list')
+
+    def get_queryset(self):
+        return Traspaso.objects.using('tenant').all()
+
+    def get_initial(self):
+        initial = super().get_initial()
+               
+        # Asignar la fecha de hoy
+        initial['fecha_traspaso'] = localtime(now()).date()    #.isoformat()
+
+        return initial
+
+    def get_formset_kwargs(self):
+        kwargs = {
+            'instance': self.object,  # 👈 clave para inline formset
+            'queryset': DetalleTraspaso.objects.using('tenant').none(),
+            'prefix': 'detalles',
+        }
+        if self.request.method in ('POST', 'PUT'):
+            kwargs['data'] = self.request.POST
+        return kwargs
+
+    def get(self, request, *args, **kwargs):
+        self.object = None
+        form = self.get_form()
+        formset = DetalleTraspasoFormSet(**self.get_formset_kwargs())
+        return render(request, self.template_name, {'form': form, 'formset': formset})
+
+    def post(self, request, *args, **kwargs):
+        self.object = None
+        form = self.get_form()
+        formset = DetalleTraspasoFormSet(**self.get_formset_kwargs())
+
+        if form.is_valid() and formset.is_valid():
+            return self.form_valid(form, formset)
+        return self.form_invalid(form, formset)
+
+    def form_valid(self, form, formset):
+        with transaction.atomic(using='tenant'):
+            referencia = form.cleaned_data.get('referencia')
+            if referencia:
+                form.instance.referencia = str(referencia).zfill(7)
+
+            self.object = form.save(commit=False)
+            self.object.usuario = self.request.user.username
+            self.object.save(using='tenant')
+
+            formset.instance = self.object
+
+            for detalle_form in formset:
+                if not detalle_form.cleaned_data:
+                    continue
+                if detalle_form.cleaned_data.get('DELETE', False) and detalle_form.instance.pk:
+                    detalle_form.instance.delete(using='tenant')
+                else:
+                    detalle = detalle_form.save(commit=False)
+                    detalle.referencia = self.object
+                    detalle.save(using='tenant')
+
+            detalles = DetalleTraspaso.objects.using('tenant').filter(referencia=self.object)
+
+            crear_movimientos_traspaso(
+                traspaso=self.object,
+                detalles_traspaso=detalles,
+                usuario=self.request.user.username,
+            )
+        return redirect(self.success_url)
+
+    def form_invalid(self, form, formset):
+        return render(self.request, self.template_name, {'form': form, 'formset': formset})
+
+class TraspasoUpdateView(TenantRequiredMixin, UpdateView):
+    model = Traspaso
+    form_class = TraspasoForm
+    template_name = 'inv/traspaso_form.html'
+    success_url = reverse_lazy('inv:traspaso_list')
+
+    def get_form(self, form_class=None):
+        form = super().get_form(form_class)
+        form.fields['referencia'].widget.attrs['readonly'] = True
+        return form
+
+    def get_context_data(self, **kwargs):
+        data = super().get_context_data(**kwargs)
+        if self.request.POST:   
+            data['formset'] = DetalleTraspasoFormSet(
+                self.request.POST,
+                instance=self.object,
+                queryset=DetalleTraspaso.objects.using('tenant').filter(referencia=self.object),
+                prefix='detalles'
+            )
+        else:
+            data['formset'] = DetalleTraspasoFormSet(
+                instance=self.object, 
+                queryset=DetalleTraspaso.objects.using('tenant').filter(referencia=self.object),
+                prefix='detalles'
+        )
+        return data
+    
+    def form_valid(self, form):
+        context = self.get_context_data()
+        formset = context['formset']
+        if formset.is_valid():
+            obj = form.save(commit=False)
+            obj.usuario = self.request.user.username
+            obj.save(using='tenant')
+            self.object = obj
+
+            formset.instance = self.object
+            for form in formset:
+                if form.cleaned_data:
+                    if form.cleaned_data.get('DELETE', False):
+                        if form.instance.pk:
+                            form.instance.delete(using='tenant')
+                    else:
+                        detalle = form.save(commit=False)
+                        detalle.referencia = self.object
+                        detalle.save(using='tenant')
+            
+            return HttpResponseRedirect(self.get_success_url())
+        else:
+            return self.form_invalid(form)
+
+# DETALLE DE TRASPASOS
+class TraspasoDetailView(TenantRequiredMixin, DetailView):
+    model = Traspaso
+    template_name = 'inv/traspaso_detail.html'
+    context_object_name = 'traspaso'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['detalles'] = DetalleTraspaso.objects.using('tenant').filter(referencia=self.object)
+        return context
+
+class TraspasoDeleteView(TenantRequiredMixin, DeleteView):
+    model = Traspaso
+    template_name = 'inv/traspaso_confirm_delete.html'
+    success_url = reverse_lazy('inv:traspaso_list')
+
+    def get_queryset(self):
+        return Traspaso.objects.using('tenant').all()
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['detalles'] = DetalleTraspaso.objects.using('tenant').filter(referencia=self.object)
+        return context
+
+    def post(self, request, *args, **kwargs):
+        # DeleteView llama a post() para borrar; aquí lo controlamos totalmente.
+        self.object = self.get_object()
+        
+        # Claves TE / TS (ajusta el lookup al campo real de ClaveMovimiento si es distinto)
+        cm_te = ClaveMovimiento.objects.using('tenant').get(clave_movimiento='TE')
+        cm_ts = ClaveMovimiento.objects.using('tenant').get(clave_movimiento='TS')
+
+        folio = self.object.referencia
+        alm_origen = self.object.alm1_id
+        alm_destino = self.object.alm2_id
+
+        with transaction.atomic(using='tenant'):
+            # 1) borrar movimientos TE/TS del traspaso (y por CASCADE sus DetalleMovimiento)
+            Movimiento.objects.using('tenant').filter(
+                referencia=folio,
+                clave_movimiento__in=[cm_te, cm_ts],
+                almacen_id__in=[alm_origen, alm_destino],  # extra seguridad
+            ).delete()
+
+            # 2) borrar detalle de traspaso (por RESTRICT)
+            DetalleTraspaso.objects.using('tenant').filter(referencia_id=self.object.id).delete()
+            # 3) borrar encabezado traspaso
+            Traspaso.objects.using('tenant').filter(id=self.object.id).delete()
+
+        return HttpResponseRedirect(self.get_success_url())
+   
 
 # CONSULTAS
 # REMISIONES POR FECHA
@@ -1802,6 +2311,9 @@ class CompraUpdateView(TenantRequiredMixin, CompraBaseView, UpdateView):
     template_name = 'inv/compra_form.html'
     success_url = reverse_lazy('inv:compra_list')
 
+    def get_queryset(self):
+        return Compra.objects.using('tenant').all()
+    
     def get(self, request, *args, **kwargs):
         self.object = self.get_object()
         form = self.get_form()
@@ -2201,6 +2713,22 @@ def obtener_ultimo_producto(request):
     else:
         siguiente = "000001"
     return JsonResponse({'producto': siguiente})
+
+@login_required
+@tenant_required
+def imprimir_remision_ticket(request, pk):
+    remision = get_object_or_404(Remision.objects.using('tenant'), pk=pk)
+    detalles = DetalleRemision.objects.using('tenant').filter(numero_remision=remision)
+
+    total = 0
+    for det in detalles:
+        total = total + (det.cantidad * det.precio) - det.descuento
+
+    return render(request, 'inv/remision_print_ticket.html', {
+        'remision': remision,
+        'detalles': detalles,
+        'total': total,
+    })
 
 @login_required
 @tenant_required
