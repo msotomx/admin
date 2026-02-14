@@ -687,12 +687,16 @@ def generar_json_cfdi(request,factura):
         "paisReceptor": "Mexico",
         
     }
+    if factura.metodo_pago.metodo_pago == 'PPD':
+        forma = '99'
+    else:
+        forma = factura.forma_pago.forma_pago
 
     json_cfdi = {
         "fecha_emision": fecha,
         "serie": factura.serie_emisor,
         "folio": int(factura.numero_factura),
-        "forma_pago": factura.forma_pago.forma_pago,
+        "forma_pago": forma,
         "metodo_pago": factura.metodo_pago.metodo_pago,
         "condiciones_pago": getattr(factura, 'condiciones_pago', None) or "",
         "tipo_comprobante": tc,

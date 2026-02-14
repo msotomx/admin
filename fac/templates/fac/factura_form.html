@@ -271,7 +271,7 @@
             {% endif %}
             {% if form.instance.estatus != "Vigente" %}
                 {% if form.instance.estatus != "Cancelada" %}
-                    <button type="submit" class="btn btn-success">Guardar Factura</button>
+                    <button id="btn-guardar" type="submit" class="btn btn-success">Guardar Factura</button>
                 {% endif %}    
             {% endif %}
             <a href="{% url 'fac:factura_list' %}" class="btn btn-secondary">Salir</a>
@@ -745,6 +745,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
 
     const btn = document.getElementById('btn-timbrar');
+    const btnGuardar = document.getElementById('btn-guardar');
+
     if (!btn) {
         console.log("Botón Timbrar no encontrado");
         return;
@@ -757,6 +759,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         btn.disabled = true;
         btn.textContent = "Timbrando...";
+        btnGuardar.disabled = true;
 
         const url = this.dataset.url;
         try {
@@ -783,6 +786,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 alert(data?.error || "Ocurrió un error al timbrar.");
                 btn.disabled = false;
                 btn.textContent = "Intentar de nuevo";
+                btnGuardar.disabled = false;
                 return;
             }
             // if (!resp.ok) {
