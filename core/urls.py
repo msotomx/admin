@@ -17,6 +17,7 @@ from core.views import CambiarPasswordView, CambiarPasswordDoneView
 from core.views import usuarios_bulk_status
 from core.views import EmpresaContactoListView, EmpresaContactoUpdateView
 from core.views import EmpresaNumUsuariosListView, EmpresaNumUsuariosUpdateView
+from core.views import ConfiguracionCotizacionUpdateView
 
 app_name = 'core'
 
@@ -86,5 +87,6 @@ urlpatterns = [
     path("staff-empresas/<str:codigo_empresa>/editar-contacto/", EmpresaContactoUpdateView.as_view(), name="staff_empresa_contacto_update"),
     path("staff-empresas/num-usuarios/", EmpresaNumUsuariosListView.as_view(), name="staff_empresa_num_usuarios_list"),
     path("staff-empresas/<str:codigo_empresa>/editar-num-usuarios/", EmpresaNumUsuariosUpdateView.as_view(), name="staff_empresa_num_usuarios_update"),
+    path("config/cotizacion/", ConfiguracionCotizacionUpdateView.as_view(), name="configuracion_cotizacion"),
 ]
 

@@ -120,3 +120,79 @@ class SiteMessages(models.Model):
     class Meta:
         verbose_name = "Mensajes de inicio"
         verbose_name_plural = "Mensajes de inicio"
+
+
+from django.db import models
+from django.core.validators import RegexValidator
+
+hex_color = RegexValidator(
+    regex=r"^#([A-Fa-f0-9]{6})$",
+    message="Debe ser un color HEX válido (#RRGGBB).",
+)
+
+class ConfiguracionCotizacion(models.Model):
+    empresa = models.OneToOneField(
+        "core.Empresa",
+        on_delete=models.CASCADE,
+        related_name="config_cotizacion",
+    )
+
+    # ----------------------------
+    # Visibilidad / secciones
+    # ----------------------------
+    mostrar_logo = models.BooleanField(default=True)
+    mostrar_direccion = models.BooleanField(default=True)
+    mostrar_telefonos = models.BooleanField(default=True)
+    mostrar_vendedor = models.BooleanField(default=True)
+    mostrar_comentarios = models.BooleanField(default=True)
+    mostrar_totales = models.BooleanField(default=True)
+
+    # ----------------------------
+    # Logo / Branding
+    # ----------------------------
+    logo = models.ImageField(upload_to="empresa/logos/", blank=True, null=True)
+    logo_alto_px = models.PositiveIntegerField(default=80)  # tamaño para impresión
+
+    # ----------------------------
+    # Datos de encabezado (solo para cotización)
+    # (pueden diferir de los fiscales)
+    # ----------------------------
+    encabezado_nombre = models.CharField(max_length=200, blank=True, default="")
+    calle_cotizacion = models.CharField(max_length=200, blank=True, default="")
+    colonia_cotizacion = models.CharField(max_length=200, blank=True, default="")
+    codigo_postal_cotizacion = models.CharField(max_length=10, blank=True, default="")
+    ciudad_cotizacion = models.CharField(max_length=200, blank=True, default="")
+    tel_cotizacion = models.CharField(max_length=60, blank=True, default="")
+    email_cotizacion = models.EmailField(blank=True, default="")
+    sitio_web = models.CharField(max_length=120, blank=True, default="")
+
+    # ----------------------------
+    # Estilos / Colores
+    # ----------------------------
+    color_fondo_logo = models.CharField(max_length=7, default="#FFFFFF", validators=[hex_color])
+    color_texto_header = models.CharField(max_length=7, default="#0D3B66", validators=[hex_color])
+
+    # Bloque “COTIZACIÓN”
+    color_fondo_label_cotizacion = models.CharField(max_length=7, default="#0D3B66", validators=[hex_color])
+    color_texto_label_cotizacion = models.CharField(max_length=7, default="#FFFFFF", validators=[hex_color])
+
+    # Encabezado de tabla detalle (#, Cantidad, Descripción, Unidad, Precio, Importe)
+    color_fondo_encabezado_detalle = models.CharField(max_length=7, default="#E9ECEF", validators=[hex_color])
+    color_texto_encabezado_detalle = models.CharField(max_length=7, default="#212529", validators=[hex_color])
+
+    # Opcional: bordes / líneas
+    color_borde_tabla = models.CharField(max_length=7, default="#DEE2E6", validators=[hex_color])
+
+    # ----------------------------
+    # Textos / mensajes
+    # ----------------------------
+    titulo_documento = models.CharField(max_length=40, default="COTIZACIÓN")
+    leyenda_pie = models.TextField(blank=True, default="")  # “Precios sujetos a cambio…”
+    terminos_condiciones = models.TextField(blank=True, default="")  # opcional
+
+    class Meta:
+        verbose_name = "Configuración de Cotización"
+        verbose_name_plural = "Configuraciones de Cotización"
+
+    def __str__(self):
+        return f"Configuración Cotización - {self.empresa}"

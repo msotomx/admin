@@ -11,6 +11,8 @@ services:
       --timeout 120
       --graceful-timeout 30
       --log-level info
+      --access-logfile -
+      --error-logfile -
 
     environment:
       - DJANGO_SETTINGS_MODULE=admin.settings.prod

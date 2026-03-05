@@ -104,7 +104,6 @@ class TenantMiddleware(MiddlewareMixin):
         }
 
         reconfigurar_conexion_tenant(alias, nueva_config)
-        # print("→ tenant NAME ahora:", connections[alias].settings_dict.get("NAME"))
 
         empresa_fiscal = None
         empresa_f = None

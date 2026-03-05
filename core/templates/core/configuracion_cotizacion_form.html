@@ -1,0 +1,169 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container py-4">
+
+  <div class="d-flex align-items-center justify-content-between mb-3">
+    <div>
+      <h4 class="mb-0">Configuración de Cotización</h4>
+      <div class="text-muted small">Logo, encabezado, colores y textos para impresión.</div>
+    </div>
+  </div>
+
+  <form method="post" enctype="multipart/form-data" class="card shadow-sm">
+    {% csrf_token %}
+
+    <div class="card-body">
+
+      {% if form.non_field_errors %}
+        <div class="alert alert-danger">{{ form.non_field_errors }}</div>
+      {% endif %}
+
+      <!-- Visibilidad -->
+      <h6 class="mb-2">Visibilidad</h6>
+      <div class="row g-3 mb-3">
+        <div class="col-md-4">
+          <div class="form-check">{{ form.mostrar_logo }} <label class="form-check-label" for="{{ form.mostrar_logo.id_for_label }}">Mostrar logo</label></div>
+          <div class="form-check">{{ form.mostrar_direccion }} <label class="form-check-label" for="{{ form.mostrar_direccion.id_for_label }}">Mostrar dirección</label></div>
+        </div>
+        <div class="col-md-4">
+          <div class="form-check">{{ form.mostrar_telefonos }} <label class="form-check-label" for="{{ form.mostrar_telefonos.id_for_label }}">Mostrar teléfonos</label></div>
+          <div class="form-check">{{ form.mostrar_vendedor }} <label class="form-check-label" for="{{ form.mostrar_vendedor.id_for_label }}">Mostrar vendedor</label></div>
+        </div>
+        <div class="col-md-4">
+          <div class="form-check">{{ form.mostrar_comentarios }} <label class="form-check-label" for="{{ form.mostrar_comentarios.id_for_label }}">Mostrar comentarios</label></div>
+          <div class="form-check">{{ form.mostrar_totales }} <label class="form-check-label" for="{{ form.mostrar_totales.id_for_label }}">Mostrar totales</label></div>
+        </div>
+      </div>
+
+      <hr>
+
+      <!-- Logo -->
+      <h6 class="mb-2">Logo / Branding</h6>
+      <div class="row g-3 mb-3">
+        <div class="col-md-6">
+          <label class="form-label">Logo</label>
+          {{ form.logo }}
+          {% if form.logo.errors %}<div class="text-danger small mt-1">{{ form.logo.errors }}</div>{% endif %}
+
+          {% if form.instance.logo %}
+            <div class="mt-2 p-2 border rounded" style="display:inline-block;">
+              <img src="{{ form.instance.logo.url }}" style="max-height:120px; max-width:320px;">
+            </div>
+          {% endif %}
+        </div>
+        <div class="col-md-3">
+          <label class="form-label">Alto logo (px)</label>
+          {{ form.logo_alto_px }}
+          {% if form.logo_alto_px.errors %}<div class="text-danger small mt-1">{{ form.logo_alto_px.errors }}</div>{% endif %}
+        </div>
+      </div>
+
+      <hr>
+
+      <!-- Encabezado -->
+      <h6 class="mb-2">Encabezado</h6>
+      <div class="row g-3 mb-3">
+        <div class="col-md-6">
+          <label class="form-label">Nombre en cotización</label>
+          {{ form.encabezado_nombre }}
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Sitio web</label>
+          {{ form.sitio_web }}
+        </div>
+
+        <div class="col-md-6">
+          <label class="form-label">Calle</label>
+          {{ form.calle_cotizacion }}
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Colonia</label>
+          {{ form.colonia_cotizacion }}
+        </div>
+
+        <div class="col-md-3">
+          <label class="form-label">Código postal</label>
+          {{ form.codigo_postal_cotizacion }}
+        </div>
+        <div class="col-md-5">
+          <label class="form-label">Ciudad</label>
+          {{ form.ciudad_cotizacion }}
+        </div>
+        <div class="col-md-2">
+          <label class="form-label">Teléfono</label>
+          {{ form.tel_cotizacion }}
+        </div>
+        <div class="col-md-2">
+          <label class="form-label">Email</label>
+          {{ form.email_cotizacion }}
+        </div>
+      </div>
+
+      <hr>
+
+      <!-- Colores -->
+      <h6 class="mb-2">Colores (HEX)</h6>
+      <div class="row g-3 mb-3">
+        <div class="col-md-3">
+          <label class="form-label">Fondo logo</label>
+          {{ form.color_fondo_logo }}
+          <div class="form-text">Ej: #FFFFFF</div>
+          {% if form.color_fondo_logo.errors %}<div class="text-danger small mt-1">{{ form.color_fondo_logo.errors }}</div>{% endif %}
+        </div>
+        <div class="col-md-3">
+          <label class="form-label">Texto header</label>
+          {{ form.color_texto_header }}
+          {% if form.color_texto_header.errors %}<div class="text-danger small mt-1">{{ form.color_texto_header.errors }}</div>{% endif %}
+        </div>
+        <div class="col-md-3">
+          <label class="form-label">Fondo label “COTIZACIÓN”</label>
+          {{ form.color_fondo_label_cotizacion }}
+        </div>
+        <div class="col-md-3">
+          <label class="form-label">Texto label “COTIZACIÓN”</label>
+          {{ form.color_texto_label_cotizacion }}
+        </div>
+
+        <div class="col-md-3">
+          <label class="form-label">Fondo encabezado detalle</label>
+          {{ form.color_fondo_encabezado_detalle }}
+        </div>
+        <div class="col-md-3">
+          <label class="form-label">Texto encabezado detalle</label>
+          {{ form.color_texto_encabezado_detalle }}
+        </div>
+        <div class="col-md-3">
+          <label class="form-label">Borde tabla</label>
+          {{ form.color_borde_tabla }}
+        </div>
+      </div>
+
+      <hr>
+
+      <!-- Textos -->
+      <h6 class="mb-2">Textos</h6>
+      <div class="row g-3">
+        <div class="col-md-4">
+          <label class="form-label">Título documento</label>
+          {{ form.titulo_documento }}
+        </div>
+        <div class="col-12">
+          <label class="form-label">Leyenda pie</label>
+          {{ form.leyenda_pie }}
+        </div>
+        <div class="col-12">
+          <label class="form-label">Términos y condiciones</label>
+          {{ form.terminos_condiciones }}
+        </div>
+      </div>
+
+    </div>
+
+    <div class="card-footer d-flex justify-content-end gap-2">
+      <button type="submit" class="btn btn-primary">Guardar</button>
+      <a class="btn btn-outline-secondary" href="{% url 'inv:cotizacion_list' %}">Regresar</a>
+    </div>
+  </form>
+
+</div>
+{% endblock %}

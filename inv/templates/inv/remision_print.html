@@ -1,59 +1,200 @@
 {% extends 'base_reportes.html' %}
 {% block content %}
-<style>
+  <style>
     @media print {
-        header,
-        footer,
-        nav,
-        .d-print-none {
-            display: none !important;
-        }
+    .no-print {
+        display: none !important;
     }
-</style>
-<div class="container mt-4" id="print-area">
-    <h3 class="mb-2">Remisión {{ remision.clave_movimiento.clave_movimiento }} - {{ remision.numero_remision }}</h3>
+    }
+  </style>
 
-    <div class="row small">
-        <div class="col-md-6">
-            <p><strong>Fecha:</strong> {{ remision.fecha_remision }}</p>
-            <p><strong>Cliente:</strong> {{ remision.cliente.nombre }}</p>
-        </div>
-        <div class="col-md-6 text-end">
-            <p><strong>Almacén:</strong> {{ remision.almacen.nombre }}</p>
-            <p><strong>Vendedor:</strong> {{ remision.vendedor.nombre }}</p>
-        </div>
+<div class="container-fluid mt-4" id="print-area">
+  <style>
+    /* --- Visual en pantalla --- */
+    #print-area {
+      background: #fff;
+      color: #111;
+    }
+    .doc-title {
+      letter-spacing: .2px;
+    }
+    .muted {
+      color: #666;
+    }
+    .table-sm td, .table-sm th { padding: .35rem .5rem; }
+    .totals-box {
+      width: 320px;
+      margin-left: auto;
+    }
+    .totals-box .row {
+      --bs-gutter-x: .75rem;
+    }
+    .totals-box .label { color:#444; }
+    .totals-box .value { text-align:right; font-variant-numeric: tabular-nums; }
+    .money { font-variant-numeric: tabular-nums; }
+
+    /* --- IMPRESIÓN --- */
+    @media print {
+
+      /* Quita márgenes del navegador lo más posible */
+      @page {
+        size: auto;          /* o: letter / a4 */
+        margin: 10mm;
+      }
+
+      /* Oculta todo lo que no sea el área a imprimir */
+      body * {
+        visibility: hidden !important;
+      }
+      #print-area, #print-area * {
+        visibility: visible !important;
+      }
+      #print-area {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        margin: 0 !important;
+        padding: 0 !important;
+      }
+
+      /* Evitar cortes feos */
+      table, tr, td, th { page-break-inside: avoid; }
+      thead { display: table-header-group; } /* Repite header si hay varias páginas */
+      .no-break { page-break-inside: avoid; }
+
+      /* Ajustes de fuente */
+      html, body { font-size: 12px; }
+      .table-sm td, .table-sm th { padding: .25rem .35rem; }
+
+      /* Quita sombras/bordes “web” */
+      .shadow, .shadow-sm { box-shadow: none !important; }
+    }
+  </style>
+
+  <!-- Header empresa -->
+  <div class="text-center mb-2">
+    <div class="fw-bold" style="font-size: 18px;">{{ empresa.nombre_comercial }}</div>
+    <div class="small muted">
+      {{ empresa.calle_expedicion }} {{empresa.numero_exterior_expedicion}}
+      {% if empresa.colonia_expedicion %}, {{ empresa.colonia_expedicion }}{% endif %}
+      {% if empresa.localidad_expedicion %}, {{ empresa.localidad_expedicion }}{% endif %}
+      {% if empresa.estado_expedicion %}, {{ empresa.estado_expedicion }}{% endif %}
+      {% if empresa.codigo_postal_expedicion %} C.P. {{ empresa.codigo_postal_expedicion }}{% endif %}
+      {% if empresa.rfc %} RFC: {{ empresa.rfc }}{% endif %}
+    </div>
+    {% if empresa.telefono %}
+      <div class="small muted">Tel: {{ empresa.telefono }}</div>
+    {% endif %}
+  </div>
+
+  <hr class="my-2">
+
+  <!-- Título documento -->
+  <div class="d-flex align-items-end justify-content-between mb-2">
+    <div>
+      <div class="fw-semibold doc-title" style="font-size: 16px;">
+        Remisión {{ remision.clave_movimiento.clave_movimiento }} 
+      </div>
+      
     </div>
 
-    <table class="table table-bordered table-sm mt-4">
-        <thead class="table-light">
-            <tr>
-                <th>#</th>
-                <th>Producto</th>
-                <th class="text-end">Cantidad</th>
-                <th class="text-end">Precio</th>
-                <th class="text-end">Descuento</th>
-                <th class="text-end">Subtotal</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for d in detalles %}
-            <tr>
-                <td>{{ forloop.counter }}</td>
-                <td>{{ d.producto.nombre }}</td>
-                <td class="text-end">{{ d.cantidad|floatformat:2 }}</td>
-                <td class="text-end">${{ d.precio|floatformat:2 }}</td>
-                <td class="text-end">${{ d.descuento|floatformat:2 }}</td>
-                <td class="text-end">${{ d.subtotal|floatformat:2 }}</td>
-            </tr>
-            {% endfor %}
-        </tbody>
+    <!-- opcional: folio grande -->
+    <div class="text-end">
+      <div class="small muted">Folio</div>
+      <div class="fw-bold" style="font-size: 16px;">{{ remision.numero_remision }}</div>
+    </div>
+  </div>
+
+  <!-- Datos: izquierda (fecha/cliente) y derecha (almacén/vendedor) -->
+  <div class="row small mb-3">
+    <div class="col-6">
+      <div><strong>Fecha:</strong> {{ remision.fecha_remision }}</div>
+      <div><strong>Cliente:</strong> {{ remision.cliente.nombre }}</div>
+      {% if remision.cliente.rfc %}
+        <div><strong>RFC:</strong> {{ remision.cliente.rfc }}</div>
+      {% endif %}
+    </div>
+    <div class="col-6 text-end">
+      <div><strong>Almacén:</strong> {{ remision.almacen.nombre }}</div>
+      <div><strong>Vendedor:</strong> {{ remision.vendedor.nombre }}</div>
+    </div>
+  </div>
+
+  <!-- Tabla de productos -->
+  <div class="table-responsive">
+    <table class="table table-sm table-bordered align-middle">
+      <thead class="table-light">
+        <tr>
+          <th style="width: 70px;" class="text-center">Cant</th>
+          <th style="width: 110px;">SKU</th>
+          <th>Producto</th>
+          <th style="width: 110px;" class="text-end">Precio</th>
+          <th style="width: 90px;" class="text-end">Desc </th>
+          <th style="width: 120px;" class="text-end">Importe</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for d in detalles %}
+          <tr>
+            <td class="text-center">{{ d.cantidad }}</td>
+            <td>{{ d.producto.sku|default:"-" }}</td>
+            <td>{{ d.producto.nombre }}</td>
+            <td class="text-end money">${{ d.precio|floatformat:2 }}</td>
+            <td class="text-end">{{ d.descuento|default_if_none:0 }}</td>
+            <td class="text-end money">
+              ${{ d.subtotal|floatformat:2 }}
+            </td>
+          </tr>
+        {% empty %}
+          <tr>
+            <td colspan="6" class="text-center muted py-3">Sin productos</td>
+          </tr>
+        {% endfor %}
+      </tbody>
     </table>
+  </div>
 
-    <h5 class="text-end mt-3">Total: ${{ total|floatformat:2 }}</h5>
+  <!-- Totales -->
+  <div class="totals-box mt-2 no-break">
+    <div class="border rounded p-2">
+      <div class="row">
+        <div class="col-6 label">Subtotal</div>
+        <div class="col-6 value money">${{ remision.monto_total|floatformat:2 }}</div>
+      </div>
 
-    <div class="mt-4 text-center d-print-none">
-        <button onclick="window.print()" class="btn btn-primary">Imprimir</button>
-        <a href="{% url 'inv:remision_list' %}" class="btn btn-secondary">Volver</a>
     </div>
+  </div>
+
+  <!-- Observaciones / firmas -->
+  <div class="mt-3 small no-break">
+    {% if remision.observaciones %}
+      <div class="mb-2">
+        <strong>Observaciones:</strong> {{ remision.observaciones }}
+      </div>
+    {% endif %}
+
+    <div class="row mt-4 text-center">
+      <div class="col-6">
+        <div class="border-top pt-2">Entrega</div>
+      </div>
+      <div class="col-6">
+        <div class="border-top pt-2">Recibe</div>
+      </div>
+    </div>
+
+    <div class="container mt-3 no-print">
+        <div class="d-flex justify-content-between">
+
+            <button class="btn btn-primary"
+                    onclick="window.print()">
+            🖨 Imprimir
+            </button>
+
+        </div>
+    </div>
+
+    </div>
+
 </div>
 {% endblock %}

@@ -22,6 +22,11 @@ from decouple import config
 from core.mixins import TenantRequiredMixin
 from core.utils import info_renovacion
 
+#from django.contrib.auth.mixins import LoginRequiredMixin
+from django.urls import reverse_lazy
+from django.views.generic import UpdateView
+from django.shortcuts import redirect
+
 def require_tenant_connection(view_func):
     @wraps(view_func)
     def wrapper(request, *args, **kwargs):
@@ -66,16 +71,16 @@ def inicio(request):
             return render(request, 'core/empresa_no_configurada.html', {'empresa': empresaDB})
 
         # Revisa Fecha de Renovacion
-        data = info_renovacion(empresaDB)
-        dias = data["dias_renov"]
+        # data = info_renovacion(empresaDB)
+        # dias = data["dias_renov"]
 
         # Si está vencido => cerrar sesión y mostrar solo la pantalla de bloqueo
-        if dias is not None and dias < 0:
-            logout(request)
-            return render(request, "core/bloqueo.html", data)
+        #if dias is not None and dias < 0:
+        #    logout(request)
+        #    return render(request, "core/bloqueo.html", data)
 
         # Si está por vencer (0..6) => solo aviso en inicio (no bloquea)
-        show_alert = dias is not None and dias <= 6
+        #show_alert = dias is not None and dias <= 6
 
         sm = SiteMessages.objects.using("default").first()
         contexto = {
@@ -86,10 +91,7 @@ def inicio(request):
             "mensaje5": getattr(sm, "mensaje5", "") or "",
         }
 
-        return render(request, "core/inicio.html", {
-            **data,
-            "show_renov_alert": show_alert,
-        }, contexto)
+        return render(request, "core/inicio.html", contexto)
     
     except PerfilUsuario.DoesNotExist:
         return redirect('core:login')
@@ -1130,3 +1132,29 @@ class EmpresaNumUsuariosUpdateView(LoginRequiredMixin, UpdateView):
             "codigo_empresa": self.object.codigo_empresa
         })
     
+
+from .models import Empresa, ConfiguracionCotizacion
+from .forms import ConfiguracionCotizacionForm
+
+
+class ConfiguracionCotizacionUpdateView(LoginRequiredMixin, UpdateView):
+    template_name = "core/configuracion_cotizacion_form.html"
+    form_class = ConfiguracionCotizacionForm
+    success_url = reverse_lazy("core:configuracion_cotizacion")
+
+    def get_object(self, queryset=None):
+        # 1 Empresa por tenant
+        empresa = Empresa.objects.using('tenant').first()
+        if not empresa:
+            return None
+        obj, _ = ConfiguracionCotizacion.objects.using('tenant').get_or_create(empresa=empresa)
+        return obj
+
+    def form_valid(self, form):
+        # Importante para FileField
+        
+        form.instance.save(using='tenant')  # Guarda en la base de datos del tenant
+        
+        return redirect('inv:cotizacion_list')
+
+

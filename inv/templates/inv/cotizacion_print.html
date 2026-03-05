@@ -1,78 +1,211 @@
-{% extends 'base_reportes.html' %}
-
-{% block content %}
-<style>
-    @media print {
-        header,
-        footer,
-        nav,
-        .d-print-none {
-            display: none !important;
-        }
+{% load static %}
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <title> COTIZACION </title>
+  <style>
+    :root{
+      --border: {{ cfg.color_borde_tabla|default:"#DEE2E6" }};
+      --head-bg: {{ cfg.color_fondo_encabezado_detalle|default:"#E9ECEF" }};
+      --head-tx: {{ cfg.color_texto_encabezado_detalle|default:"#212529" }};
+      --label-bg: {{ cfg.color_fondo_label_cotizacion|default:"#0D3B66" }};
+      --label-tx: {{ cfg.color_texto_label_cotizacion|default:"#FFFFFF" }};
+      --logo-bg: {{ cfg.color_fondo_logo|default:"#FFFFFF" }};
+      --header-tx: {{ cfg.color_texto_header|default:"#0D3B66" }};
     }
-</style>
-<div class="container mt-4" id="print-area">
-    <div class="row small">
+    body{ font-family: Arial, Helvetica, sans-serif; color:#111; margin:0; }
+    .page{ padding:24px; }
+    .row{ display:flex; gap:16px; }
+    .between{ justify-content:space-between; }
+    .right{ text-align:right; }
+    .muted{ color:#6c757d; }
+    .small{ font-size:12px; }
+    .h1{ font-size:22px; margin:0; letter-spacing:.5px; }
+    .box{ border:1px solid var(--border); border-radius:10px; padding:14px; }
+    .logo-wrap{ background:var(--logo-bg); border-radius:10px; padding:10px; border:1px solid var(--border);display:flex; align-items:center; justify-content:center; min-height:90px; }
+    table{ width:100%; border-collapse:collapse; }
+    th, td{ border:1px solid var(--border); padding:8px; }
+    thead th{ background:var(--head-bg); color:var(--head-tx); font-size:12px; letter-spacing:.3px; }
+    td{ font-size:13px; }
+    .nowrap{ white-space:nowrap; }
+    .text-end{ text-align:right; }
+    .badge{
+      display:inline-block; padding:8px 12px; border-radius:999px;
+      background:var(--label-bg); color:var(--label-tx); font-weight:700;
+      font-size:12px; letter-spacing:.6px;
+    }
+    .mt{ margin-top:14px; }
+    .mt2{ margin-top:22px; }
+    .totals{ width:320px; margin-left:auto; }
+    .totals td{ font-size:13px; }
+    .totals tr td:first-child{ color:#6c757d; }
+    .footer{ margin-top:22px; border-top:1px dashed var(--border); padding-top:12px; }
+    @media print{
+      .no-print{ display:none !important; }
+      .page{ padding:0; }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
 
-        <div class="d-flex justify-content-between">
-            <strong>{{ empresa_actual }}</strong>
-            <strong>SWITCHH • SISTEMAS</strong>
-        </div>
+    <!-- Header -->
+    <div class="row between">
+      <div style="width:34%;">
+        {% if cfg.mostrar_logo %}
+          <div class="logo-wrap">
+            {% if cfg.logo %}
+              <img src="{{ cfg.logo.url }}" style="max-height:80px; max-width:100%;">
+            {% else %}
+              <div class="muted small">Sin logotipo</div>
+            {% endif %}
+          </div>
+        {% endif %}
+      </div>
 
-        <div class="d-flex justify-content-between">
-            <span><strong>Fecha:</strong> {{ cotizacion.fecha_cotizacion }}</span>
-            <span><strong>Generada por:</strong> {{ cotizacion.usuario }}</span>
-        </div>
+      <div style="width:64%;" class="right">
+        <div class="badge">{{ cfg.titulo_documento|default:"COTIZACIÓN" }}</div>
+        <div class="mt">
+          <div class="h1" style="color:var(--header-tx);">
+            {{ cfg.encabezado_nombre|default:"" }}
+          </div>
 
-        <div class="d-flex justify-content-between">
-            <span><strong>Cliente:</strong> {{ cotizacion.cliente }}</span>
-            <span><strong>Vendedor:</strong> {{ cotizacion.vendedor }}</span>
-        </div>
+          {% if cfg.mostrar_direccion %}
+            <div class="small muted">
+              {{ cfg.calle_cotizacion }}{% if cfg.calle_cotizacion and cfg.colonia_cotizacion %}, {% endif %}{{ cfg.colonia_cotizacion }}<br>
+              {{ cfg.ciudad_cotizacion }}{% if cfg.ciudad_cotizacion and cfg.codigo_postal_cotizacion %}, {% endif %}{{ cfg.codigo_postal_cotizacion }}
+            </div>
+          {% endif %}
 
-        <div class="d-flex justify-content-between">
-            <span><strong>Contacto:</strong> {{ cotizacion.cliente.campo_libre_str }}</span>
-            <span><strong>Email:</strong> {{ cotizacion.cliente.email }}</span>
+          {% if cfg.mostrar_telefonos %}
+            <div class="small muted">
+              {% if cfg.tel_cotizacion %}Tel: {{ cfg.tel_cotizacion }}{% endif %}
+              {% if cfg.email_cotizacion %} · {{ cfg.email_cotizacion }}{% endif %}
+              {% if cfg.sitio_web %} · {{ cfg.sitio_web }}{% endif %}
+            </div>
+          {% endif %}
         </div>
-
-        <div class="d-flex">
-            <strong>Cotización Número {{ cotizacion.numero_cotizacion }}</strong>
-        </div>
+      </div>
     </div>
 
-    <table class="table table-bordered table-sm mt-4">
-        <thead class="table-light">
-            <tr>
-                <th>#</th>
-                <th>Producto</th>
-                <th class="text-end">Cantidad</th>
-                <th class="text-end">Precio</th>
-                <th class="text-end">Subtotal</th>
-            </tr>
+    <!-- Datos generales -->
+    <div class="row mt2">
+      <div class="box" style="flex:1;">
+        <div class="small muted">Cliente</div>
+        <div style="font-weight:700;">{{ cotizacion.cliente }}</div>
+    
+        <div style="font-weight:300;">{{ cotizacion.cliente.calle }} 
+            {{cotizacion.cliente.numero_exterior}}
+            {{cotizacion.cliente.numero_interior}}
+        </div>
+        <div style="font-weight:300;">{{ cotizacion.cliente.colonia }} 
+            {{cotizacion.cliente.codigo_postal}} 
+        </div>
+        <div style="font-weight:300;">{{ cotizacion.cliente.ciudad }} 
+            {{cotizacion.cliente.estado}} 
+        </div>
+
+      </div>
+
+      <div class="box" style="width:360px;">
+        <div class="row between">
+          <div>
+            <div class="small muted">Cotización</div>
+            <div style="font-weight:700;">{{ cotizacion.numero_cotizacion }}</div>
+          </div>
+          <div class="right">
+            <div class="small muted">Fecha</div>
+            <div style="font-weight:700;">{{ cotizacion.fecha_cotizacion|date:"d/m/Y" }}</div>
+          </div>
+        </div>
+
+        {% if cfg.mostrar_vendedor %}
+        <div class="mt">
+          <div class="small muted">Vendedor</div>
+          <div style="font-weight:700;">{{ cotizacion.vendedor }}</div>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Detalle -->
+    <div class="mt2">
+      <table>
+        <thead>
+          <tr>
+            <th style="width:40px;">#</th>
+            <th style="width:90px;">CANTIDAD</th>
+            <th>DESCRIPCIÓN</th>
+            <th style="width:80px;">UNIDAD</th>
+            <th style="width:120px;" class="text-end">PRECIO UNIT</th>
+            <th style="width:120px;" class="text-end">IMPORTE</th>
+          </tr>
         </thead>
         <tbody>
-            {% for d in detalles %}
-            <tr>
-                <td>{{ forloop.counter }}</td>
-                <td>{{ d.producto.nombre }}</td>
-                <td class="text-end">{{ d.cantidad|floatformat:2 }}</td>
-                <td class="text-end">${{ d.precio|floatformat:2 }}</td>
-                <td class="text-end">${{ d.subtotal|floatformat:2 }}</td>
-            </tr>
-            {% endfor %}
+          {% for d in detalles %}
+          <tr>
+            <td class="nowrap">{{ forloop.counter }}</td>
+            <td class="nowrap">{{ d.cantidad }}</td>
+            <td>{{ d.producto }}</td>
+            <td class="nowrap">
+                {{ d.producto.unidad_medida.descripcion|default:"PZA" }}
+            </td>
+            <td class="text-end nowrap">${{ d.precio|floatformat:2 }}</td>
+            <td class="text-end nowrap">${{ d.subtotal|floatformat:2 }}</td>
+          </tr>
+          {% endfor %}
         </tbody>
-    </table>
-
-    <div class="d-flex">
-        <strong class="ms-auto">Total: ${{ total|floatformat:2 }}</strong>
+      </table>
     </div>
 
-    <div class="row small">
-        <p><strong>Notas:</strong></p>
-        <p> {{ cotizacion.comentarios|linebreaksbr }}</p>
+
+    <!-- Totales -->
+    {% if cfg and cfg.mostrar_totales %}
+    <div class="mt2 row between">
+
+    <!-- Comentarios -->
+    <div style="flex:1; padding-right:30px;">
+        {% if cotizacion.comentarios %}
+        <div style="font-weight:700; margin-bottom:6px;">
+            Observaciones:
+        </div>
+        <div class="small muted" style="line-height:1.4;">
+            {{ cotizacion.comentarios|linebreaksbr }}
+        </div>
+        {% endif %}
     </div>
-    <div class="mt-4 text-center d-print-none">
-        <button onclick="window.print()" class="btn btn-primary">Imprimir</button>
-        <a href="{% url 'inv:cotizacion_list' %}" class="btn btn-secondary">Volver</a>
+
+    <!-- Totales -->
+    <div style="width:320px;">
+        <table class="totals">
+        <tbody>
+            <tr>
+            <td style="font-weight:700;">Total</td>
+            <td class="text-end" style="font-weight:700;">
+                ${{ total|floatformat:2 }}
+            </td>
+            </tr>
+        </tbody>
+        </table>
     </div>
-</div>
-{% endblock %}
+
+    </div>
+    {% endif %}
+
+    <!-- Footer -->
+    <div class="footer small">
+      {% if cfg.leyenda_pie %}
+        <div class="muted">{{ cfg.leyenda_pie|linebreaksbr }}</div>
+      {% endif %}
+      {% if cfg.terminos_condiciones %}
+        <div class="mt muted">{{ cfg.terminos_condiciones|linebreaksbr }}</div>
+      {% endif %}
+    </div>
+
+    <div class="no-print mt small muted right">
+      <button onclick="window.print()">Imprimir</button>
+    </div>
+  </div>
+</body>
+</html>

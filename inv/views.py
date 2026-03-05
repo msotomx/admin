@@ -862,7 +862,7 @@ class RemisionCreateView(TenantRequiredMixin, RemisionBaseView, CreateView):
         clave_mov = ClaveMovimiento.objects.using("tenant").get(clave_movimiento=clave)
         almacen = Almacen.objects.using("tenant").get(almacen=almacen_num)
         
-        return {"clave_movimiento": clave_mov, "almacen": almacen}
+        return {"clave_movimiento": clave_mov, "almacen": almacen, "empresa": empresa}
 
     def generar_numero_remision_por_clave(self, clave_movimiento):
         
@@ -940,7 +940,7 @@ class RemisionCreateView(TenantRequiredMixin, RemisionBaseView, CreateView):
             ctx["formset"] = DetalleFS(self.request.POST, prefix="detalles")
         else:
             ctx["formset"] = DetalleFS(initial=initial_det, prefix="detalles")
-
+        
         return ctx
 
 
@@ -1206,11 +1206,20 @@ def verificar_cotizacion(request):
     except Cotizacion.DoesNotExist:
         return JsonResponse({'existe': False})
 
+from core.models import ConfiguracionCotizacion
+
 @login_required
 @tenant_required
 def imprimir_cotizacion(request, pk):
     cotizacion = get_object_or_404(Cotizacion.objects.using('tenant'), pk=pk)
     detalles = DetalleCotizacion.objects.using('tenant').filter(numero_cotizacion=cotizacion)
+    # 1) Empresa (1 por tenant)
+    empresa = Empresa.objects.using('tenant').first()
+
+    # 2) Configuración (crear si no existe)
+    cfg = None
+    if empresa:
+        cfg, _ = ConfiguracionCotizacion.objects.using('tenant').get_or_create(empresa=empresa)
     total = 0
     for det in detalles:
         total = total + det.cantidad * det.precio
@@ -1219,6 +1228,7 @@ def imprimir_cotizacion(request, pk):
         'cotizacion': cotizacion,
         'detalles': detalles,
         'total': total,
+        "cfg": cfg,
     })
 
 # COTIZACIONES
@@ -2724,10 +2734,12 @@ def imprimir_remision_ticket(request, pk):
     for det in detalles:
         total = total + (det.cantidad * det.precio) - det.descuento
 
+    empresa = Empresa.objects.using("tenant").first()
     return render(request, 'inv/remision_print_ticket.html', {
         'remision': remision,
         'detalles': detalles,
         'total': total,
+        'empresa': empresa,
     })
 
 @login_required
@@ -2740,10 +2752,13 @@ def imprimir_remision(request, pk):
     for det in detalles:
         total = total + (det.cantidad * det.precio) - det.descuento
 
+    empresa = Empresa.objects.using("tenant").first()
+    
     return render(request, 'inv/remision_print.html', {
         'remision': remision,
         'detalles': detalles,
         'total': total,
+        'empresa': empresa,
     })
 
 @login_required

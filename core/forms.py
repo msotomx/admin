@@ -113,3 +113,63 @@ class EmpresaNumUsuariosForm(forms.ModelForm):
             "nombre": forms.TextInput(attrs={"class": "form-control", 'readonly': 'readonly'}),
             "num_usuarios":    forms.TextInput(attrs={"class": "form-control"}),
         }
+
+from .models import ConfiguracionCotizacion
+
+class ConfiguracionCotizacionForm(forms.ModelForm):
+    class Meta:
+        model = ConfiguracionCotizacion
+        fields = [
+            # Visibilidad
+            "mostrar_logo",
+            "mostrar_direccion",
+            "mostrar_telefonos",
+            "mostrar_vendedor",
+            "mostrar_comentarios",
+            "mostrar_totales",
+
+            # Logo / Branding
+            "logo",
+            "logo_alto_px",
+
+            # Encabezado
+            "encabezado_nombre",
+            "calle_cotizacion",
+            "colonia_cotizacion",
+            "codigo_postal_cotizacion",
+            "ciudad_cotizacion",
+            "tel_cotizacion",
+            "email_cotizacion",
+            "sitio_web",
+
+            # Colores
+            "color_fondo_logo",
+            "color_texto_header",
+            "color_fondo_label_cotizacion",
+            "color_texto_label_cotizacion",
+            "color_fondo_encabezado_detalle",
+            "color_texto_encabezado_detalle",
+            "color_borde_tabla",
+
+            # Textos
+            "titulo_documento",
+            "leyenda_pie",
+            "terminos_condiciones",
+        ]
+
+        widgets = {
+            "leyenda_pie": forms.Textarea(attrs={"rows": 3}),
+            "terminos_condiciones": forms.Textarea(attrs={"rows": 5}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        # Bootstrap simple
+        for name, field in self.fields.items():
+            if isinstance(field.widget, (forms.CheckboxInput,)):
+                field.widget.attrs.update({"class": "form-check-input"})
+            elif isinstance(field.widget, (forms.ClearableFileInput,)):
+                field.widget.attrs.update({"class": "form-control"})
+            else:
+                field.widget.attrs.update({"class": "form-control"})
