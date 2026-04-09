@@ -26,6 +26,7 @@ from core.utils import info_renovacion
 from django.urls import reverse_lazy
 from django.views.generic import UpdateView
 from django.shortcuts import redirect
+from core.decorators import staff_required
 
 def require_tenant_connection(view_func):
     @wraps(view_func)
@@ -168,7 +169,7 @@ class CustomLoginView(LoginView):
 
 # se llama de Login
 @login_required
-def setup_tenant(request):
+def setup_tenant_original(request):
     empresa_id = request.GET.get('eid')
     if not empresa_id:
         # Sin empresa_id, redirigiendo a login.
@@ -197,10 +198,71 @@ def setup_tenant(request):
         # print(f"❌ Error en setup_tenant: {e}")
         return redirect('core:login')
 
+from django.contrib import messages
+from django.contrib.auth.decorators import login_required
+from django.http import HttpResponseRedirect
+from django.shortcuts import redirect
+from django.urls import reverse
+
+# version 29/marzo/2026
+@login_required
+def setup_tenant(request):
+    empresa_id = request.GET.get("eid")
+
+    logger.warning("SETUP_TENANT: inicio eid=%s user=%s", empresa_id, request.user.username)
+
+    if not empresa_id:
+        logger.warning("SETUP_TENANT: no llegó eid")
+        messages.error(request, "No se recibió la empresa a configurar.")
+        return redirect("core:login")
+
+    try:
+        empresa = EmpresaDB.objects.using("default").get(pk=empresa_id)
+        logger.warning("SETUP_TENANT: empresa encontrada id=%s db_name=%s activa=%s", empresa.id, empresa.db_name, empresa.activa)
+
+        if not empresa.activa:
+            logger.warning("SETUP_TENANT: empresa inactiva id=%s", empresa.id)
+            messages.error(request, "La empresa está inactiva.")
+            return redirect("core:login")
+
+        # Opcional y recomendable:
+        perfil = PerfilUsuario.objects.using("default").get(user=request.user, empresa=empresa)
+        logger.warning("SETUP_TENANT: perfil validado user=%s empresa=%s", request.user.username, empresa.id)
+
+        if not request.session.session_key:
+            request.session.create()
+            logger.warning("SETUP_TENANT: sesión creada %s", request.session.session_key)
+
+        request.session["empresa_id"] = empresa.id
+        request.session["alias_tenant"] = "tenant"
+        request.session["empresa_fiscal"] = None
+        request.session.modified = True
+
+        logger.warning("SETUP_TENANT: antes de set_current_tenant empresa_id=%s", empresa.id)
+        set_current_tenant("tenant", empresa.id, None)
+        logger.warning("SETUP_TENANT: tenant configurado correctamente")
+
+        return HttpResponseRedirect(reverse("core:inicio"))
+
+    except PerfilUsuario.DoesNotExist:
+        logger.warning("SETUP_TENANT: el usuario no tiene perfil para la empresa")
+        messages.error(request, "No tienes acceso a esta empresa.")
+        return redirect("core:login")
+
+    except EmpresaDB.DoesNotExist:
+        logger.warning("SETUP_TENANT: empresa no encontrada")
+        messages.error(request, "Empresa no encontrada.")
+        return redirect("core:login")
+
+    except Exception as e:
+        logger.warning("SETUP_TENANT: error general")
+        messages.error(request, f"No se pudo configurar la empresa: {e}")
+        return redirect("core:login")
+
 # FUNCION PARA SIGN INICIAL, AQUI SE CREA LA BD DEL CLIENTE, EL USUARIO INICIAL Y 
 # SE AGREGA LA EMPRESA NUEVA EN LA LISTA DE EMPRESAS
 from django.shortcuts import render, redirect
-from core.services.tenant_setup import crear_tenant_completo
+from core.services.tenant_setup import crear_tenant_completo, crear_tenant_completo_actualizado
 from django.contrib.auth import get_user_model
 import traceback
 
@@ -292,8 +354,10 @@ class StaffEmpresaListView(LoginRequiredMixin, UserPassesTestMixin, ListView):
     def get_queryset(self):
         return EmpresaDB.objects.using('default').all().order_by('codigo_empresa')
 
+#@staff_required(redirect_url='core:inicio')
+#@staff_member_required
+
 @login_required
-@staff_required(redirect_url='core:inicio')
 def exportar_empresas_excel(request):
     empresas = EmpresaDB.objects.using('default').all().order_by('codigo_empresa')
     wb = openpyxl.Workbook()
@@ -327,6 +391,7 @@ def exportar_empresas_excel(request):
 from timbres.models import TimbresCliente
 from django.db.models import F, ExpressionWrapper, BigIntegerField
 # Timbres Disponibles por Empresa/Cliente
+
 class StaffTimbresClienteListView22(ListView): 
     model = TimbresCliente
     template_name = 'core/staff_timbres_cliente_list.html'
@@ -352,6 +417,7 @@ class StaffTimbresClienteListView22(ListView):
 
 from django.views.generic import ListView
 from django.db.models import F, ExpressionWrapper, BigIntegerField
+
 
 class StaffTimbresClienteListView(ListView): 
     model = TimbresCliente
@@ -393,8 +459,8 @@ class StaffTimbresClienteListView(ListView):
         context['empresas_dict'] = {e.codigo_empresa: e for e in empresas}
         return context
 
+
 @login_required
-@staff_required(redirect_url='core:inicio')
 def exportar_timbres_disponibles_excel(request):
  
     timbres = (
@@ -448,7 +514,9 @@ def exportar_timbres_disponibles_excel(request):
 
 from django.views.generic import TemplateView
 from core.forms import MovimientoTimbresFilterForm
+
 # Timbres asignados por Fecha
+
 class StaffMovimientoTimbresListView(TemplateView):
     template_name = "core/staff_movimiento_timbres_list.html"
 
@@ -491,7 +559,6 @@ from django.utils.timezone import localdate
 
 # exportar a excel movimientos de timbres en un rango de fechas
 @login_required
-@staff_required(redirect_url='core:inicio')
 def exportar_mov_timbres_excel(request):
     fecha_inicio_str = request.GET.get('fecha_inicio')
     fecha_fin_str = request.GET.get('fecha_fin')
@@ -551,7 +618,6 @@ class StaffEmpresaRenovacionListView(LoginRequiredMixin, UserPassesTestMixin, Li
         return EmpresaDB.objects.using('default').all().order_by('fecha_renovacion')
 
 @login_required
-@staff_required(redirect_url='core:inicio')
 def exportar_empresas_renovacion_excel(request):
     empresas = EmpresaDB.objects.using('default').all().order_by('fecha_renovacion')
     wb = openpyxl.Workbook()
@@ -1157,4 +1223,183 @@ class ConfiguracionCotizacionUpdateView(LoginRequiredMixin, UpdateView):
         
         return redirect('inv:cotizacion_list')
 
+# REGISTRO DE NUEVA EMPRESA
+# Hace login cuando se registra la empresa
+from django.contrib import messages
+from django.contrib.auth import login
+from django.shortcuts import redirect, render
+from django.urls import reverse
 
+def CustomLoginRegistro(request, user, empresadb=None):
+    try:
+        logger.warning("LOGINREGISTRO: inicio user=%s", user.username)
+
+        if empresadb is None:
+            logger.warning("LOGINREGISTRO: empresadb viene None, buscando por PerfilUsuario")
+            perfil = PerfilUsuario.objects.using("default").get(user=user)
+            empresadb = EmpresaDB.objects.using("default").get(pk=perfil.empresa_id)
+
+        logger.warning(
+            "LOGINREGISTRO: empresa encontrada id=%s activa=%s",
+            empresadb.id,
+            empresadb.activa
+        )
+
+        if not empresadb or not empresadb.activa:
+            messages.error(request, "Empresa inactiva o no asignada.")
+            return render(request, "core/login.html")
+
+        login(request, user, backend="django.contrib.auth.backends.ModelBackend")
+        logger.warning("LOGINREGISTRO: login correcto")
+
+        request.session["empresa_id"] = empresadb.id
+        logger.warning("LOGINREGISTRO: session empresa_id=%s", empresadb.id)
+
+        return redirect(reverse("core:setup_tenant") + f"?eid={empresadb.id}")
+
+    except PerfilUsuario.DoesNotExist:
+        logger.warning("LOGINREGISTRO: no se encontró PerfilUsuario")
+        messages.error(request, "Usuario o empresa no encontrados.")
+        return render(request, "core/login.html")
+    
+
+import logging
+
+from django.contrib import messages
+from django.contrib.auth import get_user_model
+from django.core.exceptions import ValidationError
+from django.core.validators import validate_email
+from django.shortcuts import render, redirect
+from django.urls import reverse
+from core.utils import enviar_email_bienvenida
+from tracking.utils import registrar_visita_registro
+
+logger = logging.getLogger(__name__)
+
+def registro(request):
+    if request.user.is_authenticated:
+        return redirect("core:inicio")
+
+    if request.method == "GET":
+        try:
+            registrar_visita_registro(request)
+        except Exception as e:
+            logger.warning("No se pudo registrar visita a /registro: %s", e)
+
+
+    logger.warning("EN REGISTRO")
+    
+    if request.method == "POST":
+        nombre_comercial = request.POST.get("nombre_comercial", "").strip()
+        email = request.POST.get("email", "").strip().lower()
+        password = request.POST.get("password", "").strip()
+        nombre = request.POST.get("nombre", "").strip()
+
+        data = {
+            "nombre_comercial": nombre_comercial,
+            "email": email,
+            "nombre": nombre,
+        }
+
+        logger.warning("REQUEST METHOD = %s", request.method)
+        logger.warning("POST COMPLETO = %s", request.POST)
+        logger.warning("POST DICT = %s", request.POST.dict())
+        logger.warning("NOMBRE_COMERCIAL RAW = [%s]", request.POST.get("nombre_comercial"))
+
+        if not nombre_comercial:
+            logger.warning("EN REGISTRO: No nombre_comercial")
+            messages.error(request, "Se requiere nombre comercial.")
+            return render(request, "core/registro.html", {"data": data})
+
+        if not email:
+            logger.warning("EN REGISTRO: No Email")
+            messages.error(request, "Se requiere email del contacto.")
+            return render(request, "core/registro.html", {"data": data})
+
+        try:
+            validate_email(email)
+        except ValidationError:
+            logger.warning("EN REGISTRO: error en Email")
+            messages.error(request, "Captura un email válido.")
+            return render(request, "core/registro.html", {"data": data})
+
+        if not password:
+            logger.warning("EN REGISTRO: No hay password")
+            messages.error(request, "Se requiere contraseña.")
+            return render(request, "core/registro.html", {"data": data})
+
+        if len(password) < 8:
+            logger.warning("EN REGISTRO: Error en longitud de password")
+            messages.error(request, "La contraseña debe tener al menos 8 caracteres.")
+            return render(request, "core/registro.html", {"data": data})
+
+        if not nombre:
+            logger.warning("EN REGISTRO: No hay nombre de contacto")
+            messages.error(request, "Se requiere nombre del contacto.")
+            return render(request, "core/registro.html", {"data": data})
+
+        UserModel = get_user_model()
+
+        if UserModel.objects.using("default").filter(username=email).exists():
+            logger.warning("EN REGISTRO: Ya existe un registro con ese email")
+            messages.error(
+                request,
+                f"Ya existe un registro con este email '{email}'. Recupera la contraseña en Iniciar Sesión | '¿Olvidaste tu contraseña?'"
+            )
+            return render(request, "core/registro.html", {"data": data})
+
+        try:
+            logger.warning("REGISTRO: inicio crear tenant")
+
+            user, empresadb = crear_tenant_completo_actualizado(
+                request=request,
+                nombre=nombre,
+                password=password,
+                nombre_comercial=nombre_comercial,
+                email=email,
+            )
+
+            logger.warning(
+                "REGISTRO: tenant creado user=%s empresa_id=%s",
+                user.id,
+                empresadb.id
+            )
+
+            # Enviar email de bienvenida
+            try:
+                enviar_email_bienvenida(
+                    request=request,
+                    nombre=nombre,
+                    email=email,
+                    nombre_comercial=nombre_comercial,
+                )
+                logger.warning("REGISTRO: email de bienvenida enviado a %s", email)
+            except Exception as e:
+                logger.warning("REGISTRO: no se pudo enviar email de bienvenida a %s. Error: %s", email, e)
+
+            logger.warning("REGISTRO: antes de CustomLoginRegistro")
+
+            return CustomLoginRegistro(request, user, empresadb=empresadb)
+
+        except Exception as e:
+            logger.exception("Error en creación de tenant durante registro")
+            messages.error(request, f"Ocurrió un error al crear la cuenta: {e}")
+            return render(request, "core/registro.html", {"data": data})
+
+            logger.warning("REGISTRO: antes de CustomLoginRegistro")
+
+            return CustomLoginRegistro(request, user, empresadb=empresadb)
+
+        except Exception as e:
+            logger.warning("Error en creación de tenant durante registro")
+            messages.error(request, f"Ocurrió un error al crear la cuenta: {e}")
+            return render(request, "core/registro.html", {"data": data})
+
+    return render(request, "core/registro.html")
+
+# ===============================
+# LANDING PAGE
+# ===============================
+
+def landing(request):
+    return render(request, "core/landing.html")

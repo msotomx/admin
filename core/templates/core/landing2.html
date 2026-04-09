@@ -1,0 +1,638 @@
+{% extends "base_registro.html" %}
+{% load static %}
+
+{% block content %}
+<section class="landing-v2">
+  <div class="landing-header">
+            
+        <img src="{% static 'img/logo-switchh.png' %}" 
+            style="max-height: 60px;"
+            alt="Switchh">
+
+  </div>
+
+  <!-- HERO -->
+  <section class="hero-section position-relative overflow-hidden">
+    <div class="hero-bg-shape hero-bg-shape-1"></div>
+    <div class="hero-bg-shape hero-bg-shape-2"></div>
+
+    <div class="container py-5 py-lg-6">
+      <div class="row align-items-center g-5">
+        <div class="col-lg-6">
+          <div class="hero-copy">
+            <!-- 
+            <div class="hero-badge mb-3">
+              Sistema administrativo en la nube para PyMES en México
+            </div>
+            -->
+            <h1 class="hero-title mb-4">
+              Controla inventario, ventas y facturación
+              <span class="text-highlight">desde un solo lugar</span>
+            </h1>
+
+            <p class="hero-text mb-4">
+              Switchh te ayuda a organizar tu operación diaria, evitar errores,
+              controlar existencias y acelerar tus procesos de compra, venta y facturación.
+            </p>
+
+            <div class="hero-checks mb-4">
+              <div class="hero-check-item">✓ Inventario en tiempo real</div>
+              <div class="hero-check-item">✓ Cotizaciones, remisiones y facturación electrónica</div>
+              <div class="hero-check-item">✓ Herramienta rápida, estable y fácil de usar</div>
+            </div>
+
+            <div class="d-flex flex-column flex-sm-row gap-3 mb-3">
+              <a href="{% url 'core:registro' %}" class="btn btn-hero-primary">
+                Crear cuenta gratis
+              </a>
+              <a href="#beneficios" class="btn btn-hero-secondary">
+                Ver beneficios
+              </a>
+            </div>
+
+            <p class="hero-mini mb-0">
+              30 días gratis • sin tarjeta • acceso inmediato
+            </p>
+          </div>
+        </div>
+
+        <div class="col-lg-6">
+          <div class="hero-visual-card">
+            <div class="hero-visual-topbar">
+              <span></span><span></span><span></span>
+            </div>
+            <img src="{% static 'img/demo-sw-factura.png' %}"
+                 class="img-fluid hero-demo-img"
+                 alt="Vista del sistema Switchh">
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PROBLEMAS -->
+  <section class="section-block bg-white">
+    <div class="container">
+      <div class="section-head text-center mb-5">
+        <span class="section-kicker">Problemas que viven muchas PyMES</span>
+        <h2 class="section-title">Si tu operación depende de hojas, mensajes o procesos manuales, estás perdiendo tiempo y control</h2>
+        <p class="section-text">
+          Switchh fue diseñado para resolver los problemas operativos más comunes desde el primer día.
+        </p>
+      </div>
+
+      <div class="row g-4">
+        <div class="col-md-6 col-lg-3">
+          <div class="feature-problem-card h-100">
+            <div class="problem-icon">📦</div>
+            <h5>No sabes exactamente cuánto inventario tienes</h5>
+            <p>La falta de visibilidad provoca faltantes, compras tardías y pérdidas.</p>
+          </div>
+        </div>
+
+        <div class="col-md-6 col-lg-3">
+          <div class="feature-problem-card h-100">
+            <div class="problem-icon">💸</div>
+            <h5>Se te van ventas por falta de control</h5>
+            <p>Sin información clara, vender y surtir correctamente se vuelve más difícil.</p>
+          </div>
+        </div>
+
+        <div class="col-md-6 col-lg-3">
+          <div class="feature-problem-card h-100">
+            <div class="problem-icon">🧾</div>
+            <h5>Facturar te consume demasiado tiempo</h5>
+            <p>Los procesos lentos retrasan la operación y afectan la atención al cliente.</p>
+          </div>
+        </div>
+
+        <div class="col-md-6 col-lg-3">
+          <div class="feature-problem-card h-100">
+            <div class="problem-icon">📉</div>
+            <h5>Te cuesta tomar decisiones con claridad</h5>
+            <p>Sin una herramienta sólida, el negocio se vuelve reactivo en lugar de ordenado.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- BENEFICIOS -->
+  <section id="beneficios" class="section-block section-soft">
+    <div class="container">
+      <div class="section-head text-center mb-5">
+        <span class="section-kicker">Qué hace Switchh por tu empresa</span>
+        <h2 class="section-title">Una plataforma hecha para simplificar la administración diaria</h2>
+        <p class="section-text">
+          Menos desorden, menos errores y más rapidez operativa.
+        </p>
+      </div>
+
+      <div class="row g-4">
+        <div class="col-lg-4">
+          <div class="benefit-card h-100">
+            <div class="benefit-number">01</div>
+            <h4>Inventario claro y actualizado</h4>
+            <p>
+              Consulta existencias, movimientos y control de almacén en un solo sistema,
+              con información organizada y disponible cuando la necesitas.
+            </p>
+          </div>
+        </div>
+
+        <div class="col-lg-4">
+          <div class="benefit-card h-100">
+            <div class="benefit-number">02</div>
+            <h4>Proceso comercial más fluido</h4>
+            <p>
+              Lleva cotizaciones, remisiones, compras, ventas y facturación electrónica
+              sin depender de herramientas separadas.
+            </p>
+          </div>
+        </div>
+
+        <div class="col-lg-4">
+          <div class="benefit-card h-100">
+            <div class="benefit-number">03</div>
+            <h4>Más velocidad y confianza operativa</h4>
+            <p>
+              Tu empresa trabaja con una herramienta profesional, rápida y confiable
+              que reduce fricción desde el primer uso.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CONFIANZA -->
+  <section class="section-block bg-white">
+    <div class="container">
+      <div class="row align-items-center g-5">
+        <div class="col-lg-6">
+          <div class="trust-card">
+            <span class="section-kicker">Confianza y experiencia</span>
+            <h2 class="section-title text-start">No es solo un sistema bonito: es una herramienta construida con experiencia real</h2>
+            <p class="section-text text-start">
+              Switchh nace con una visión práctica: resolver los problemas operativos
+              que viven las PyMES en México todos los días.
+            </p>
+
+            <ul class="trust-list">
+              <li>Diseñado para empresas que necesitan orden y rapidez</li>
+              <li>Especializado en compras, ventas, cotización, remisión y facturación</li>
+              <li>Hecho para facilitar la operación y crecer contigo</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="col-lg-6">
+          <div class="stats-grid">
+            <div class="stat-card">
+              <div class="stat-number">35+</div>
+              <div class="stat-label">años de experiencia en desarrollo de software</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-number">100%</div>
+              <div class="stat-label">enfocado en simplificar operación para PyMES</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-number">30</div>
+              <div class="stat-label">días de prueba sin costo por tiempo limitado</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-number">1</div>
+              <div class="stat-label">plataforma para centralizar tu operación</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA INTERMEDIO -->
+  <section class="section-block cta-band">
+    <div class="container">
+      <div class="cta-band-box text-center">
+        <h2 class="mb-3">Empieza hoy y comprueba cómo Switchh puede ordenar tu empresa</h2>
+        <p class="mb-4">
+          Crea tu cuenta en minutos y prueba el sistema durante 30 días completamente gratis.
+        </p>
+        <a href="{% url 'core:registro' %}" class="btn btn-hero-primary">
+          Probar Switchh gratis
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- FAQ CORTO -->
+  <section class="section-block bg-white">
+    <div class="container">
+      <div class="section-head text-center mb-5">
+        <span class="section-kicker">Preguntas frecuentes</span>
+        <h2 class="section-title">Lo esencial antes de empezar</h2>
+      </div>
+
+      <div class="row g-4">
+        <div class="col-md-4">
+          <div class="faq-card h-100">
+            <h5>¿La prueba tiene costo?</h5>
+            <p>No. Puedes probar Switchh durante 30 días completamente gratis.</p>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="faq-card h-100">
+            <h5>¿Necesito tarjeta para registrarme?</h5>
+            <p>No. El acceso de prueba inicia sin tarjeta y sin compromiso.</p>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="faq-card h-100">
+            <h5>¿Qué tipo de empresas pueden usarlo?</h5>
+            <p>Empresas de cualquier tamaño que buscan simplificar compras, ventas, inventario y facturación.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA FINAL -->
+  <section class="section-block final-cta-section">
+    <div class="container text-center">
+      <h2 class="final-cta-title mb-3">Haz tu operación más simple, rápida y confiable</h2>
+      <p class="final-cta-text mb-4">
+        Regístrate hoy y prueba Switchh gratis por tiempo limitado.
+      </p>
+      <a href="{% url 'core:registro' %}" class="btn btn-final-cta">
+        Crear cuenta gratis
+      </a>
+    </div>
+  </section>
+
+  <!-- FOOTER INSTITUCIONAL -->
+  <footer class="landing-footer-small">
+    <div class="container">
+      <p class="mb-2">
+        • <strong>Switchh Sistemas</strong> somos una empresa de desarrollo de software con 35 años de experiencia desarrollando tecnología para PyMES en México.
+      </p>
+      <p class="mb-2">
+        • <strong>Switchh</strong> es un sistema especializado en simplificar la administración y el proceso de compras y ventas (cotización, remisión, facturación electrónica).
+      </p>
+      <p class="mb-2">
+        • Nuestra trayectoria nos permite ofrecer a las empresas en México una herramienta sólida, rápida y confiable que resuelve los problemas operativos de tu empresa desde el primer día.
+      </p>
+      <p class="mb-0">
+        • La opción de prueba por 30 días completamente gratis estará disponible por tiempo limitado.
+      </p>
+    </div>
+  </footer>
+
+</section>
+
+<style>
+  .landing-header {
+    position: absolute;
+    top: 0;
+    width: 100%;
+    z-index: 10;
+    padding-bottom: 30px;
+  }
+  .landing-v2 {
+    background: #f6f9fc;
+    color: #142133;
+  }
+
+  .hero-section {
+    background:
+      radial-gradient(circle at top left, rgba(255,255,255,.10), transparent 28%),
+      radial-gradient(circle at bottom right, rgba(255,255,255,.08), transparent 22%),
+      linear-gradient(135deg, #0D3B66 0%, #0B355C 40%, #072845 72%, #031826 100%);
+    color: #fff;
+    padding-top: 40px;
+  }
+
+  .hero-bg-shape {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(12px);
+    opacity: .18;
+    pointer-events: none;
+  }
+
+  .hero-bg-shape-1 {
+    width: 300px;
+    height: 300px;
+    top: -60px;
+    right: -60px;
+    background: #ffffff;
+  }
+
+  .hero-bg-shape-2 {
+    width: 220px;
+    height: 220px;
+    bottom: -40px;
+    left: -40px;
+    background: #7ec8ff;
+  }
+
+  .py-lg-6 {
+    padding-top: 5rem;
+    padding-bottom: 5rem;
+  }
+
+  .hero-badge {
+    display: inline-block;
+    padding: .55rem .9rem;
+    border-radius: 999px;
+    background: rgba(255,255,255,.12);
+    border: 1px solid rgba(255,255,255,.18);
+    font-size: .92rem;
+    font-weight: 600;
+  }
+
+  .hero-title {
+    font-size: clamp(2.2rem, 4vw, 4rem);
+    line-height: 1.08;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+  }
+
+  .text-highlight {
+    color: #a9ddff;
+  }
+
+  .hero-text {
+    font-size: 1.1rem;
+    color: rgba(255,255,255,.86);
+    max-width: 640px;
+  }
+
+  .hero-checks {
+    display: grid;
+    gap: .65rem;
+  }
+
+  .hero-check-item {
+    color: rgba(255,255,255,.95);
+    font-weight: 500;
+  }
+
+  .hero-mini {
+    color: rgba(255,255,255,.70);
+    font-size: .95rem;
+  }
+
+  .btn-hero-primary,
+  .btn-final-cta {
+    display: inline-block;
+    background: linear-gradient(135deg, #1fbf75, #18a865);
+    color: #fff;
+    text-decoration: none;
+    padding: .95rem 1.45rem;
+    border-radius: 14px;
+    font-weight: 700;
+    border: none;
+    box-shadow: 0 14px 28px rgba(20, 164, 102, .22);
+    transition: all .2s ease;
+  }
+
+  .btn-hero-primary:hover,
+  .btn-final-cta:hover {
+    color: #fff;
+    transform: translateY(-1px);
+  }
+
+  .btn-hero-secondary {
+    display: inline-block;
+    background: rgba(255,255,255,.10);
+    color: #fff;
+    text-decoration: none;
+    padding: .95rem 1.35rem;
+    border-radius: 14px;
+    font-weight: 700;
+    border: 1px solid rgba(255,255,255,.18);
+  }
+
+  .btn-hero-secondary:hover {
+    color: #fff;
+    background: rgba(255,255,255,.14);
+  }
+
+  .hero-visual-card {
+    background: rgba(255,255,255,.08);
+    border: 1px solid rgba(255,255,255,.16);
+    border-radius: 24px;
+    padding: 1rem;
+    backdrop-filter: blur(8px);
+    box-shadow: 0 30px 60px rgba(0,0,0,.18);
+  }
+
+  .hero-visual-topbar {
+    display: flex;
+    gap: .45rem;
+    margin-bottom: .9rem;
+    padding-left: .25rem;
+  }
+
+  .hero-visual-topbar span {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: rgba(255,255,255,.55);
+    display: inline-block;
+  }
+
+  .hero-demo-img {
+    border-radius: 18px;
+    width: 100%;
+    display: block;
+    background: #fff;
+  }
+
+  .section-block {
+    padding: 5rem 0;
+  }
+
+  .section-soft {
+    background: linear-gradient(180deg, #f8fbff 0%, #eef5fb 100%);
+  }
+
+  .section-head {
+    max-width: 900px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .section-kicker {
+    display: inline-block;
+    font-size: .88rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    color: #0D3B66;
+    margin-bottom: .9rem;
+  }
+
+  .section-title {
+    font-size: clamp(1.75rem, 3vw, 2.8rem);
+    line-height: 1.18;
+    font-weight: 800;
+    color: #142133;
+    margin-bottom: 1rem;
+  }
+
+  .section-text {
+    color: #5f7083;
+    font-size: 1.02rem;
+    max-width: 760px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .feature-problem-card,
+  .benefit-card,
+  .faq-card,
+  .stat-card,
+  .trust-card {
+    background: #fff;
+    border: 1px solid #e7edf5;
+    border-radius: 22px;
+    padding: 1.4rem;
+    box-shadow: 0 12px 28px rgba(12, 43, 74, 0.06);
+  }
+
+  .problem-icon {
+    font-size: 1.6rem;
+    margin-bottom: .8rem;
+  }
+
+  .feature-problem-card h5,
+  .benefit-card h4,
+  .faq-card h5 {
+    font-weight: 700;
+    margin-bottom: .65rem;
+    color: #142133;
+  }
+
+  .feature-problem-card p,
+  .benefit-card p,
+  .faq-card p {
+    color: #607284;
+    margin-bottom: 0;
+  }
+
+  .benefit-number {
+    display: inline-flex;
+    width: 42px;
+    height: 42px;
+    border-radius: 12px;
+    align-items: center;
+    justify-content: center;
+    background: #eaf4ff;
+    color: #0D3B66;
+    font-weight: 800;
+    margin-bottom: 1rem;
+  }
+
+  .trust-list {
+    margin: 1.2rem 0 0 0;
+    padding-left: 1.2rem;
+    color: #4f6378;
+  }
+
+  .trust-list li {
+    margin-bottom: .65rem;
+  }
+
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+  }
+
+  .stat-number {
+    font-size: 2rem;
+    font-weight: 800;
+    color: #0D3B66;
+    line-height: 1;
+    margin-bottom: .45rem;
+  }
+
+  .stat-label {
+    color: #607284;
+    font-size: .95rem;
+  }
+
+  .cta-band {
+    background: linear-gradient(180deg, #eef5fb 0%, #f6f9fc 100%);
+  }
+
+  .cta-band-box {
+    background: linear-gradient(135deg, #0D3B66 0%, #0B355C 50%, #072845 100%);
+    color: #fff;
+    border-radius: 28px;
+    padding: 3rem 1.5rem;
+    box-shadow: 0 24px 50px rgba(10, 39, 68, .18);
+  }
+
+  .cta-band-box p {
+    color: rgba(255,255,255,.82);
+    max-width: 720px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .final-cta-section {
+    background: #0d1620;
+    color: #fff;
+  }
+
+  .final-cta-title {
+    font-size: clamp(1.8rem, 3vw, 2.8rem);
+    font-weight: 800;
+  }
+
+  .final-cta-text {
+    color: rgba(255,255,255,.75);
+    font-size: 1.05rem;
+  }
+
+  .landing-footer-small {
+    background: #0a1119;
+    color: rgba(255,255,255,.62);
+    font-size: .80rem;
+    line-height: 1.75;
+    padding: 1.8rem 0 2.2rem 0;
+  }
+
+  .landing-footer-small strong {
+    color: rgba(255,255,255,.84);
+  }
+
+  @media (max-width: 991.98px) {
+    .section-block {
+      padding: 3.5rem 0;
+    }
+
+    .stats-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .hero-copy {
+      text-align: center;
+    }
+
+    .hero-text {
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .hero-checks {
+      text-align: left;
+      max-width: 560px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+  }
+</style>
+{% endblock %}

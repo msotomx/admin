@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container py-4">
+
+  <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-2">
+    <div>
+      <h2 class="mb-1">Reporte de visitas por ciudad</h2>
+      <p class="text-muted mb-0">
+        Ciudades: <strong>{{ total_ciudades }}</strong> |
+        Visitas: <strong>{{ total_visitas }}</strong>
+      </p>
+    </div>
+  </div>
+
+  <div class="card shadow-sm border-0 mb-4">
+    <div class="card-body">
+      <form method="get" class="row g-3 align-items-end">
+        <div class="col-md-3">
+          <label class="form-label">Fecha inicio</label>
+          <input type="date" name="fecha_inicio" value="{{ fecha_inicio }}" class="form-control">
+        </div>
+
+        <div class="col-md-3">
+          <label class="form-label">Fecha fin</label>
+          <input type="date" name="fecha_fin" value="{{ fecha_fin }}" class="form-control">
+        </div>
+
+        <div class="col-md-3">
+          <label class="form-label">Bots</label>
+          <select name="incluir_bots" class="form-select">
+            <option value="" {% if incluir_bots != "si" %}selected{% endif %}>Excluir bots</option>
+            <option value="si" {% if incluir_bots == "si" %}selected{% endif %}>Incluir bots</option>
+          </select>
+        </div>
+
+        <div class="col-md-3 d-grid">
+          <button type="submit" class="btn btn-primary">Generar reporte</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div class="card shadow-sm border-0">
+    <div class="table-responsive">
+      <table class="table table-hover align-middle mb-0 tabla-tracking">
+        <thead class="table-light">
+          <tr>
+            <th>#</th>
+            <th>Ciudad</th>
+            <th>País</th>
+            <th class="text-end">Total visitas</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for item in reporte %}
+          <tr>
+            <td>{{ forloop.counter }}</td>
+            <td>{{ item.ciudad }}</td>
+            <td>{{ item.pais|default:"-" }}</td>
+            <td class="text-end">{{ item.total_visitas }}</td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="4" class="text-center py-4 text-muted">
+              No se encontraron registros para ese rango de fechas.
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<style>
+.tabla-tracking {
+    font-size: 0.88rem;
+}
+
+.tabla-tracking th {
+    font-size: 0.82rem;
+    font-weight: 600;
+}
+
+.tabla-tracking td {
+    padding: 7px 10px;
+}
+</style>
+{% endblock %}

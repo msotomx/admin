@@ -6,6 +6,7 @@ from . import views
 from core.views import CustomLoginView
 from django.urls import reverse_lazy
 from core.views import sign_inicial_view, logOutUsuario
+from core.views import registro
 from core.views import setup_tenant
 from core.views import MenuStaffView
 from core.views import StaffEmpresaListView, exportar_empresas_excel
@@ -66,7 +67,8 @@ urlpatterns = [
     ),
     path('empresa/inactiva/', views.empresa_inactiva, name='empresa_inactiva'),
     path('empresa/sin_empresa/', views.sin_empresa, name='sin_empresa'),
-    path('registro/', sign_inicial_view, name='sign_inicial'),
+    #path('registro/', sign_inicial_view, name='sign_inicial'),
+    path('registro/', registro, name='registro'),
     path('setup-tenant/', setup_tenant, name='setup_tenant'),
     path('menu-staff/', MenuStaffView.as_view(), name='menu_staff'),
     path('staff-empresas/', StaffEmpresaListView.as_view(), name='staff_empresa_list'),
@@ -88,5 +90,6 @@ urlpatterns = [
     path("staff-empresas/num-usuarios/", EmpresaNumUsuariosListView.as_view(), name="staff_empresa_num_usuarios_list"),
     path("staff-empresas/<str:codigo_empresa>/editar-num-usuarios/", EmpresaNumUsuariosUpdateView.as_view(), name="staff_empresa_num_usuarios_update"),
     path("config/cotizacion/", ConfiguracionCotizacionUpdateView.as_view(), name="configuracion_cotizacion"),
+    # Landing Page
+    path("landing/", views.landing, name="landing"),
 ]
-

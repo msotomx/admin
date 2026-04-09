@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <title>Bienvenido a Switchh</title>
+</head>
+<body style="margin:0; padding:0; background:#f4f6f8; font-family:Arial, sans-serif; color:#1f2937;">
+  
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#f4f6f8; padding:30px 0;">
+    <tr>
+      <td align="center">
+
+        <table width="100%" cellpadding="0" cellspacing="0" style="max-width:600px; background:#ffffff; border-radius:14px; overflow:hidden;">
+
+          <!-- HEADER -->
+          <tr>
+            <td style="background:linear-gradient(135deg, #0D3B66 0%, #0B355C 35%, #072845 65%, #031826 100%); padding:34px; text-align:center;">
+              <img src="https://switchh.mx/static/img/logo-switchh.png" alt="Switchh" style="max-height:54px; margin-bottom:12px;">
+              <h1 style="margin:0; color:#ffffff; font-size:26px;">Bienvenido a Switchh</h1>
+            </td>
+          </tr>
+
+          <!-- BODY -->
+          <tr>
+            <td style="padding:34px 32px;">
+
+              <p style="margin-top:0; font-size:16px;">
+                Hola <strong>{{ nombre }}</strong>,
+              </p>
+
+              <p style="font-size:15px; line-height:1.6;">
+                Tu cuenta fue creada correctamente. Ya puedes empezar a utilizar el sistema Switchh.
+              </p>
+
+              <!-- DATOS -->
+              <table width="100%" cellpadding="0" cellspacing="0" style="margin:20px 0; background:#f8fafc; border:1px solid #e5e7eb; border-radius:10px;">
+                <tr>
+                  <td style="padding:18px;">
+                    <p style="margin:0 0 10px 0; font-size:15px;">
+                      <strong>Nombre comercial:</strong> {{ nombre_comercial }}
+                    </p>
+                    <p style="margin:0; font-size:15px;">
+                      <strong>Usuario:</strong> {{ email }}
+                    </p>
+                  </td>
+                </tr>
+              </table>
+
+              <!-- BOTONES -->
+              <table width="100%" cellpadding="0" cellspacing="0" style="margin:30px 0;">
+                <tr>
+                  <td align="center">
+
+                    <!-- BOTÓN LOGIN -->
+                    <a href="{{ login_url }}"
+                       style="display:inline-block; background:#0D3B66; color:#ffffff; text-decoration:none; padding:14px 26px; border-radius:10px; font-weight:bold; margin-bottom:12px;">
+                      Iniciar sesión
+                    </a>
+
+                  </td>
+                </tr>
+
+                {% if whatsapp_url %}
+                <tr>
+                  <td align="center">
+
+                    <!-- BOTÓN WHATSAPP -->
+                    <a href="{{ whatsapp_url }}"
+                       style="display:inline-block; background:#25D366; color:#ffffff; text-decoration:none; padding:12px 26px; border-radius:10px; font-weight:bold;">
+                      Escríbenos por WhatsApp
+                    </a>
+
+                  </td>
+                </tr>
+                {% endif %}
+              </table>
+
+              <!-- TEXTO FINAL -->
+              <p style="font-size:14px; color:#6b7280; line-height:1.6;">
+                Si necesitas ayuda para comenzar, nuestro equipo está listo para apoyarte.
+              </p>
+
+              <p style="font-size:14px; color:#6b7280; line-height:1.6;">
+                Si tú no realizaste este registro, puedes ignorar este mensaje.
+              </p>
+
+              <p style="font-size:14px; color:#6b7280; margin-bottom:0;">
+                Gracias,<br>
+                <strong>Equipo Switchh•Sistemas</strong>
+              </p>
+
+            </td>
+          </tr>
+
+        </table>
+
+      </td>
+    </tr>
+  </table>
+
+</body>
+</html>

@@ -53,6 +53,8 @@ def reconfigurar_conexion_tenant(alias: str, nueva_config: dict, *, allow_defaul
     # No llamamos ensure_connection: que conecte lazy cuando se use
     return True
     
+import logging    
+logger = logging.getLogger(__name__)
 
 class TenantMiddleware(MiddlewareMixin):
     def process_request(self, request):
@@ -111,7 +113,8 @@ class TenantMiddleware(MiddlewareMixin):
             empresa_fiscal = Empresa.objects.using(alias).first()
             empresa_f = empresa_fiscal.nombre_comercial
         except Exception as e:
-            print(f"❌ Error al conectar a la base de datos '{alias}': {e}")
+            logger.warning("Error al conectar a la base tenant '%s'", alias)
+            
 
         # Guardar en _thread_locals
         set_current_tenant(alias, empresa_id, empresa_f)

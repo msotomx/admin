@@ -7,3 +7,5 @@ psycopg[binary]
 gunicorn==21.2.0
 openpyxl
 django-ses
+geoip2
+maxminddb

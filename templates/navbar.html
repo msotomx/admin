@@ -3,7 +3,7 @@
       style="background-color:#0D3B66 !important;">  <!-- bg-dark -->
   <div class="container-fluid">
     <!-- Nombre de la Empresa de context_processors-->
-     <a class="navbar-brand" href="#">
+     <a class="navbar-brand" href="{% url 'core:inicio' %}">
       {% if user.is_authenticated %}
           {% if empresa_actual %}
               {{ empresa_actual|truncatechars:30 }}

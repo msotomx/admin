@@ -1,0 +1,242 @@
+{% extends "base_registro.html" %}
+{% load static %}
+
+{% block content %}
+
+{% load static %}
+
+<div class="container-fluid min-vh-100 registro-page">
+  <div class="row min-vh-100 g-0">
+
+    <!-- PANEL IZQUIERDO (SOLO DESKTOP) -->
+    <div class="col-lg-6 d-none d-lg-flex registro-left position-relative overflow-hidden">
+      <div class="registro-overlay"></div>
+
+      <div class="registro-left-content position-relative z-2 w-100 px-5 py-5">
+        <div class="mb-5">
+          <img src="{% static 'img/logo-switchh.png' %}" style="max-height: 60px;" class="mb-4">
+
+          <h1 class="display-5 fw-bold mb-3">
+            Administra tu empresa con una plataforma moderna
+          </h1>
+
+          <p class="fs-5 text-white-50 mb-4">
+            Controla ventas, inventario y facturación desde cualquier lugar.
+          </p>
+        </div>
+
+        <div class="beneficio-card mb-3">
+          <div class="beneficio-icon">✓</div>
+          <div>
+            <strong>Empieza en minutos</strong><br>
+            <small class="text-white-50">Crea tu cuenta y entra al sistema sin procesos complicados.</small>
+          </div>
+        </div>
+
+        <div class="beneficio-card mb-3">
+          <div class="beneficio-icon">✓</div>
+          <div>
+            <strong>Acceso en la nube</strong><br>
+            <small class="text-white-50">Trabaja desde oficina, sucursal o celular.</small>
+          </div>
+        </div>
+
+        <div class="beneficio-card">
+          <div class="beneficio-icon">✓</div>
+          <div>
+            <strong>Primeros 30 días completamente gratis</strong><br>
+            <small class="text-white-50">Sin tarjeta, sin compromiso y listo para probar desde hoy.</small>
+          </div>
+        </div>
+        <div class="beneficio-card">
+          <div class="beneficio-icon">✓</div>
+          <div>
+            <strong>Precios especiales para apoyar a las PyMEs en México</strong><br>
+            <small class="text-white-50">Prueba Switchh•Sistemas sin compromiso, te sorprenderás del precio</small>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- PANEL DERECHO -->
+    <div class="col-lg-6 d-flex align-items-center justify-content-center registro-right px-3 py-4">
+      <div class="registro-form-wrapper w-100">
+
+        <!-- HERO MOVIL -->
+        <div class="d-lg-none mobile-hero mb-4">
+          <div class="mobile-hero-box position-relative overflow-hidden">
+            <div class="registro-overlay"></div>
+
+            <div class="position-relative z-2 text-white p-4 text-center">
+              <img src="{% static 'img/logo-switchh.png' %}" style="max-height: 64px;" class="mb-3">
+
+              <h4 class="fw-bold mb-2"> </h4>
+              <p class="small text-white-50 mb-3">
+                Controla tu empresa desde cualquier lugar
+              </p>
+
+              <div class="small text-white-50">
+                ✓ Fácil de usar<br>
+                ✓ Acceso en la nube<br>
+                ✓ Primeros 30 días completamente gratis
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- CARD FORM -->
+        <div class="card registro-card border-0 shadow-lg">
+          <div class="card-body p-4 p-md-5">
+
+            <div class="text-center mb-4">
+              <h2 class="fw-bold mb-2">Crear cuenta</h2>
+              <p class="text-muted">Empieza hoy mismo y administra tu empresa en minutos</p>
+            </div>
+
+            <!-- MENSAJES -->
+            {% if messages %}
+              {% for message in messages %}
+                <div class="alert alert-{{ message.tags|default:'info' }}">
+                  {{ message }}
+                </div>
+              {% endfor %}
+            {% endif %}
+
+            <form method="post">
+              {% csrf_token %}
+
+              <div class="mb-3">
+                <label class="form-label">Nombre Comercial</label>
+                <input type="text" name="nombre_comercial"
+                  class="form-control registro-input"
+                  value="{{ data.nombre_comercial|default:'' }}"
+                  placeholder="Ej. Refaccionaria El Norte" required>
+              </div>
+
+              <div class="mb-3">
+                <label class="form-label">Tu Nombre</label>
+                <input type="text" name="nombre"
+                  class="form-control registro-input"
+                  value="{{ data.nombre|default:'' }}"
+                  placeholder="Ej. Juan Pérez" required>
+              </div>
+
+              <div class="mb-3">
+                <label class="form-label">Email</label>
+                <input type="email" name="email"
+                  class="form-control registro-input"
+                  value="{{ data.email|default:'' }}"
+                  placeholder="ejemplo@correo.com" required>
+              </div>
+
+              <div class="mb-3">
+                <label class="form-label">Contraseña</label>
+                <input type="password" name="password"
+                  class="form-control registro-input"
+                  placeholder="Mínimo 8 caracteres" required>
+              </div>
+
+              <button type="submit" class="btn registro-btn w-100">
+                Crear cuenta gratis
+              </button>
+
+            </form>
+
+            <p class="text-center mt-3">
+              ¿Ya tienes cuenta?
+              <a href="{% url 'core:login' %}">Iniciar sesión</a>
+            </p>
+
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<style>
+/* FONDO */
+.registro-page {
+  background: #f5f7fb;
+}
+
+/* PANEL IZQUIERDO */
+.registro-left {
+  background: linear-gradient(
+    135deg,
+    #0D3B66 0%,
+    #0B355C 35%,
+    #072845 65%,
+    #031826 100%
+  );
+  color: #fff;
+}
+
+.registro-overlay {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at 20% 20%, rgba(255,255,255,.08), transparent 25%),
+    radial-gradient(circle at 80% 30%, rgba(255,255,255,.06), transparent 25%);
+}
+
+/* BENEFICIOS */
+.beneficio-card {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  padding: 1rem;
+  border-radius: 16px;
+  background: rgba(255,255,255,.08);
+}
+
+.beneficio-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: rgba(255,255,255,.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* FORM */
+.registro-form-wrapper {
+  max-width: 480px;
+}
+
+.registro-card {
+  border-radius: 20px;
+}
+
+.registro-input {
+  border-radius: 12px;
+  padding: 0.6rem 0.8rem;
+  font-size: 1rem;
+}
+
+.registro-btn {
+  border-radius: 12px;
+  padding: 0.7rem;
+  font-size: 1rem;
+  background: linear-gradient(135deg, #0D3B66, #0A2F52);
+  border: none;
+  color: white;
+}
+
+/* MOBILE HERO */
+.mobile-hero-box {
+  background: linear-gradient(
+    135deg,
+    #0D3B66 0%,
+    #0B355C 35%,
+    #072845 65%,
+    #031826 100%
+  );
+  border-radius: 20px;
+}
+</style>
+{% endblock %}

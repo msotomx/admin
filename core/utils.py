@@ -39,7 +39,7 @@ def cargar_datos_iniciales(db_alias):
     if not MetodoPago.objects.using(db_alias).exists():
         MetodoPago.objects.using(db_alias).bulk_create([
             MetodoPago(metodo_pago='PUE', nombre='Pago en una sola exhibición'),
-            MetodoPago(metodo_pago='PDD', nombre='Pago en parcialidades o diferido'),
+            MetodoPago(metodo_pago='PPD', nombre='Pago en parcialidades o diferido'),
         ])
 
     if not UsoCfdi.objects.using(db_alias).exists():
@@ -177,3 +177,48 @@ def info_renovacion(empresa):
         "cel_wa_link": cel_wa_link,
         "codigo_empresa": getattr(empresa, "codigo_empresa", ""),
     }
+
+
+from django.conf import settings
+from django.core.mail import EmailMultiAlternatives
+from django.template.loader import render_to_string
+from django.urls import reverse
+
+
+def enviar_email_bienvenida(request, nombre, email, nombre_comercial):
+    asunto = "Bienvenido a Switchh"
+    login_url = request.build_absolute_uri(reverse("core:login"))
+
+    numero_wa = getattr(settings, "WA_EN_EMAIL", "").strip()
+    mensaje = "Hola, acabo de crear mi cuenta en Switchh y necesito ayuda"
+    whatsapp_url = f"https://wa.me/{numero_wa}?text={mensaje.replace(' ', '%20')}"
+    
+    contexto = {
+        "nombre": nombre,
+        "email": email,
+        "nombre_comercial": nombre_comercial,
+        "login_url": login_url,
+        "whatsapp_url": whatsapp_url,
+        "numero_wa": numero_wa,
+    }
+
+    html_content = render_to_string("emails/bienvenida_switchh.html", contexto)
+
+    text_content = (
+        f"Hola {nombre},\n\n"
+        f"Tu cuenta fue creada correctamente en Switchh.\n\n"
+        f"Nombre comercial: {nombre_comercial}\n"
+        f"Usuario: {email}\n"
+        f"Inicia sesión aquí: {login_url}\n"
+        + (f"Soporte por WhatsApp: {whatsapp_url}\n" if whatsapp_url else "")
+        + "\nBienvenido a Switchh."
+    )
+
+    mensaje = EmailMultiAlternatives(
+        subject=asunto,
+        body=text_content,
+        from_email=settings.DEFAULT_FROM_EMAIL,
+        to=[email],
+    )
+    mensaje.attach_alternative(html_content, "text/html")
+    mensaje.send(fail_silently=False)

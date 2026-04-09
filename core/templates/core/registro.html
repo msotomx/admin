@@ -1,0 +1,396 @@
+{% extends "base_registro.html" %}
+{% load static %}
+
+{% block content %}
+{% load static %}
+
+<div class="container-fluid registro-page min-vh-100">
+  <div class="row g-0 min-vh-100">
+
+    <!-- IZQUIERDA DESKTOP version 08/abril/2026-->
+    <div class="col-lg-6 d-none d-lg-flex registro-left">
+      <div class="registro-left-inner">
+        <img src="{% static 'img/logo-switchh.png' %}" alt="Switchh" class="registro-logo mb-4">
+
+        <span class="registro-pill mb-3">30 días gratis • Sin tarjeta</span>
+
+        <h1 class="registro-left-title mb-3">
+          Controla inventario, ventas y facturación desde un solo lugar
+        </h1>
+
+        <p class="registro-left-text mb-4">
+          Switchh simplifica la operación de tu empresa y te ayuda a trabajar con más orden, rapidez y control.
+        </p>
+
+        <div class="registro-left-list">
+          <div class="registro-left-item">✓ Compras, cotización, remisión y facturación electrónica
+              <small class="text-white-50">Inventario actualizado en tiempo real - multialmacenes -.</small>            
+          </div>
+          <div class="registro-left-item">✓ Herramienta rápida y muy fácil de usar<br>
+              <small class="text-white-50"> Switchh es muy intuitivo, puedes consultar movimientos 
+                                            desde cualquier dispositivo y lugar.</small>            
+          </div>
+          
+          <div class="registro-left-item">✓ ¿Cuántos puntos de venta y almacenes manejas?<br>
+              <small class="text-white-50">Con Switchh no hay límite de almacenes, puedes consultar existencias, 
+                                           compras, ventas, remisiones, traspasos y facturas de cada almacen</small>
+          </div>
+
+          <div class="registro-left-item">✓ Primeros 30 días completamente gratis<br>
+            <small class="text-white-50">   Sin tarjeta, sin compromiso y listo para probar desde hoy.</small>
+          </div>
+          <div class="registro-left-item">✓ Precios especiales para apoyar a las PyMEs en México<br>
+            <small class="text-white-50">Prueba Switchh sin compromiso, después el precio es de $67 pesos mensuales.</small>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- DERECHA -->
+    <div class="col-lg-6 d-flex align-items-center justify-content-center px-3 py-4">
+      <div class="registro-wrap w-100">
+
+        <!-- HERO MOVIL NUEVO: MUCHO MÁS COMPACTO -->
+        <div class="d-lg-none registro-mobile-top mb-3 text-center">
+          <img src="{% static 'img/logo-switchh-azul-transparente.png' %}" alt="Switchh" class="registro-logo-mobile mb-2">
+          <h2 class="registro-mobile-title mb-2">Empieza gratis hoy</h2>
+          <p class="registro-mobile-subtitle mb-0">
+            Tu sistema queda listo en minutos
+          </p>
+        </div>
+
+        <!-- CARD -->
+        <div class="card registro-card border-0 shadow-lg">
+          <div class="card-body p-4 p-md-5">
+
+            <!-- BENEFICIOS MOVIL / SUPERIOR -->
+            <div class="registro-benefits-strip d-lg-none mb-3">
+              <div>✓ 30 días completamente gratis</div>
+              <div>✓ Sin tarjeta</div>
+              <div>✓ El precio posterior es de $67 pesos mensuales</div>
+              <div>✓ Acceso inmediato</div>
+            </div>
+
+            <div class="text-center mb-4">
+              <h3 class="registro-form-title mb-2">Crea tu cuenta</h3>
+              <p class="registro-form-subtitle mb-0">
+                Empieza a usar Switchh en menos de 2 minutos
+              </p>
+            </div>
+
+            {% if messages %}
+              {% for message in messages %}
+                <div class="alert alert-{{ message.tags|default:'info' }} py-2 small">
+                  {{ message }}
+                </div>
+              {% endfor %}
+            {% endif %}
+
+            <form method="post">
+              {% csrf_token %}
+
+              <div class="mb-3">
+                <label class="form-label registro-label">Nombre Comercial</label>
+                <input
+                  type="text"
+                  name="nombre_comercial"
+                  class="form-control registro-input"
+                  value="{{ data.nombre_comercial|default:'' }}"
+                  placeholder="Ej. Refaccionaria El Norte"
+                  required
+                >
+              </div>
+
+              <div class="mb-3">
+                <label class="form-label registro-label">Tu Nombre</label>
+                <input
+                  type="text"
+                  name="nombre"
+                  class="form-control registro-input"
+                  value="{{ data.nombre|default:'' }}"
+                  placeholder="Ej. Juan Pérez"
+                  required
+                >
+              </div>
+
+              <div class="mb-3">
+                <label class="form-label registro-label">Email</label>
+                <input
+                  type="email"
+                  name="email"
+                  class="form-control registro-input"
+                  value="{{ data.email|default:'' }}"
+                  placeholder="ejemplo@correo.com"
+                  required
+                >
+              </div>
+
+              <div class="mb-3">
+                <label class="form-label registro-label">Contraseña</label>
+                <input
+                  type="password"
+                  name="password"
+                  class="form-control registro-input"
+                  placeholder="Mínimo 8 caracteres"
+                  required
+                >
+              </div>
+
+              <button type="submit" class="btn registro-btn w-100">
+                Crear cuenta gratis
+              </button>
+
+              <div class="registro-trust-box mt-3">
+                <div class="registro-trust-main">Sin tarjeta • Sin compromiso</div>
+                <div class="registro-trust-small">
+                  Oferta de prueba gratuita por tiempo limitado
+                </div>
+              </div>
+            </form>
+
+            <!-- BLOQUE NUEVO DE CONFIANZA -->
+            <div class="registro-proof mt-4">
+              <div class="registro-proof-title">¿Por qué probar Switchh?</div>
+              <div class="registro-proof-text">
+                Porque está diseñado para simplificar compras, ventas, inventario y facturación en empresas en México.
+              </div>
+            </div>
+
+            <div class="text-center mt-4">
+              <p class="small mb-0">
+                ¿Ya tienes cuenta?
+                <a href="{% url 'core:login' %}" class="fw-semibold text-decoration-none">Iniciar sesión</a>
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- MICRO PRUEBA SOCIAL MOVIL -->
+        <div class="d-lg-none registro-footer-mini text-center mt-3">
+          Sistema administrativo especializado para PyMES en México
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  .registro-page {
+    background: linear-gradient(180deg, #f7f9fc 0%, #eef3f8 100%);
+  }
+
+  .registro-left {
+    background: linear-gradient(
+      135deg,
+      #0D3B66 0%,
+      #0B355C 35%,
+      #072845 65%,
+      #031826 100%
+    );
+    color: #fff;
+    align-items: center;
+    justify-content: center;
+    padding: 3rem;
+  }
+
+  .registro-left-inner {
+    max-width: 560px;
+  }
+
+  .registro-logo {
+    max-height: 64px;
+  }
+
+  .registro-pill {
+    display: inline-block;
+    background: rgba(255,255,255,.12);
+    border: 1px solid rgba(255,255,255,.18);
+    color: #fff;
+    padding: .55rem .9rem;
+    border-radius: 999px;
+    font-size: .92rem;
+    font-weight: 600;
+  }
+
+  .registro-left-title {
+    font-size: clamp(2rem, 3vw, 3.2rem);
+    line-height: 1.1;
+    font-weight: 800;
+  }
+
+  .registro-left-text {
+    font-size: 1.08rem;
+    color: rgba(255,255,255,.78);
+  }
+
+  .registro-left-list {
+    display: grid;
+    gap: .85rem;
+  }
+
+  .registro-left-item {
+    background: rgba(255,255,255,.08);
+    border: 1px solid rgba(255,255,255,.12);
+    border-radius: 14px;
+    padding: .95rem 1rem;
+    font-weight: 500;
+  }
+
+  .registro-wrap {
+    max-width: 460px;
+  }
+
+  .registro-card {
+    border-radius: 22px;
+    overflow: hidden;
+  }
+
+  .registro-mobile-top {
+    padding-top: .2rem;
+  }
+
+  .registro-logo-mobile {
+    max-height: 44px;
+  }
+
+  .registro-mobile-title {
+    font-size: 1.55rem;
+    font-weight: 800;
+    color: #142133;
+  }
+
+  .registro-mobile-subtitle {
+    color: #66788a;
+    font-size: .95rem;
+  }
+
+  .registro-benefits-strip {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: .4rem;
+    text-align: center;
+    background: #eef5fb;
+    border: 1px solid #dce8f3;
+    border-radius: 14px;
+    padding: .8rem .7rem;
+    font-size: .88rem;
+    font-weight: 600;
+    color: #0D3B66;
+  }
+
+  .registro-form-title {
+    font-size: 1.55rem;
+    font-weight: 800;
+    color: #132133;
+  }
+
+  .registro-form-subtitle {
+    color: #6c7b8a;
+    font-size: .96rem;
+  }
+
+  .registro-label {
+    font-size: .87rem;
+    font-weight: 600;
+    margin-bottom: .35rem;
+    color: #213244;
+  }
+
+  .registro-input {
+    border-radius: 12px;
+    border: 1px solid #d8e1ea;
+    padding: .78rem .9rem;
+    font-size: 1rem;
+    box-shadow: none;
+  }
+
+  .registro-input:focus {
+    border-color: #0D3B66;
+    box-shadow: 0 0 0 .18rem rgba(13, 59, 102, 0.12);
+  }
+
+  .registro-btn {
+    border-radius: 14px;
+    padding: .92rem 1rem;
+    font-size: 1rem;
+    font-weight: 700;
+    background: linear-gradient(135deg, #0D3B66, #0A2F52);
+    border: none;
+    color: white;
+    box-shadow: 0 12px 24px rgba(13, 59, 102, 0.20);
+  }
+
+  .registro-btn:hover {
+    color: white;
+  }
+
+  .registro-trust-box {
+    text-align: center;
+  }
+
+  .registro-trust-main {
+    font-size: .88rem;
+    color: #6a7887;
+    font-weight: 600;
+  }
+
+  .registro-trust-small {
+    font-size: .83rem;
+    color: #c0392b;
+    font-weight: 600;
+    margin-top: .2rem;
+  }
+
+  .registro-proof {
+    background: #f8fbfe;
+    border: 1px solid #e2ebf4;
+    border-radius: 14px;
+    padding: 1rem;
+    text-align: center;
+  }
+
+  .registro-proof-title {
+    font-weight: 700;
+    color: #0D3B66;
+    margin-bottom: .35rem;
+    font-size: .96rem;
+  }
+
+  .registro-proof-text {
+    color: #647688;
+    font-size: .88rem;
+    line-height: 1.45;
+  }
+
+  .registro-footer-mini {
+    font-size: .8rem;
+    color: #6f8091;
+  }
+
+  @media (min-width: 992px) {
+    .registro-benefits-strip {
+      display: none;
+    }
+  }
+
+  @media (max-width: 991.98px) {
+    .registro-wrap {
+      max-width: 100%;
+    }
+
+    .registro-card {
+      border-radius: 18px;
+    }
+
+    .card-body {
+      padding: 1.2rem !important;
+    }
+
+    .registro-input {
+      padding: .82rem .9rem;
+    }
+  }
+</style>
+{% endblock %}

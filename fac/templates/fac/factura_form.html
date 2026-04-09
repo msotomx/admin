@@ -261,7 +261,7 @@
 
         </div>
 
-        <div class="mt-0 text-end">
+        <div class="mt-0">
             {% if form.instance.estatus == "Borrador" or form.instance.estatus == "Error" %}
                 {% if form.instance.pk %}
                     <button id="btn-timbrar" data-url="{% url 'fac:timbrar_factura' form.instance.pk %}" class="btn btn-warning" type="button">

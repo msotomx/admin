@@ -17,6 +17,7 @@ import os
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
+GEOIP_PATH = BASE_DIR / "geoip"
 # Quick-start development settings - unsuitable for production
 
 # SECURITY WARNING: keep the secret key used in production secret!
@@ -37,6 +38,7 @@ INSTALLED_APPS = [
     'fac',
     'timbres',
     'ayuda',
+    'tracking',
     'widget_tweaks',
     'django.contrib.admin',
     'django.contrib.auth',
@@ -232,4 +234,6 @@ SECURE_PROXY_SSL_HEADER = tuple(config(
 SECURE_SSL_REDIRECT = config('SECURE_SSL_REDIRECT')
 
 CELULAR = config('CEL_WA')
+WA_EN_EMAIL=config('WA_EN_EMAIL')
+SITE_URL = config('SITE_URL')
 

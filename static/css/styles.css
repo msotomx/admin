@@ -69,6 +69,14 @@
 
   }
 
+.landing-header {
+  position: absolute;
+  top: 0;
+  width: 100%;
+  z-index: 10;
+  padding: 15px 0;
+}
+
 @media print {
     .print-header {
         position: fixed;
